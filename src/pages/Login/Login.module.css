@@ -1,0 +1,187 @@
+.authContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f8fafc;
+    padding: 2rem;
+  }
+  
+  .authForm {
+    background: white;
+    padding: 3rem; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
+    width: 100%;
+    max-width: 500px; 
+  }
+  
+  .authTitle {
+    font-size: 2rem; 
+    font-weight: bold;
+    margin-bottom: 2rem; 
+    text-align: center;
+    color: #1e293b;
+  }
+  
+  .formGroup {
+    margin-bottom: 1.5rem; 
+  }
+  
+  .formInput {
+    width: 100%;
+    padding: 1rem; 
+    border: 1px solid #e2e8f0;
+    border-radius: 8px; 
+    font-size: 1.1rem; 
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+  
+  }
+  
+  .formInput:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  }
+  
+  .errorMessage {
+    color: #ef4444;
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+  }
+  
+  .submitButton {
+    width: 100%;
+    background-color: #2563eb;
+    color: white;
+    padding: 1rem; 
+    border: none;
+    border-radius: 8px; 
+    font-size: 1.1rem; 
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 1rem;
+  }
+  
+  .submitButton:hover {
+    background-color: #1d4ed8;
+  }
+  
+  .submitButton:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+  }
+  
+  .authFooter {
+    margin-top: 2rem; /* مسافة أكبر */
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+  }
+  
+  .authLink {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+  
+  .authLink:hover {
+    color: #1e40af;
+    text-decoration: underline;
+  }/* إزالة الخلفية الملونة وجعلها شفافة */
+.authContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background-color: transparent; 
+}
+  
+  .authForm {
+    background: white;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+    margin-left:500px;
+ 
+  }
+  
+  .authTitle {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: #1e293b;
+  }
+  
+  .formGroup {
+    margin-bottom: 1.5rem;
+  }
+  
+  .formInput {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .formInput:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  }
+  
+  .errorMessage {
+    color: #ef4444;
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+  }
+  
+  .submitButton {
+    width: 100%;
+    background-color: #2563eb;
+    color: white;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 1rem;
+  }
+  
+  .submitButton:hover {
+    background-color: #1d4ed8;
+  }
+  
+  .submitButton:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+  }
+  
+  .authFooter {
+    margin-top: 2rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+  }
+  
+  .authLink {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+  
+  .authLink:hover {
+    color: #1e40af;
+    text-decoration: underline;
+  }
