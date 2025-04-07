@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const HomePage = () => {
   // Sample data for projects with images
   const topRatedProjects = [
-    { id: 1, title: 'Project A', rating: 4.8, image: 'https://via.placeholder.com/150' },
-    { id: 2, title: 'Project B', rating: 4.7, image: 'https://via.placeholder.com/150' },
-    { id: 3, title: 'Project C', rating: 4.6, image: 'https://via.placeholder.com/150' },
+    { id: 1, title: 'Project A', rating: 4.8, image: 'https://www.pexels.com/photo/a-group-of-volunteers-assisting-an-elderly-person-on-a-black-wheelchair-for-charity-6646917/' },
+    { id: 2, title: 'Project B', rating: 4.7, image: 'https://www.pexels.com/photo/a-group-of-volunteers-assisting-an-elderly-person-on-a-black-wheelchair-for-charity-6646917/' },
+    { id: 3, title: 'Project C', rating: 4.6, image: 'https://www.pexels.com/photo/a-group-of-volunteers-assisting-an-elderly-person-on-a-black-wheelchair-for-charity-6646917/' },
   ];
 
   const latestProjects = [
-    { id: 4, title: 'Project D', image: 'https://via.placeholder.com/150' },
-    { id: 5, title: 'Project E', image: 'https://via.placeholder.com/150' },
+    { id: 4, title: 'Project D', image: 'https://www.pexels.com/photo/a-group-of-volunteers-assisting-an-elderly-person-on-a-black-wheelchair-for-charity-6646917/' },
+    { id: 5, title: 'Project E', image: 'https://www.pexels.com/photo/a-group-of-volunteers-assisting-an-elderly-person-on-a-black-wheelchair-for-charity-6646917/' },
   ];
 
   const featuredProjects = [
-    { id: 6, title: 'Project F', image: 'https://via.placeholder.com/150' },
-    { id: 7, title: 'Project G', image: 'https://via.placeholder.com/150' },
+    { id: 6, title: 'Project F', image: 'https://www.pexels.com/photo/a-group-of-volunteers-assisting-an-elderly-person-on-a-black-wheelchair-for-charity-6646917/' },
+    { id: 7, title: 'Project G', image: 'https://www.pexels.com/photo/a-group-of-volunteers-assisting-an-elderly-person-on-a-black-wheelchair-for-charity-6646917/' },
   ];
 
   const categories = ['Health', 'Education', 'Technology', 'Environment'];
@@ -31,13 +32,13 @@ const HomePage = () => {
       <nav>
         <h1>Crowd-Funding Platform</h1>
         <ul>
-          <li>Home</li>
-          <li>Projects</li>
-          <li>Categories</li>
-          <li>About</li>
-          <li>Contact</li>
-          <li>Login</li>
-          <li>Register</li>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/">Projects</Link></li>
+          <li><Link to="/">Categories</Link></li>
+          <li><Link to="/">About</Link></li>
+          <li><Link to="/">Contact</Link></li>
+          <li><Link to="/login">Login</Link></li>
+          <li><Link to="/register">Register</Link></li>
         </ul>
         <input
           type="text"

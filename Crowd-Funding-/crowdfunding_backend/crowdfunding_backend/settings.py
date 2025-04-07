@@ -184,4 +184,18 @@ ACCOUNT_EMAIL_CONFIRMATION_HMAC = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React frontend URL
+    "http://localhost:5173",  # Vite frontend URL
+]
+
+# Add CORS middleware at the top
+MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # Add this line
+    "django.middleware.common.CommonMiddleware",  # Keep this line
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
