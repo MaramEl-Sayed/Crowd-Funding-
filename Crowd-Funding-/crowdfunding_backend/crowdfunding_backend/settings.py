@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-^p93g4bb)c-dv2si9xq(m&*g^f5-^l#8imemwt!(_s_k(#68u7"
+SECRET_KEY = 'django-insecure-^p93g4bb)c-dv2si9xq(m&*g^f5-^l#8imemwt!(_s_k(#68u7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -63,6 +63,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  
+
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -73,11 +75,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = [
 
-    "http://localhost:3000",
-
-]
 ROOT_URLCONF = "crowdfunding_backend.urls"
 
 TEMPLATES = [
@@ -165,13 +163,16 @@ REST_FRAMEWORK = {
 }
 
 
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "areghagag449@gmail.com"
-EMAIL_HOST_PASSWORD = "tpzkernydnnotpyt "
+EMAIL_HOST_USER = "crowdfunding449@gmail.com"
+EMAIL_HOST_PASSWORD = "fngwxnftkzvxhjen"
 
 
 ACCOUNT_EMAIL_REQUIRED = True
@@ -187,15 +188,3 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Vite frontend URL
 ]
 
-# Add CORS middleware at the top
-MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # Add this line
-    "django.middleware.common.CommonMiddleware",  # Keep this line
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
-]
