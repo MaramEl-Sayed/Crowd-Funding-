@@ -13,6 +13,7 @@ const Activate = () => {
       try {
         await authAPI.activate(uidb64, token);
         toast.success('Account activated successfully! You can now login.');
+        window.dispatchEvent(new Event('storage'));
         navigate('/login');
       } catch (error) {
         toast.error(error.error || 'Activation failed. The link may be invalid or expired.');

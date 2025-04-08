@@ -102,6 +102,7 @@ export const authAPI = {
           const data = await response.json();
           localStorage.setItem('accessToken', data.access);
           localStorage.setItem('refreshToken', data.refresh);
+          window.dispatchEvent(new Event('storage'));
           return data;
         } catch (error) {
           throw error;

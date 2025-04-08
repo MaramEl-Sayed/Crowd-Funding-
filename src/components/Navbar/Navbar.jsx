@@ -22,6 +22,7 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    window.dispatchEvent(new Event('storage'));
     window.location.href = '/login';
   };
 
