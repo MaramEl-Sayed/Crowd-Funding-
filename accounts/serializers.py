@@ -39,7 +39,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         send_mail(
             "Activate Your Account",
             f"Click the link to activate: {activation_link}",
-            "areghagag449@gmail.com",
+            "crowdfunding449@gmail.com",
             [user.email],
         )
 
