@@ -1,0 +1,12 @@
+Subject: Welcome to Django Social Auth - Confirm Your Email
+
+Hello {{ user.email }},
+
+Thank you for signing up with Django Social Auth! To complete your registration, please confirm your email address by clicking the link below:
+
+{{ activate_url }}
+
+If you did not sign up for this account, you can ignore this email.
+
+Best regards,
+The Django Social Auth Team

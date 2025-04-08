@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block content %}
+<h1>Welcome</h1>
+{% if user.is_authenticated %}
+<p>Hello, {{ user.email }}!</p>
+<a href="{% url 'dashboard' %}">Go to Dashboard</a>
+<a href="{% url 'account_logout' %}">Logout</a>
+{% else %}
+ <p>
+    <a href="{% provider_login_url 'facebook' %}">Login with Facebook</a>
+</p>
+<p>
+    <a href="{% provider_login_url 'google' %}">Login with Google</a>
+</p>
+<p>
+    <a href="{% url 'account_login' %}">Login with Email</a>
+</p>
+<p>
+    <a href="{% url 'account_signup' %}">Sign Up</a>
+</p>
+<p>
+    <a href="{% url 'account_reset_password' %}">Forgot Password?</a>
+</p>
+{% endif %}
+{% endblock %}
