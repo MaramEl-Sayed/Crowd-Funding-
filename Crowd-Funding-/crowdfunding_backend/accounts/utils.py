@@ -10,7 +10,7 @@ def  send_activation_email(user):
     send_mail(
         'Activate Your Account',
         f'Click this link to activate: {activiation_link}',
-        'areghagag449@gmail.com',
+        'crowdfunding449@gmail.com',
         [user.email],
         fail_silently=False,
     )
