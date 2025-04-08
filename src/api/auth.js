@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api/auth/', 
+    baseURL: 'http://localhost:8000/api/accounts/', 
     headers: {
       'Content-Type': 'application/json',
     },
@@ -87,7 +87,7 @@ export const authAPI = {
    
     login: async (credentials) => {
         try {
-          const response = await fetch('http://localhost:8000/api/auth/login/', {
+          const response = await fetch('http://localhost:8000/api/accounts/login/', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ export const authAPI = {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) throw new Error('No refresh token available');
 
-      const response = await fetch('http://localhost:8000/api/auth/refresh/', {
+      const response = await fetch('http://localhost:8000/api/accounts/refresh/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
