@@ -43,3 +43,27 @@ class ProjectAPITest(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+
+class ProjectCancelTest(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.client.force_authenticate(user=self.user)
+        self.project = Project.objects.create(
+            title="Test Project",
+            details="Test Details",
+            category="Tech",
+            total_target=1000,
+            owner=self.user
+        )
+
+    def test_cancel_project(self):
+        # Ensure the project can be cancelled
+        response = self.client.post(f"/projects/{self.project.id}/cancel/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check that the project is marked as inactive
+        self.project.refresh_from_db()
+        self.assertFalse(self.project.is_active)

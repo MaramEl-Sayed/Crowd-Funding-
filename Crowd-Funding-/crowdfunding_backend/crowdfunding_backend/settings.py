@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -188,3 +189,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Vite frontend URL
 ]
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),   
+    'ROTATE_REFRESH_TOKENS': False,                 # Set to True if you want to rotate refresh tokens
+    'BLACKLIST_AFTER_ROTATION': True,               # Blacklist old refresh tokens after rotation
+    'ALGORITHM': 'HS256',                           # Algorithm used for signing the token
+    'SIGNING_KEY': SECRET_KEY,                      # Key used for signing the token
+    'AUTH_HEADER_TYPES': ('Bearer',),               # Authorization header prefix
+}
