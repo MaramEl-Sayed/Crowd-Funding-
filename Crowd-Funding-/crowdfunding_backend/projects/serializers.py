@@ -10,17 +10,23 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
+# In serializers.py
+
 class ProjectSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source="owner.username")
     tags = TagSerializer(many=True, read_only=True)
-    tags_ids = serializers.PrimaryKeyRelatedField( queryset=Tag.objects.all(), many=True, write_only=True, source='tags' )
+    tags_ids = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True, write_only=True, source='tags')
+    average_rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
         fields = [
             'id', 'title', 'details', 'category', 'total_target', 'start_time',
-            'end_time', 'image', 'slug', 'is_active', 'owner', 'tags', 'tags_ids'
+            'end_time', 'image', 'slug', 'is_active', 'owner', 'tags', 'tags_ids', 'average_rating'
         ]
+
+    def get_average_rating(self, obj):
+        return obj.average_rating()
 
 
 

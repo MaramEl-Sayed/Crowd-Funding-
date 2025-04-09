@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils.text import slugify
-
+from decimal import Decimal
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -42,6 +42,18 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def total_donations(self):
+        return sum(donation.amount for donation in self.donations.all())
+
+    def can_be_cancelled(self):
+        return self.total_donations() < (Decimal('0.25') * self.total_target)
+    
+    def average_rating(self):
+        ratings = self.ratings.all()
+        if not ratings:
+            return None
+        return round(sum(rating.value for rating in ratings) / len(ratings), 2)
 
 
 class Donation(models.Model):
