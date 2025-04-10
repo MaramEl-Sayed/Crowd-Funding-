@@ -8,6 +8,7 @@ const api = axios.create({
   },
 });
 
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -108,6 +109,31 @@ export const authAPI = {
     }
   },
 
+
+  login: async (credentials) => {
+    try {
+      const response = await fetch('http://localhost:8000/api/accounts/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        throw await response.json();
+      }
+
+      const data = await response.json();
+      localStorage.setItem('accessToken', data.access);
+      localStorage.setItem('refreshToken', data.refresh);
+      window.dispatchEvent(new Event('storage'));
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   activate: async (uidb64, token) => {
     try {
       const response = await api.get(`/activate/${uidb64}/${token}/`);
@@ -161,6 +187,7 @@ refreshAccessToken: async () => {
       },
       body: JSON.stringify({ refresh: refreshToken }),
     });
+
 
     if (!response.ok) {
       throw new Error('Failed to refresh access token');
