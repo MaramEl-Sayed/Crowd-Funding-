@@ -7,6 +7,7 @@ import Register from './pages/Register/Register';
 import Home from './pages/Home/Home';
 import Activate from './pages/Activate/Activate';
 import styles from './App.module.css';
+import ProjectDetails from './pages/Home/ProjectDetails';
 
 function App() {
   return (
@@ -15,13 +16,15 @@ function App() {
         <Navbar />
         <main className={styles.mainContent}>
           <Routes>
-            
+
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/activate/:uidb64/:token" element={<Activate />} />
-            <Route path="/home" element={<Home />} /> 
+            <Route path="/home" element={<Home />} />
+            <Route path="/projects/:id" element={<ProjectDetails />} />
+
             <Route path="/" element={<Login />} />
-            
+
           </Routes>
         </main>
         <ToastContainer position="bottom-right" />
