@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -27,7 +26,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,34 +35,66 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'django.contrib.sites',
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework.authtoken",
     "dj_rest_auth",
-    'django.contrib.sites',
+    'dj_rest_auth.registration',
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.facebook",  # Facebook Login
+    "allauth.socialaccount.providers.google",   # Google provider
     "corsheaders",
-
     "accounts.apps.AccountsConfig",
-
     "projects.apps.ProjectsConfig",
-
     "comments.apps.CommentsConfig",
-
     "donations.apps.DonationsConfig",
-
     "ratings.apps.RatingsConfig",
-
     "reports.apps.ReportsConfig",
-
 ]
 
-MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  
 
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'APP': {
+            'client_id': '75773251008-89sei1vuligu58shbmup4f5ttqq097o5.apps.googleusercontent.com',  # From Google Cloud Console
+            'secret': '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',  # From Google Cloud Console
+        }
+    },
+    'facebook': {
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'FIELDS': [
+            'id',
+            'email',
+            'name',
+            'first_name',
+            'last_name',
+        ],
+        'EXCHANGE_TOKEN': True,
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v13.0',
+        'APP': {
+            'client_id': '1004483484552046',  # From Meta Developer Portal
+            'secret': '628fb68c0b385a64d3e5c16d7d3fd03e',  # From Meta Developer Portal
+        }
+    }
+}
+
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'jwt-auth',
+    'REGISTER_SERIALIZER': 'accounts.serializers.RegisterSerializer',  # Use your custom serializer
+}
+
+MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -72,9 +102,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
+    'allauth.account.middleware.AccountMiddleware',  # Required for django-allauth
 ]
-
 
 ROOT_URLCONF = "crowdfunding_backend.urls"
 
@@ -95,17 +124,19 @@ TEMPLATES = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",  
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',  # Required for django-allauth
 ]
-WSGI_APPLICATION = "crowdfunding_backend.wsgi.application"
 
+SITE_ID = 1  # Required for django-allauth
+
+WSGI_APPLICATION = "crowdfunding_backend.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {  
+    "default": {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'crowdfunding',
         'USER': 'postgres',
@@ -113,9 +144,7 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
     }
-    
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -130,7 +159,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
-    ]
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -142,7 +171,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -162,29 +190,37 @@ REST_FRAMEWORK = {
     ],
 }
 
-
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "crowdfunding449@gmail.com"
 EMAIL_HOST_PASSWORD = "fngwxnftkzvxhjen"
+DEFAULT_FROM_EMAIL = "crowdfunding449@gmail.com"  # Added for email sending
 
-
-ACCOUNT_EMAIL_REQUIRED = True
+# Django-Allauth settings
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']  # Replaced ACCOUNT_EMAIL_REQUIRED
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 ACCOUNT_EMAIL_CONFIRMATION_HMAC = True
 
+# Custom Allauth adapters
+ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
+
+# Frontend URL for email links
+FRONTEND_URL = "http://localhost:3000"  # Added for activation and password reset links
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React frontend URL
     "http://localhost:5173",  # Vite frontend URL
-]
+    "https://3f22-156-206-125-147.ngrok-free.app" # Ngrok URL for testing
 
+]
