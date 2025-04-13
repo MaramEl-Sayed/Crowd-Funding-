@@ -1,15 +1,12 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const getCSRFToken = () => {
-  return document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1];
-};
+
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/api/accounts/',
   headers: {
     'Content-Type': 'application/json',
-    'X-CSRFToken': getCSRFToken(), // Add CSRF token to headers
   },
   baseURL: 'http://localhost:8000/api/accounts/',
   headers: {
