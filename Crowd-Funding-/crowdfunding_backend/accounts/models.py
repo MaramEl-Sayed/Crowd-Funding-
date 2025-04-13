@@ -30,7 +30,7 @@ class CustomUserManager(BaseUserManager):
 class User(AbstractUser):
     username = models.CharField(
         max_length=30,
-        unique=True,
+        unique=False,
         blank=False,
         validators=[
             RegexValidator(
@@ -42,7 +42,9 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     mobile_phone = models.CharField(
         max_length=11,
-        unique=True,
+        unique=False,
+        null=True,
+        blank=True,
         validators=[
             RegexValidator(
                 regex=r'^01[0-2,5]{1}[0-9]{8}$',

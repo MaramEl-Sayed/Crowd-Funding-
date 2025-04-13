@@ -1,15 +1,13 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const getCSRFToken = () => {
-  return document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1];
-};
+
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/api/accounts/',
   headers: {
     'Content-Type': 'application/json',
-    'X-CSRFToken': getCSRFToken(), // Add CSRF token to headers
+   
   },
   baseURL: 'http://localhost:8000/api/accounts/',
   headers: {
@@ -154,6 +152,7 @@ export const authAPI = {
       const response = await api.post('/login/google/', data);
       localStorage.setItem('accessToken', response.data.access);
       localStorage.setItem('refreshToken', response.data.refresh);
+      window.dispatchEvent(new Event('storage')); // Add storage event
       return response.data;
     } catch (error) {
       throw error.response?.data || { error: 'Google login failed' };

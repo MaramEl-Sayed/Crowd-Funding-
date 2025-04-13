@@ -187,10 +187,22 @@ def google_login(request):
                 {'error': 'Email not provided by Google'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        user, created = User.objects.get_or_create(
-            email=user_info['email'],
-            defaults={'username': user_info['name'], 'is_active': True}
-        )
+        # First try to get existing user
+        try:
+            user = User.objects.get(email=user_info['email'])
+            # Ensure existing user is activated
+            if not user.is_activated:
+                user.is_activated = True
+                user.save()
+        except User.DoesNotExist:
+            # Create new user if doesn't exist
+            user = User.objects.create(
+                email=user_info['email'],
+                username=user_info.get('name', user_info['email'].split('@')[0]),
+                is_active=True,
+                is_activated=True,  # Explicitly activate social login users
+                mobile_phone=None
+            )
         
         refresh = RefreshToken.for_user(user)
         return Response({
