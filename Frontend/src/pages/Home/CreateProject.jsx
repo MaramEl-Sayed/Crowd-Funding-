@@ -14,6 +14,7 @@ const CreateProject = () => {
         start_time: '',
         end_time: '',
         image: null,
+        is_active: true,
     });
     const [categories, setCategories] = useState([]);
     const [error, setError] = useState(null);

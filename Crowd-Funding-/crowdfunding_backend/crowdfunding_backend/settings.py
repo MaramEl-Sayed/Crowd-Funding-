@@ -11,6 +11,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+import os
+from dotenv import load_dotenv
+from urllib.parse import urlparse
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -224,3 +230,13 @@ CORS_ALLOWED_ORIGINS = [
     "https://3f22-156-206-125-147.ngrok-free.app" # Ngrok URL for testing
 
 ]
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),   
+    'ROTATE_REFRESH_TOKENS': False,                 # Set to True if you want to rotate refresh tokens
+    'BLACKLIST_AFTER_ROTATION': True,               # Blacklist old refresh tokens after rotation
+    'ALGORITHM': 'HS256',                           # Algorithm used for signing the token
+    'SIGNING_KEY': SECRET_KEY,                      # Key used for signing the token
+    'AUTH_HEADER_TYPES': ('Bearer',),               # Authorization header prefix
+}
