@@ -131,9 +131,10 @@ const ProjectDetails = () => {
                     </button>
                     <button
                         onClick={() => navigate(`/projects/${id}/donate`)}
-                        className="bg-green-500 text-white p-3 rounded-md hover:bg-green-600 transition duration-200"
+                        className={`${project.total_donations >= project.total_target ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white p-3 rounded-md transition duration-200`}
+                        disabled={project.total_donations >= project.total_target}
                     >
-                        Donate
+                        {project.total_donations >= project.total_target ? 'Target Reached' : 'Donate'}
                     </button>
                 </div>
             </div>
