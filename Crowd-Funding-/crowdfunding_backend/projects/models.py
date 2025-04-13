@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.utils.text import slugify
 from decimal import Decimal
 
@@ -70,11 +69,11 @@ class Donation(models.Model):
         return f"{self.user.username} donated {self.amount} to {self.project.title}"
     
 class Comment(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="comments") 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) 
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="projects_comments") 
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="projects_comments") 
     text = models.TextField() 
     created_at = models.DateTimeField(auto_now_add=True) 
-    parent = models.ForeignKey( "self", null=True, blank=True, on_delete=models.CASCADE, related_name="replies" )
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name="replies")
     def __str__(self):
         return f"{self.user.username} on {self.project.title}"
     
@@ -98,4 +97,3 @@ class Rating(models.Model):
         unique_together = ("project", "user")
     def __str__(self):
         return f"{self.user.username} rated {self.project.title} - {self.value}"
-  
