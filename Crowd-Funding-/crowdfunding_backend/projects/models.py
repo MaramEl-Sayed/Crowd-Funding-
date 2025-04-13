@@ -43,6 +43,9 @@ class Project(models.Model):
     def __str__(self):
         return self.title
     
+    def donations(self):
+        return self.donations.all()
+
     def total_donations(self):
         return sum(donation.amount for donation in self.donations.all())
 

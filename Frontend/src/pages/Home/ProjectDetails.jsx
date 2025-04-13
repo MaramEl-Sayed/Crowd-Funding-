@@ -61,6 +61,22 @@ const ProjectDetails = () => {
                 <p className="text-gray-600 mb-2"><strong>Total Target:</strong> ${project.total_target}</p>
                 <p className="text-gray-600 mb-2"><strong>Start:</strong> {new Date(project.start_time).toLocaleDateString()} - <strong>End:</strong> {new Date(project.end_time).toLocaleDateString()}</p>
                 <p className="text-gray-600 mb-4"><strong>Average Rating:</strong> {project.average_rating || 'No ratings yet'}</p>
+                
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-blue-50 p-4 rounded-lg text-center">
+                    <h3 className="text-xl font-bold text-blue-600">${project.total_donations}</h3>
+                    <p className="text-gray-600">Raised of ${project.total_target}</p>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg text-center">
+                    <h3 className="text-xl font-bold text-purple-600">${project.remaining_amount}</h3>
+                    <p className="text-gray-600">Remaining</p>
+                  </div>
+                  <div className="bg-pink-50 p-4 rounded-lg text-center">
+                    <h3 className="text-xl font-bold text-pink-600">{project.progress_percentage}%</h3>
+                    <p className="text-gray-600">Funded</p>
+                  </div>
+                </div>
+
                 <div className="flex flex-wrap gap-2 mb-4">
                     <strong className="text-gray-600">Tags:</strong>
                     {project.tags.map(tag => (
@@ -69,6 +85,37 @@ const ProjectDetails = () => {
                         </span>
                     ))}
                 </div>
+
+                <div className="mb-6">
+                  <h2 className="text-xl font-bold mb-4 text-gray-800">Recent Donations</h2>
+                  {project.donations.length > 0 ? (
+                    <div className="space-y-3">
+                      {project.donations.map(donation => (
+                        <div key={donation.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center">
+                            {donation.user_avatar && (
+                              <img 
+                                src={donation.user_avatar} 
+                                alt={donation.user} 
+                                className="w-8 h-8 rounded-full mr-3"
+                              />
+                            )}
+                            <span className="text-gray-700">{donation.user}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-bold text-green-600">${donation.amount}</span>
+                            <p className="text-xs text-gray-500">
+                              {new Date(donation.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No donations yet. Be the first to support this project!</p>
+                  )}
+                </div>
+
                 <div className="flex justify-between">
                     <button
                         onClick={handleCancelProject}

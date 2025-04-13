@@ -30,7 +30,10 @@ class ProjectDetailUpdateDeleteView(APIView):
     def get(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
         serializer = ProjectSerializer(project)
-        return Response(serializer.data)
+        donations = DonationSerializer(project.donations.all(), many=True)
+        response_data = serializer.data
+        response_data['donations'] = donations.data
+        return Response(response_data)
 
     def put(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
@@ -89,11 +92,21 @@ class DonationCreateView(APIView):
         serializer = DonationSerializer(data=request.data)
         if serializer.is_valid():
             project = serializer.validated_data['project']
+            amount = serializer.validated_data['amount']
+            
             if not project.is_active:
                 return Response(
                     {'detail': 'Donations cannot be made to a canceled project.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            remaining_amount = project.total_target - project.total_donations()
+            if amount > remaining_amount:
+                return Response(
+                    {'detail': f'Donation exceeds remaining project target. Maximum allowed: {remaining_amount}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
