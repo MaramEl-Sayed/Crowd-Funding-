@@ -1,3 +1,4 @@
+import requests
 from django.shortcuts import render
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -9,7 +10,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.conf import settings
-from rest_framework.views import APIView  # Correct import for APIView
+from rest_framework.views import APIView
+from allauth.socialaccount.models import SocialAccount
 from .models import User
 from .serializers import RegisterSerializer
 
@@ -94,7 +96,7 @@ class PasswordResetRequestView(APIView):
         return Response({'message': 'Password reset email sent'}, status=status.HTTP_200_OK)
 
 # Password reset confirmation view
-class PasswordResetConfirmView(APIView):  # Fixed: ApiView -> APIView
+class PasswordResetConfirmView(APIView):
     def post(self, request):
         uidb64 = request.data.get('uid')
         token = request.data.get('token')
@@ -115,3 +117,86 @@ class PasswordResetConfirmView(APIView):  # Fixed: ApiView -> APIView
             return Response({'message': 'Password reset successful'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+
+# Social login views
+@api_view(['POST'])
+def facebook_login(request):
+    try:
+        access_token = request.data.get('access_token')
+        if not access_token:
+            return Response({'error': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify token with Facebook and get user info
+        response = requests.get(f'https://graph.facebook.com/me?access_token={access_token}&fields=id,name,email')
+        if response.status_code != 200:
+            return Response({'error': 'Invalid Facebook access token'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_info = response.json()
+        # Handle case where name might not be provided
+        username = user_info.get('name', user_info['email'].split('@')[0])
+        
+        # Create user without phone number if not provided
+        user, created = User.objects.get_or_create(
+            email=user_info['email'],
+            defaults={
+                'username': username,
+                'is_active': True,
+                'mobile_phone': None  # Explicitly set to None to avoid empty string
+            }
+        )
+        
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def google_login(request):
+    try:
+        token = request.data.get('access_token')
+        token_type = request.data.get('token_type', 'access_token')
+        
+        if not token:
+            return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Handle both access tokens and ID tokens
+        if token_type == 'id_token':
+            # Verify ID token
+            response = requests.get(
+                f'https://oauth2.googleapis.com/tokeninfo?id_token={token}'
+            )
+        else:
+            # Verify access token
+            response = requests.get(
+                f'https://www.googleapis.com/oauth2/v3/userinfo?access_token={token}'
+            )
+
+        if response.status_code != 200:
+            return Response(
+                {'error': 'Invalid Google token'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user_info = response.json()
+        if not user_info.get('email'):
+            return Response(
+                {'error': 'Email not provided by Google'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        user, created = User.objects.get_or_create(
+            email=user_info['email'],
+            defaults={'username': user_info['name'], 'is_active': True}
+        )
+        
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

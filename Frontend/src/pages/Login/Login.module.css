@@ -1,0 +1,158 @@
+
+/* Main container */
+.authContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f8fa;
+  padding: 20px;
+}
+
+/* Form styling */
+.authForm {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 400px;
+}
+
+.authTitle {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #2d3748;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Form elements */
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.formInput:focus {
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+}
+
+.errorMessage {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Buttons */
+.submitButton {
+  width: 100%;
+  padding: 0.75rem;
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitButton:hover {
+  background: #3182ce;
+}
+
+.submitButton:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* Social login */
+.socialLogin {
+  margin: 1.5rem 0;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  color: #718096;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.divider::before {
+  margin-right: 1rem;
+}
+
+.divider::after {
+  margin-left: 1rem;
+}
+
+.socialButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  color: #4a5568;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.socialButton:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+}
+
+/* Footer links */
+.authFooter {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #718096;
+}
+
+.authLink {
+  color: #4299e1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.authLink:hover {
+  text-decoration: underline;
+}
+
+/* Loading spinner */
+.loadingSpinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

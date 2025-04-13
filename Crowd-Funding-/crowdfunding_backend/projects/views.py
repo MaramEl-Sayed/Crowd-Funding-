@@ -50,11 +50,50 @@ class ProjectDetailUpdateDeleteView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+
+class ProjectCancelView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, id=project_id)
+
+        if project.owner != request.user:
+            raise PermissionDenied("You do not have permission to cancel this project.")
+
+        if not project.can_be_cancelled():
+            return Response(
+                {"detail": "Project cannot be cancelled as donations exceed 25% of the target."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        project.is_active = False
+        project.save()
+
+        return Response({"detail": "Project has been cancelled."}, status=status.HTTP_200_OK)
+    
+# class DonationCreateView(APIView): 
+#     permission_classes = [permissions.IsAuthenticated]
+#     def post(self, request):
+#         serializer = DonationSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save(user=request.user)
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# In views.py
+
 class DonationCreateView(APIView): 
     permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request):
         serializer = DonationSerializer(data=request.data)
         if serializer.is_valid():
+            project = serializer.validated_data['project']
+            if not project.is_active:
+                return Response(
+                    {'detail': 'Donations cannot be made to a canceled project.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
