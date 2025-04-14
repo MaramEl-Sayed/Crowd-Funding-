@@ -34,7 +34,7 @@ const ProjectDetails = () => {
                 const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/`);
                 setProject(response.data);
                 setAverageRating(response.data.average_rating);
-                fetchSimilarProjects(response.data.tags.map(tag => tag.id));
+                fetchSimilarProjects();
                 fetchComments();
             } catch (err) {
                 setError(err);
@@ -43,15 +43,12 @@ const ProjectDetails = () => {
             }
         };
 
-        const fetchSimilarProjects = async (tagIds) => {
-            if (!tagIds || tagIds.length === 0) {
-                setSimilarProjects([]);
-                return;
-            }
+        const fetchSimilarProjects = async () => {
             setSimilarLoading(true);
             setSimilarError(null);
             try {
-                const response = await axios.post(`http://localhost:8000/api/projects/projects/${id}/similar/`, { tags: tagIds });
+                const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/similar/`);
+                console.log('Similar projects data:', response.data);
                 setSimilarProjects(response.data);
             } catch (err) {
                 setSimilarError('Failed to load similar projects.');
@@ -73,8 +70,8 @@ const ProjectDetails = () => {
             }
         };
         if(id){
-        fetchProjectDetails(id);
-        fetchProjectDetails(id);}
+            fetchProjectDetails(id);
+        }
     }, [id]);
 
     const postComment = async (parentId = null) => {
@@ -300,6 +297,42 @@ const ProjectDetails = () => {
                             {tag.name}
                         </span>
                     ))}
+                </div>
+
+                {/* Similar Projects Section */}
+                <div className="mb-6">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Similar Projects</h2>
+                    {similarLoading && <p>Loading similar projects...</p>}
+                    {similarError && <p className="text-red-500">{similarError}</p>}
+                    {!similarLoading && similarProjects.length === 0 && <p>No similar projects found.</p>}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {similarProjects.map(similar => {
+                            const imageUrl = similar.image && (similar.image.startsWith('http') ? similar.image : `http://localhost:8000${similar.image}`);
+                            return (
+                                <Link
+                                    key={similar.id}
+                                    to={`/projects/${similar.id}`}
+                                    className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition duration-200"
+                                >
+                                    {imageUrl ? (
+                                        <img
+                                            src={imageUrl}
+                                            alt={similar.title}
+                                            className="w-full h-40 object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-500">
+                                            No Image
+                                        </div>
+                                    )}
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-semibold text-blue-600">{similar.title}</h3>
+                                        <p className="text-gray-600 text-sm truncate">{similar.details}</p>
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 <div className="mb-6">
