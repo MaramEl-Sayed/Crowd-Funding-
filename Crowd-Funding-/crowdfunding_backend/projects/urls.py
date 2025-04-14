@@ -1,13 +1,21 @@
 from django.urls import path
-from .views import ( ProjectListCreateView, ProjectDetailUpdateDeleteView, TagListView, DonationCreateView, CommentListCreateView, ReportCreateView, RatingCreateView, ProjectRatingAverageView, ProjectCancelView )
+from .views import (
+    ProjectListCreateView, ProjectDetailUpdateDeleteView, TagListView,
+    DonationCreateView, CommentListCreateView, ReportCreateView,
+    RatingCreateView, ProjectRatingAverageView, ProjectCancelView,
+    UserDonationsView  # Add this import
+)
 
 app_name = "projects"
 
-urlpatterns = [ 
-    #Project endpoints 
+urlpatterns = [
+    # Project endpoints
     path("projects/", ProjectListCreateView.as_view(), name="project-list-create"),
     path("projects/<int:project_id>/", ProjectDetailUpdateDeleteView.as_view(), name="project-detail-update-delete"),
     path("projects/<int:project_id>/cancel/", ProjectCancelView.as_view(), name="project-cancel"),
+
+    # User's donations
+    path("my-donations/", UserDonationsView.as_view(), name="user-donations"),
 
     # Tags
     path("tags/", TagListView.as_view(), name="tag-list"),
@@ -24,6 +32,6 @@ urlpatterns = [
     # Ratings
     path("ratings/", RatingCreateView.as_view(), name="rating-create"),
 
-    path("projects/<int:project_id>/ratings/average/", ProjectRatingAverageView.as_view(), name="project-average-rating"),
-
-    ]
+    path("projects/<int:project_id>/ratings/average/", ProjectRatingAverageView.as_view(),
+         name="project-average-rating"),
+]

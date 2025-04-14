@@ -13,11 +13,11 @@ class Tag(models.Model):
 
 class Project(models.Model):
     CATEGORY_CHOICES = [
-        ("Tech", "Technology"),
+        ("Technology", "Technology"),
         ("Health", "Health"),
         ("Education", "Education"),
         ("Art", "Art"),
-        ("Other", "Other"),
+
     ]
 
     owner = models.ForeignKey(

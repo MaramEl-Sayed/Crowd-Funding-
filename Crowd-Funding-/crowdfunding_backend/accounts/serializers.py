@@ -40,3 +40,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"Failed to send activation email: {str(e)}")
 
         return user
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'mobile_phone', 'profile_picture']
+        read_only_fields = ['email']  # Email cannot be updated

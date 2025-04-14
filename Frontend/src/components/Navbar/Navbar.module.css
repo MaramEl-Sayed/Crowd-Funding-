@@ -1,6 +1,5 @@
 /* Navbar.module.css */
 .navbar {
-  /* position: fixed; */
   top: 0;
   left: 0;
   right: 0;
@@ -34,6 +33,16 @@
   color: #333;
   text-decoration: none;
   padding: 0.5rem 1rem;
+  transition: color 0.2s ease; /* Smooth color transition for hover */
+}
+
+.navLink:hover {
+  color: #3b82f6; /* Lighter blue on hover */
+}
+
+.navLink.active {
+  color: #2563eb; /* Primary blue when active */
+  font-weight: 500; /* Slightly bolder for emphasis */
 }
 
 .registerButton {
@@ -42,6 +51,16 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   text-decoration: none;
+  transition: background-color 0.2s ease; /* Smooth background transition for hover */
+}
+
+.registerButton:hover {
+  background-color: #3b82f6; /* Lighter blue on hover */
+}
+
+.registerButton.active {
+  background-color: #1d4ed8; /* Darker blue when active */
+  font-weight: 500;
 }
 
 .logoutButton {
@@ -51,4 +70,9 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.2s ease; /* Smooth transition for hover */
+}
+
+.logoutButton:hover {
+  background-color: #f87171; /* Lighter red on hover */
 }

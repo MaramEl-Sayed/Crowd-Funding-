@@ -7,14 +7,20 @@ from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
 from .models import Project, Tag, Donation, Comment, Report, Rating
 from .serializers import (
-ProjectSerializer, TagSerializer, DonationSerializer,
-CommentSerializer, ReportSerializer, RatingSerializer
+    ProjectSerializer, TagSerializer, DonationSerializer,
+    CommentSerializer, ReportSerializer, RatingSerializer
 )
 
-class ProjectListCreateView(APIView):   
+
+class ProjectListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
     def get(self, request):
-        projects = Project.objects.all()
+        # If the user is authenticated, show only their projects; otherwise, show all projects
+        if request.user.is_authenticated:
+            projects = Project.objects.filter(owner=request.user)
+        else:
+            projects = Project.objects.all()
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
@@ -25,8 +31,12 @@ class ProjectListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ProjectDetailUpdateDeleteView(APIView): 
+
+# ... (rest of the file remains unchanged)
+
+class ProjectDetailUpdateDeleteView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
     def get(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
         serializer = ProjectSerializer(project)
@@ -53,7 +63,6 @@ class ProjectDetailUpdateDeleteView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
 class ProjectCancelView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -73,19 +82,9 @@ class ProjectCancelView(APIView):
         project.save()
 
         return Response({"detail": "Project has been cancelled."}, status=status.HTTP_200_OK)
-    
-# class DonationCreateView(APIView): 
-#     permission_classes = [permissions.IsAuthenticated]
-#     def post(self, request):
-#         serializer = DonationSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(user=request.user)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# In views.py
 
-class DonationCreateView(APIView): 
+class DonationCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -93,26 +92,28 @@ class DonationCreateView(APIView):
         if serializer.is_valid():
             project = serializer.validated_data['project']
             amount = serializer.validated_data['amount']
-            
+
             if not project.is_active:
                 return Response(
                     {'detail': 'Donations cannot be made to a canceled project.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             remaining_amount = project.total_target - project.total_donations()
             if amount > remaining_amount:
                 return Response(
                     {'detail': f'Donation exceeds remaining project target. Maximum allowed: {remaining_amount}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class CommentListCreateView(APIView): 
+
+class CommentListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
     def get(self, request, project_id):
         comments = Comment.objects.filter(project__id=project_id, parent__isnull=True)
         serializer = CommentSerializer(comments, many=True)
@@ -121,25 +122,28 @@ class CommentListCreateView(APIView):
     def post(self, request):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)  # assign current user
+            serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class ReportCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request):
         serializer = ReportSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class RatingCreateView(APIView): 
+
+
+class RatingCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request):
         serializer = RatingSerializer(data=request.data)
         if serializer.is_valid():
-            # Check if this user already rated this project
             project = serializer.validated_data['project']
             if Rating.objects.filter(project=project, user=request.user).exists():
                 return Response({'detail': 'You have already rated this project.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -147,8 +151,10 @@ class RatingCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ProjectRatingAverageView(APIView): 
+
+class ProjectRatingAverageView(APIView):
     permission_classes = [permissions.AllowAny]
+
     def get(self, request, project_id):
         ratings = Rating.objects.filter(project__id=project_id)
         if not ratings.exists():
@@ -156,13 +162,20 @@ class ProjectRatingAverageView(APIView):
         average = round(sum(r.value for r in ratings) / len(ratings), 2)
         return Response({"average_rating": average})
 
-class TagListView(APIView): 
+
+class TagListView(APIView):
     permission_classes = [permissions.AllowAny]
+
     def get(self, request):
         tags = Tag.objects.all()
         serializer = TagSerializer(tags, many=True)
         return Response(serializer.data)
 
+# Add this at the end of projects/views.py
+class UserDonationsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-
-
+    def get(self, request):
+        donations = Donation.objects.filter(user=request.user)
+        serializer = DonationSerializer(donations, many=True)
+        return Response(serializer.data)

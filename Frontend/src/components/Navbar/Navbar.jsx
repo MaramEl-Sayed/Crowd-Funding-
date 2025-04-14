@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom'; // Use NavLink instead of Link
 import { useEffect, useState } from 'react';
 import { authAPI } from '../../api/auth';
 import styles from './Navbar.module.css';
@@ -7,10 +7,8 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-   
     setUser(authAPI.getCurrentUser());
-    
-   
+
     const handleStorageChange = () => {
       setUser(authAPI.getCurrentUser());
     };
@@ -29,27 +27,50 @@ const Navbar = () => {
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContainer}>
-        <Link to="/" className={styles.navBrand}>
+        <NavLink to="/" className={styles.navBrand}>
           AuthApp
-        </Link>
+        </NavLink>
         <div className={styles.navLinks}>
           {user ? (
             <>
-              <Link to="/home" className={styles.navLink}>
+              <NavLink
+                to="/home"
+                className={({ isActive }) =>
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+                }
+              >
                 Home
-              </Link>
+              </NavLink>
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+                }
+              >
+                Profile
+              </NavLink>
               <button onClick={handleLogout} className={styles.logoutButton}>
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className={styles.navLink}>
+              <NavLink
+                to="/login"
+                className={({ isActive }) =>
+                  isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+                }
+              >
                 Login
-              </Link>
-              <Link to="/register" className={styles.registerButton}>
+              </NavLink>
+              <NavLink
+                to="/register"
+                className={({ isActive }) =>
+                  isActive ? `${styles.registerButton} ${styles.active}` : styles.registerButton
+                }
+              >
                 Register
-              </Link>
+              </NavLink>
             </>
           )}
         </div>
@@ -57,6 +78,5 @@ const Navbar = () => {
     </nav>
   );
 };
-
 
 export default Navbar;
