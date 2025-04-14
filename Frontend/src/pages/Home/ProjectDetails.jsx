@@ -9,6 +9,7 @@ const ProjectDetails = () => {
     const navigate = useNavigate();
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [similarProjects, setSimilarProjects] = useState([]);
     const [userRating, setUserRating] = useState(0);
     const [averageRating, setAverageRating] = useState(0);
     const [error, setError] = useState(null);
@@ -160,6 +161,31 @@ const ProjectDetails = () => {
                   ) : (
                     <p className="text-gray-500">No donations yet. Be the first to support this project!</p>
                   )}
+                </div>
+
+                {/* Similar Projects Section */}
+                <div className="mb-6">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Similar Projects</h2>
+                    {similarProjects.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {similarProjects.slice(0, 4).map(project => (
+                                <div key={project.id} 
+                                     className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
+                                     onClick={() => navigate(`/projects/${project.id}`)}>
+                                    <h3 className="font-bold text-lg mb-2">{project.title}</h3>
+                                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">{project.details}</p>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-blue-600 font-medium">${project.total_donations} raised</span>
+                                        <span className="text-yellow-500">
+                                            {project.average_rating ? '★'.repeat(Math.round(project.average_rating)) : 'Not rated'}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-gray-500">No similar projects found</p>
+                    )}
                 </div>
 
                 <div className="flex justify-between">

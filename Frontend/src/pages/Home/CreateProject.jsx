@@ -17,6 +17,8 @@ const CreateProject = () => {
         is_active: true,
     });
     const [categories, setCategories] = useState([]);
+    const [tags, setTags] = useState([]);
+    const [selectedTags, setSelectedTags] = useState([]);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -31,7 +33,17 @@ const CreateProject = () => {
             }
         };
 
+        const fetchTags = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/tags/');
+                setTags(response.data);
+            } catch (err) {
+                console.error('Error fetching tags:', err);
+            }
+        };
+
         fetchCategories();
+        fetchTags();
     }, []);
 
     const handleChange = (e) => {
@@ -43,6 +55,14 @@ const CreateProject = () => {
         }
     };
 
+    const handleTagChange = (tagId) => {
+        setSelectedTags(prevSelected => 
+            prevSelected.includes(tagId) 
+                ? prevSelected.filter(id => id !== tagId) 
+                : [...prevSelected, tagId]
+        );
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -50,6 +70,7 @@ const CreateProject = () => {
         for (const key in formData) {
             formDataToSend.append(key, formData[key]);
         }
+        selectedTags.forEach(tag => formDataToSend.append('tags', tag));
 
         try {
             await axios.post('http://localhost:8000/api/projects/projects/', formDataToSend, {
@@ -167,6 +188,49 @@ const CreateProject = () => {
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             accept="image/*"
                         />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-semibold mb-2">Tags</label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {selectedTags.map(tagId => {
+                                const tag = tags.find(t => t.id === tagId);
+                                return tag ? (
+                                    <span 
+                                        key={tagId}
+                                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center"
+                                    >
+                                        {tag.name}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleTagChange(tagId)}
+                                            className="ml-2 text-blue-600 hover:text-blue-800"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ) : null;
+                            })}
+                        </div>
+                        <select
+                            value=""
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    handleTagChange(e.target.value);
+                                    e.target.value = "";
+                                }
+                            }}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Select tags to add...</option>
+                            {tags
+                                .filter(tag => !selectedTags.includes(tag.id))
+                                .map(tag => (
+                                    <option key={tag.id} value={tag.id}>
+                                        {tag.name}
+                                    </option>
+                                ))}
+                        </select>
+                        <p className="text-sm text-gray-500 mt-1">Select tags that describe your project</p>
                     </div>
                     <button
                         type="submit"
