@@ -30,7 +30,7 @@ const Navbar = () => {
     <nav className={styles.navbar}>
       <div className={styles.navContainer}>
         <NavLink to="/home" className={styles.navBrand}>
-          AuthApp
+          Crowd Funding
         </NavLink>
         <div className={styles.navLinks}>
           {user ? (
