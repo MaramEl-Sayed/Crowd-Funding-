@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaCheckCircle, FaExclamationCircle, FaSpinner } from 'react-icons/fa';
+import { FaCheckCircle, FaSpinner } from 'react-icons/fa';
+import Alert from '../../alert/Alert';
 
 const CreateProject = () => {
     const token = localStorage.getItem('accessToken');
@@ -17,7 +18,6 @@ const CreateProject = () => {
         is_active: true,
     });
     const [categories, setCategories] = useState([]);
-    const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -58,12 +58,12 @@ const CreateProject = () => {
                     'Authorization': `Bearer ${token}`,
                 },
             });
+            Alert.success('Success', 'Project created successfully!');
             setSuccess(true);
-            setError(null);
             navigate('/home');
         } catch (err) {
-            setError(err.response ? err.response.data : 'Error creating project');
-            setSuccess(false);
+            const errorMessage = err.response ? JSON.stringify(err.response.data.detail) : 'Error creating project';
+            Alert.error('Error', errorMessage);
             console.log(err);
         } finally {
             setLoading(false);
@@ -78,12 +78,6 @@ const CreateProject = () => {
                     <div className="flex items-center justify-center mb-4 text-green-500">
                         <FaCheckCircle className="mr-2" />
                         <p>Project created successfully!</p>
-                    </div>
-                )}
-                {error && (
-                    <div className="flex items-center justify-center mb-4 text-red-500">
-                        <FaExclamationCircle className="mr-2" />
-                        <p>{error}</p>
                     </div>
                 )}
                 <form onSubmit={handleSubmit} className="space-y-6">
