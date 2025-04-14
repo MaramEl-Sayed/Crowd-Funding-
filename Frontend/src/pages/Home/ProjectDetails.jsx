@@ -9,10 +9,13 @@ const ProjectDetails = () => {
     const navigate = useNavigate();
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [similarProjects, setSimilarProjects] = useState([]);
     const [userRating, setUserRating] = useState(0);
     const [averageRating, setAverageRating] = useState(0);
     const [error, setError] = useState(null);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState('');
+
+    const [reportType, setReportType] = useState('project');
 
     useEffect(() => {
         const fetchProjectDetails = async () => {
@@ -86,13 +89,13 @@ const ProjectDetails = () => {
                 <p className="text-gray-600 mb-2"><strong>Total Target:</strong> ${project.total_target}</p>
                 <p className="text-gray-600 mb-2"><strong>Start:</strong> {new Date(project.start_time).toLocaleDateString()} - <strong>End:</strong> {new Date(project.end_time).toLocaleDateString()}</p>
                 <p className="text-gray-600 mb-4"><strong>Average Rating:</strong> {averageRating || 'No ratings yet'}</p>
-                
+
                 <div className="mb-4">
                     <label className="block mb-2">Rate this project:</label>
                     <div className="flex">
                         {[1, 2, 3, 4, 5].map((star) => (
-                            <span 
-                                key={star} 
+                            <span
+                                key={star}
                                 className={`cursor-pointer text-2xl ${userRating >= star ? 'text-yellow-500' : 'text-gray-400'}`}
                                 onClick={() => setUserRating(star)}
                             >
@@ -100,7 +103,7 @@ const ProjectDetails = () => {
                             </span>
                         ))}
                     </div>
-                    <button 
+                    <button
                         onClick={handleRatingSubmit}
                         className={`mt-2 w-full p-2 rounded ${!userRating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
                         disabled={!userRating}
@@ -108,20 +111,20 @@ const ProjectDetails = () => {
                         Submit Rating
                     </button>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="bg-blue-50 p-4 rounded-lg text-center">
-                    <h3 className="text-xl font-bold text-blue-600">${project.total_donations}</h3>
-                    <p className="text-gray-600">Raised of ${project.total_target}</p>
-                  </div>
-                  <div className="bg-purple-50 p-4 rounded-lg text-center">
-                    <h3 className="text-xl font-bold text-purple-600">${project.remaining_amount}</h3>
-                    <p className="text-gray-600">Remaining</p>
-                  </div>
-                  <div className="bg-pink-50 p-4 rounded-lg text-center">
-                    <h3 className="text-xl font-bold text-pink-600">{project.progress_percentage}%</h3>
-                    <p className="text-gray-600">Funded</p>
-                  </div>
+                    <div className="bg-blue-50 p-4 rounded-lg text-center">
+                        <h3 className="text-xl font-bold text-blue-600">${project.total_donations}</h3>
+                        <p className="text-gray-600">Raised of ${project.total_target}</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg text-center">
+                        <h3 className="text-xl font-bold text-purple-600">${project.remaining_amount}</h3>
+                        <p className="text-gray-600">Remaining</p>
+                    </div>
+                    <div className="bg-pink-50 p-4 rounded-lg text-center">
+                        <h3 className="text-xl font-bold text-pink-600">{project.progress_percentage}%</h3>
+                        <p className="text-gray-600">Funded</p>
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -134,57 +137,32 @@ const ProjectDetails = () => {
                 </div>
 
                 <div className="mb-6">
-                  <h2 className="text-xl font-bold mb-4 text-gray-800">Recent Donations</h2>
-                  {project.donations.length > 0 ? (
-                    <div className="space-y-3">
-                      {project.donations.map(donation => (
-                        <div key={donation.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center">
-                            {donation.user_avatar && (
-                              <img 
-                                src={donation.user_avatar} 
-                                alt={donation.user} 
-                                className="w-8 h-8 rounded-full mr-3"
-                              />
-                            )}
-                            <span className="text-gray-700">{donation.user}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="font-bold text-green-600">${donation.amount}</span>
-                            <p className="text-xs text-gray-500">
-                              {new Date(donation.date).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No donations yet. Be the first to support this project!</p>
-                  )}
-                </div>
-
-                {/* Similar Projects Section */}
-                <div className="mb-6">
-                    <h2 className="text-xl font-bold mb-4 text-gray-800">Similar Projects</h2>
-                    {similarProjects.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {similarProjects.slice(0, 4).map(project => (
-                                <div key={project.id} 
-                                     className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
-                                     onClick={() => navigate(`/projects/${project.id}`)}>
-                                    <h3 className="font-bold text-lg mb-2">{project.title}</h3>
-                                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">{project.details}</p>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-blue-600 font-medium">${project.total_donations} raised</span>
-                                        <span className="text-yellow-500">
-                                            {project.average_rating ? '★'.repeat(Math.round(project.average_rating)) : 'Not rated'}
-                                        </span>
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Recent Donations</h2>
+                    {project.donations.length > 0 ? (
+                        <div className="space-y-3">
+                            {project.donations.map(donation => (
+                                <div key={donation.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center">
+                                        {donation.user_avatar && (
+                                            <img
+                                                src={donation.user_avatar}
+                                                alt={donation.user}
+                                                className="w-8 h-8 rounded-full mr-3"
+                                            />
+                                        )}
+                                        <span className="text-gray-700">{donation.user}</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="font-bold text-green-600">${donation.amount}</span>
+                                        <p className="text-xs text-gray-500">
+                                            {new Date(donation.date).toLocaleDateString()}
+                                        </p>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <p className="text-gray-500">No similar projects found</p>
+                        <p className="text-gray-500">No donations yet. Be the first to support this project!</p>
                     )}
                 </div>
 
@@ -208,6 +186,93 @@ const ProjectDetails = () => {
                     >
                         {project.total_donations >= project.total_target ? 'Target Reached' : 'Donate'}
                     </button>
+
+                    <button
+                        onClick={() => setShowReportModal(true)}
+                        className="bg-yellow-500 text-white p-3 rounded-md hover:bg-yellow-600 transition duration-200"
+                    >
+                        Report Project
+                    </button>
+
+
+
+
+                    {showReportModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                                <h2 className="text-xl font-bold mb-4 text-red-600">Report</h2>
+
+                                <select
+                                    className="w-full border border-gray-300 rounded p-2 mb-4"
+                                    value={reportType}
+                                    onChange={(e) => setReportType(e.target.value)}
+                                >
+                                    <option value="project">Project</option>
+                                    <option value="comment">Comment</option>
+                                </select>
+
+
+                                <textarea
+                                    className="w-full h-32 border border-gray-300 rounded p-2 mb-4"
+                                    placeholder="Enter your reason for reporting..."
+                                    value={reportReason}
+                                    onChange={(e) => setReportReason(e.target.value)}
+                                ></textarea>
+
+
+                                <div className="flex justify-end space-x-2">
+                                    <button
+                                        className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded"
+                                        onClick={() => {
+                                            setShowReportModal(false);
+                                            setReportReason('');
+                                            setReportType('project');
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                                        onClick={async () => {
+                                            try {
+                                                const data = {
+                                                    reason: reportReason,
+                                                    report_type: reportType,
+                                                };
+
+                                                if (reportType === 'project' && project) {
+                                                    data.project = project.id;
+                                                } else if (reportType === 'comment' && comment) {
+                                                    data.comment = comment.id;
+                                                }
+
+                                                await axios.post(`http://localhost:8000/api/projects/reports/`, data, {
+                                                    headers: {
+                                                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                                                    },
+                                                });
+
+                                                Alert.success('Reported', 'Your report has been submitted.');
+                                                setShowReportModal(false);
+                                                setReportReason('');
+                                                setReportType('project');
+                                            } catch (err) {
+                                                Alert.error(
+                                                    'Error reporting',
+                                                    err.response?.data?.detail || 'Something went wrong.'
+                                                );
+                                            }
+                                        }}
+                                        disabled={!reportReason.trim()}
+                                    >
+                                        Submit Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             </div>
         </div>

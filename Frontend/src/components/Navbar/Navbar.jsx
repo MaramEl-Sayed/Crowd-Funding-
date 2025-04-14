@@ -29,7 +29,7 @@ const Navbar = () => {
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContainer}>
-        <NavLink to="/" className={styles.navBrand}>
+        <NavLink to="/home" className={styles.navBrand}>
           AuthApp
         </NavLink>
         <div className={styles.navLinks}>
@@ -41,7 +41,7 @@ const Navbar = () => {
                   isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
                 }
               >
-               Home
+                Home
               </NavLink>
               <NavLink to="/projects" className={styles.navLink}>
                 Projects
@@ -74,7 +74,7 @@ const Navbar = () => {
                   isActive ? `${styles.registerButton} ${styles.active}` : styles.registerButton
                 }
               >
-               Register
+                Register
               </NavLink>
             </>
           )}
