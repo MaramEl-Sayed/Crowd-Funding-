@@ -23,7 +23,13 @@ class Project(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="projects"
     )
-    title = models.CharField(max_length=255)
+    title = models.CharField(
+        max_length=255,
+        unique=True,
+        error_messages={
+            'unique': 'A project with this name already exists. Please choose a different name.'
+        }
+    )
     details = models.TextField()
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     tags = models.ManyToManyField(Tag, blank=True)
@@ -35,7 +41,13 @@ class Project(models.Model):
     is_active = models.BooleanField(default=True)
 
 
+    def clean(self):
+        super().clean()
+        if Project.objects.filter(title__iexact=self.title).exclude(pk=self.pk).exists():
+            raise ValidationError('A project with this name already exists. Please choose a different name.')
+
     def save(self, *args, **kwargs):
+        self.full_clean()
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
