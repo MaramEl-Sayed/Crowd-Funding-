@@ -29,8 +29,8 @@ const Navbar = () => {
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContainer}>
-        <NavLink to="/" className={styles.navBrand}>
-          AuthApp
+        <NavLink to="/home" className={styles.navBrand}>
+          Crowd Funding
         </NavLink>
         <div className={styles.navLinks}>
           {user ? (
