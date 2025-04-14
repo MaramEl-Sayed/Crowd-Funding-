@@ -15,10 +15,17 @@ from .serializers import (
 class ProjectListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     def get(self, request):
+        category = request.query_params.get('category')
+        search = request.query_params.get('search')
         if request.user.is_authenticated:
             projects = Project.objects.filter(owner=request.user)
         else:
             projects = Project.objects.all()
+        if category:
+            projects = projects.filter(category=category)
+        if search:
+            for letter in search:
+                projects = projects.filter(title__icontains=letter)
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
