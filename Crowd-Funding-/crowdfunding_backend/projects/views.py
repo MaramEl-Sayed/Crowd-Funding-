@@ -185,13 +185,8 @@ class TopRatedProjectsView(APIView):
         return Response(sorted_projects)
 class LatestProjectsView(APIView):
     permission_classes = [AllowAny]
-    
     def get(self, request):
-        category = request.query_params.get('category')
-        projects = Project.objects.filter(is_active=True)
-        if category:
-            projects = projects.filter(category=category)
-        projects = projects.order_by('-start_time')[:5]
+        projects = Project.objects.filter(is_active=True).order_by('-start_time')[:5]
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 # Add this at the end of projects/views.py
