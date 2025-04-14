@@ -7,10 +7,10 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-   
+
     setUser(authAPI.getCurrentUser());
-    
-   
+
+
     const handleStorageChange = () => {
       setUser(authAPI.getCurrentUser());
     };
@@ -37,6 +37,9 @@ const Navbar = () => {
             <>
               <Link to="/home" className={styles.navLink}>
                 Home
+              </Link>
+              <Link to="/projects" className={styles.navLink}>
+                Projects
               </Link>
               <button onClick={handleLogout} className={styles.logoutButton}>
                 Logout

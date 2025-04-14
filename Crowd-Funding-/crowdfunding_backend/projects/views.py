@@ -1,5 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny
+from django.db import models
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,8 +8,8 @@ from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
 from .models import Project, Tag, Donation, Comment, Report, Rating
 from .serializers import (
-ProjectSerializer, TagSerializer, DonationSerializer,
-CommentSerializer, ReportSerializer, RatingSerializer
+    ProjectSerializer, TagSerializer, DonationSerializer,
+    CommentSerializer, ReportSerializer, RatingSerializer
 )
 
 class ProjectListCreateView(APIView):   
@@ -52,8 +53,6 @@ class ProjectDetailUpdateDeleteView(APIView):
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-
 class ProjectCancelView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -73,17 +72,6 @@ class ProjectCancelView(APIView):
         project.save()
 
         return Response({"detail": "Project has been cancelled."}, status=status.HTTP_200_OK)
-    
-# class DonationCreateView(APIView): 
-#     permission_classes = [permissions.IsAuthenticated]
-#     def post(self, request):
-#         serializer = DonationSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(user=request.user)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# In views.py
 
 class DonationCreateView(APIView): 
     permission_classes = [permissions.IsAuthenticated]
@@ -113,17 +101,23 @@ class DonationCreateView(APIView):
 
 class CommentListCreateView(APIView): 
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
     def get(self, request, project_id):
         comments = Comment.objects.filter(project__id=project_id, parent__isnull=True)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 
-    def post(self, request):
-        serializer = CommentSerializer(data=request.data)
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, id=project_id)
+        data = request.data.copy()
+        data['project'] = project.id
+        
+        serializer = CommentSerializer(data=data)
         if serializer.is_valid():
-            serializer.save(user=request.user)  # assign current user
+            serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ReportCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -163,6 +157,28 @@ class TagListView(APIView):
         serializer = TagSerializer(tags, many=True)
         return Response(serializer.data)
 
+class TopRatedProjectsView(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        projects = Project.get_top_rated_active_projects()
+        # Calculate average rating for each project and create a list of tuples
+        project_data = []
+        for project in projects:
+            avg_rating = project.average_rating() or 0
+            serializer = ProjectSerializer(project)
+            project_data.append((avg_rating, serializer.data))
+        
+        # Sort by average rating (descending) and extract just the serialized data
+        project_data.sort(key=lambda x: x[0], reverse=True)
+        sorted_projects = [data for (rating, data) in project_data]
+        
+        return Response(sorted_projects)
 
-
-
+class LatestProjectsView(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        projects = Project.objects.filter(is_active=True).order_by('-start_time')[:5]
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data)

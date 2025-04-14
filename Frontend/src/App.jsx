@@ -4,13 +4,15 @@ import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/Navbar/Navbar';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
-import Home from './pages/Home/Home';
 import Activate from './pages/Activate/Activate';
 import styles from './App.module.css';
 import ProjectDetails from './pages/Home/ProjectDetails';
 import CreateProject from './pages/Home/CreateProject';
 import ProjectUpdate from './pages/Home/ProjectUpdate';
 import DonationPage from './pages/Home/DonationPage';
+import TopRatedSlider from './pages/Home/Home';
+import Projects from './pages/Home/Projects';
+import Home from './pages/Home/Home';
 
 function App() {
   return (
@@ -23,11 +25,12 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/activate/:uidb64/:token" element={<Activate />} />
-            <Route path="/home" element={<Home />} />
+            <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:id" element={<ProjectDetails />} />
             <Route path="/create-project" element={<CreateProject />} />
             <Route path="/projects/:id/update" element={<ProjectUpdate />} />
             <Route path="/projects/:id/donate" element={<DonationPage />} />
+            <Route path="/home" element={<Home />} />
 
             <Route path="/" element={<Login />} />
 

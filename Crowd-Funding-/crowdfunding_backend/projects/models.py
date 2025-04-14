@@ -70,6 +70,13 @@ class Project(models.Model):
             return None
         return round(sum(rating.value for rating in ratings) / len(ratings), 2)
 
+    @classmethod
+    def get_top_rated_active_projects(cls, limit=5):
+        from django.db.models.functions import Coalesce
+        return cls.objects.filter(is_active=True).annotate(
+            avg_rating=Coalesce(models.Avg('ratings__value'), 0.0)
+        ).order_by('-avg_rating')[:limit]
+
 
 class Donation(models.Model):
     user = models.ForeignKey(
