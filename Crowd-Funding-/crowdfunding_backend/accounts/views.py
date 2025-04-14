@@ -11,9 +11,11 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.conf import settings
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from allauth.socialaccount.models import SocialAccount
 from .models import User
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, UserProfileSerializer
+
 
 # Registration view
 @api_view(['POST'])
@@ -212,3 +214,32 @@ def google_login(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# User Profile Views
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        user = request.user
+        serializer = UserProfileSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        password = request.data.get('password')
+        if not password:
+            return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(email=request.user.email, password=password)
+        if user is None:
+            return Response({'error': 'Incorrect password'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.delete()
+        return Response({'message': 'Account deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
