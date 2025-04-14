@@ -9,6 +9,9 @@ const ProjectDetails = () => {
     const navigate = useNavigate();
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [similarProjects, setSimilarProjects] = useState([]);
+    const [userRating, setUserRating] = useState(0);
+    const [averageRating, setAverageRating] = useState(0);
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -16,6 +19,7 @@ const ProjectDetails = () => {
             try {
                 const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/`);
                 setProject(response.data);
+                setAverageRating(response.data.average_rating);
             } catch (err) {
                 setError(err);
             } finally {
@@ -25,6 +29,27 @@ const ProjectDetails = () => {
 
         fetchProjectDetails();
     }, [id]);
+
+    const handleRatingSubmit = async () => {
+        try {
+            await axios.post(`http://localhost:8000/api/projects/ratings/`, {
+                project: project.id,
+                value: userRating,
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            });
+            Alert.success('Rating submitted!', 'Thank you for your feedback.');
+            // Refresh project data
+            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/`);
+            setProject(response.data);
+            setAverageRating(response.data.average_rating);
+            setUserRating(0);
+        } catch (err) {
+            Alert.error('Error!', err.response.data.detail);
+        }
+    };
 
     const handleCancelProject = async () => {
         const result = await Alert.confirm(
@@ -60,7 +85,29 @@ const ProjectDetails = () => {
                 <p className="text-gray-600 mb-2"><strong>Category:</strong> {project.category}</p>
                 <p className="text-gray-600 mb-2"><strong>Total Target:</strong> ${project.total_target}</p>
                 <p className="text-gray-600 mb-2"><strong>Start:</strong> {new Date(project.start_time).toLocaleDateString()} - <strong>End:</strong> {new Date(project.end_time).toLocaleDateString()}</p>
-                <p className="text-gray-600 mb-4"><strong>Average Rating:</strong> {project.average_rating || 'No ratings yet'}</p>
+                <p className="text-gray-600 mb-4"><strong>Average Rating:</strong> {averageRating || 'No ratings yet'}</p>
+                
+                <div className="mb-4">
+                    <label className="block mb-2">Rate this project:</label>
+                    <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <span 
+                                key={star} 
+                                className={`cursor-pointer text-2xl ${userRating >= star ? 'text-yellow-500' : 'text-gray-400'}`}
+                                onClick={() => setUserRating(star)}
+                            >
+                                ★
+                            </span>
+                        ))}
+                    </div>
+                    <button 
+                        onClick={handleRatingSubmit}
+                        className={`mt-2 w-full p-2 rounded ${!userRating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
+                        disabled={!userRating}
+                    >
+                        Submit Rating
+                    </button>
+                </div>
                 
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="bg-blue-50 p-4 rounded-lg text-center">
@@ -114,6 +161,31 @@ const ProjectDetails = () => {
                   ) : (
                     <p className="text-gray-500">No donations yet. Be the first to support this project!</p>
                   )}
+                </div>
+
+                {/* Similar Projects Section */}
+                <div className="mb-6">
+                    <h2 className="text-xl font-bold mb-4 text-gray-800">Similar Projects</h2>
+                    {similarProjects.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {similarProjects.slice(0, 4).map(project => (
+                                <div key={project.id} 
+                                     className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
+                                     onClick={() => navigate(`/projects/${project.id}`)}>
+                                    <h3 className="font-bold text-lg mb-2">{project.title}</h3>
+                                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">{project.details}</p>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-blue-600 font-medium">${project.total_donations} raised</span>
+                                        <span className="text-yellow-500">
+                                            {project.average_rating ? '★'.repeat(Math.round(project.average_rating)) : 'Not rated'}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-gray-500">No similar projects found</p>
+                    )}
                 </div>
 
                 <div className="flex justify-between">

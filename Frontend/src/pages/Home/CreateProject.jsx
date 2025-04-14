@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaCheckCircle, FaSpinner } from 'react-icons/fa';
+import { FaCheckCircle, FaExclamationCircle, FaSpinner } from 'react-icons/fa';
 import Alert from '../../alert/Alert';
 
 const CreateProject = () => {
@@ -17,39 +17,63 @@ const CreateProject = () => {
         image: null,
         is_active: true,
     });
-    const [categories, setCategories] = useState([]);
+    const [tags, setTags] = useState([]);
+    const [selectedTags, setSelectedTags] = useState([]);
+    const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const categories = [
+        "Technology",
+        "Health",
+        "Education",
+        "Art",
+        "Charity",
+    ];
+
     useEffect(() => {
-        const fetchCategories = async () => {
+        const fetchTags = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/projects/tags/');
-                setCategories(response.data);
+                setTags(response.data);
             } catch (err) {
-                console.error('Error fetching categories:', err);
+                console.error('Error fetching tags:', err);
+                Alert.error('Error!', err.response?.data?.detail || 'Error fetching tags.');
             }
         };
 
-        fetchCategories();
+        fetchTags();
     }, []);
 
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { name, value, files } = e.target;
         if (name === 'image') {
-            setFormData({ ...formData, image: files[0] });
+            setFormData(prevFormData => ({ ...prevFormData, image: files[0] }));
         } else {
-            setFormData({ ...formData, [name]: value });
+            setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
         }
-    };
+    }, []);
+
+    const handleTagChange = useCallback((tagId) => {
+        setSelectedTags(prevSelected =>
+            prevSelected.includes(tagId)
+                ? prevSelected.filter(id => id !== tagId)
+                : [...prevSelected, tagId]
+        );
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.title || !formData.details || !formData.category || !formData.total_target || !formData.start_time || !formData.end_time) {
+            setError('Please fill in all required fields.');
+            return;
+        }
         setLoading(true);
         const formDataToSend = new FormData();
         for (const key in formData) {
             formDataToSend.append(key, formData[key]);
         }
+        selectedTags.forEach(tag => formDataToSend.append('tags', tag));
 
         try {
             await axios.post('http://localhost:8000/api/projects/projects/', formDataToSend, {
@@ -58,13 +82,14 @@ const CreateProject = () => {
                     'Authorization': `Bearer ${token}`,
                 },
             });
-            Alert.success('Success', 'Project created successfully!');
             setSuccess(true);
+            setError(null);
             navigate('/home');
         } catch (err) {
-            const errorMessage = err.response ? JSON.stringify(err.response.data.detail) : 'Error creating project';
-            Alert.error('Error', errorMessage);
+            setError(err.response?.data?.title?.[0] || 'Error creating project');
+            setSuccess(false);
             console.log(err);
+            Alert.error('Error!', err.response?.data?.title?.[0] || 'Error creating project.');
         } finally {
             setLoading(false);
         }
@@ -80,6 +105,12 @@ const CreateProject = () => {
                         <p>Project created successfully!</p>
                     </div>
                 )}
+                {error && (
+                    <div className="flex items-center justify-center mb-4 text-red-500">
+                        <FaExclamationCircle className="mr-2" />
+                        <p>{error}</p>
+                    </div>
+                )}
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label className="block text-gray-700 font-semibold">Title</label>
@@ -90,6 +121,7 @@ const CreateProject = () => {
                             onChange={handleChange}
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             required
+                            aria-label="Project Title"
                         />
                     </div>
                     <div>
@@ -100,6 +132,7 @@ const CreateProject = () => {
                             onChange={handleChange}
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             required
+                            aria-label="Project Details"
                         />
                     </div>
                     <div>
@@ -110,11 +143,12 @@ const CreateProject = () => {
                             onChange={handleChange}
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             required
+                            aria-label="Project Category"
                         >
                             <option value="">Select a category</option>
                             {categories.map(category => (
-                                <option key={category.id} value={category.name}>
-                                    {category.name}
+                                <option key={category} value={category}>
+                                    {category}
                                 </option>
                             ))}
                         </select>
@@ -128,6 +162,7 @@ const CreateProject = () => {
                             onChange={handleChange}
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             required
+                            aria-label="Total Target"
                         />
                     </div>
                     <div>
@@ -139,6 +174,7 @@ const CreateProject = () => {
                             onChange={handleChange}
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             required
+                            aria-label="Start Time"
                         />
                     </div>
                     <div>
@@ -150,6 +186,7 @@ const CreateProject = () => {
                             onChange={handleChange}
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             required
+                            aria-label="End Time"
                         />
                     </div>
                     <div>
@@ -160,12 +197,59 @@ const CreateProject = () => {
                             onChange={handleChange}
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             accept="image/*"
+                            aria-label="Project Image"
                         />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-semibold mb-2">Tags</label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {selectedTags.map(tagId => {
+                                const tag = tags.find(t => t.id === tagId);
+                                return tag ? (
+                                    <span
+                                        key={tagId}
+                                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center"
+                                    >
+                                        {tag.name}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleTagChange(tagId)}
+                                            className="ml-2 text-blue-600 hover:text-blue-800"
+                                            aria-label={`Remove ${tag.name} tag`}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ) : null;
+                            })}
+                        </div>
+                        <select
+                            value=""
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    handleTagChange(e.target.value);
+                                    e.target.value = "";
+                                }
+                            }}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            aria-label="Select Tags"
+                        >
+                            <option value="">Select tags to add...</option>
+                            {tags
+                                .filter(tag => !selectedTags.includes(tag.id))
+                                .map(tag => (
+                                    <option key={tag.id} value={tag.id}>
+                                        {tag.name}
+                                    </option>
+                                ))}
+                        </select>
+                        <p className="text-sm text-gray-500 mt-1">Select tags that describe your project</p>
                     </div>
                     <button
                         type="submit"
                         className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 transition duration-200 flex items-center justify-center"
                         disabled={loading}
+                        aria-label="Create Project"
                     >
                         {loading ? <FaSpinner className="animate-spin mr-2" /> : 'Create Project'}
                     </button>

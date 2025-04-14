@@ -6,7 +6,9 @@ import './ProjectDetail.module.css';
 const ProjectDetail = () => {
   const { projectId } = useParams();
   const [project, setProject] = useState(null);
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [userRating, setUserRating] = useState(0);
+    const [averageRating, setAverageRating] = useState(0);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -53,6 +55,31 @@ const ProjectDetail = () => {
       <div className="project-details">
         <img src={project.image} alt={project.title} />
         <p>{project.details}</p>
+      </div>
+
+      <div className="rating-section">
+        <h2>Average Rating: {project.average_rating || 'No ratings yet'}</h2>
+        <div className="rating-controls">
+          <select 
+            value={userRating} 
+            onChange={(e) => setUserRating(Number(e.target.value))}
+            className="rating-select"
+          >
+            <option value="0">Select a rating</option>
+            <option value="1">1 Star</option>
+            <option value="2">2 Stars</option>
+            <option value="3">3 Stars</option>
+            <option value="4">4 Stars</option>
+            <option value="5">5 Stars</option>
+          </select>
+          <button 
+            onClick={handleRatingSubmit}
+            className="rating-submit"
+            disabled={!userRating}
+          >
+            Submit Rating
+          </button>
+        </div>
       </div>
 
       <div className="donations-section">
