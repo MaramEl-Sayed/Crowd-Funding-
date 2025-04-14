@@ -133,13 +133,26 @@ class CommentListCreateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+from django.core.mail import send_mail
+from django.conf import settings
+
 class ReportCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         serializer = ReportSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            report = serializer.save(user=request.user)
+            # Notify admin user by email
+            admin_emails = [admin[1] for admin in getattr(settings, 'ADMINS', [])]
+            if admin_emails:
+                subject = f"New {report.report_type} report submitted"
+                message = f"Reporter: {report.user.username}\nReason: {report.reason}\n"
+                if report.report_type == 'project' and report.project:
+                    message += f"Project: {report.project.title}\n"
+                elif report.report_type == 'comment' and report.comment:
+                    message += f"Comment ID: {report.comment.id}\n"
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, admin_emails)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

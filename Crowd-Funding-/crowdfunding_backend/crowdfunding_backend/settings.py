@@ -55,10 +55,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "accounts.apps.AccountsConfig",
     "projects.apps.ProjectsConfig",
-    "comments.apps.CommentsConfig",
-    "donations.apps.DonationsConfig",
-    "ratings.apps.RatingsConfig",
-    "reports.apps.ReportsConfig",
+
 ]
 
 
@@ -223,6 +220,9 @@ SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
 
 # Frontend URL for email links
 FRONTEND_URL = "http://localhost:3000"  # Added for activation and password reset links
+
+# Admins for email notifications
+ADMINS = [('Admin', 'crowdfunding449@gmail.com')]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React frontend URL
