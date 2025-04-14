@@ -135,6 +135,8 @@ class CommentListCreateView(APIView):
 
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework import generics
+from django.db.models import Count
 
 class ReportCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -155,6 +157,23 @@ class ReportCreateView(APIView):
                 send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, admin_emails)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SimilarProjectsView(generics.ListAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        project_id = self.kwargs.get('project_id')
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Project.objects.none()
+        project_tags = project.tags.all()
+        # Get projects that share tags with the current project, exclude the current project itself
+        similar_projects = Project.objects.filter(tags__in=project_tags).exclude(id=project_id).distinct()
+        # Optionally, order by number of shared tags descending
+        similar_projects = similar_projects.annotate(shared_tags=Count('tags')).order_by('-shared_tags', '-start_time')
+        return similar_projects
 
 
 class RatingCreateView(APIView):

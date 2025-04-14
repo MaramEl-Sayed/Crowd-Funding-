@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import ( ProjectListCreateView, ProjectDetailUpdateDeleteView, TagListView, DonationCreateView, CommentListCreateView, ReportCreateView, RatingCreateView, ProjectRatingAverageView, ProjectCancelView,     UserDonationsView, 
-TopRatedProjectsView ,LatestProjectsView)
+TopRatedProjectsView ,LatestProjectsView,SimilarProjectsView)
 
 app_name = "projects"
 
@@ -32,4 +32,6 @@ urlpatterns = [
     #Top Rated and Latest Projects
     path("projects/top-rated/", TopRatedProjectsView.as_view(), name="top-rated-projects"),
     path("projects/latest/", LatestProjectsView.as_view(), name="latest-projects"),
+    # Similar Projects
+    path("projects/<int:project_id>/similar/", SimilarProjectsView.as_view(), name="project-similar"),
     ]

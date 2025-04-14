@@ -1,7 +1,6 @@
-// src/pages/ProjectDetails.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Alert from '../../alert/Alert';
 
 const ProjectDetails = () => {
@@ -15,10 +14,9 @@ const ProjectDetails = () => {
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
     const [reportType, setReportType] = useState('project');
-    const [reportTargetId, setReportTargetId] = useState(null); // project id or comment id
-    const [reportedBy, setReportedBy] = useState(null); // user who reported
+    const [reportTargetId, setReportTargetId] = useState(null);
+    const [reportedBy, setReportedBy] = useState(null);
 
-    // New states for comments
     const [comments, setComments] = useState([]);
     const [newCommentText, setNewCommentText] = useState('');
     const [replyText, setReplyText] = useState('');
@@ -26,12 +24,18 @@ const ProjectDetails = () => {
     const [commentsLoading, setCommentsLoading] = useState(false);
     const [commentsError, setCommentsError] = useState(null);
 
+    const [similarProjects, setSimilarProjects] = useState([]);
+    const [similarLoading, setSimilarLoading] = useState(false);
+    const [similarError, setSimilarError] = useState(null);
+
     useEffect(() => {
         const fetchProjectDetails = async () => {
             try {
                 const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/`);
                 setProject(response.data);
                 setAverageRating(response.data.average_rating);
+                fetchSimilarProjects(response.data.tags.map(tag => tag.id));
+                fetchComments();
             } catch (err) {
                 setError(err);
             } finally {
@@ -39,25 +43,40 @@ const ProjectDetails = () => {
             }
         };
 
-        fetchProjectDetails();
-        fetchComments();
+        const fetchSimilarProjects = async (tagIds) => {
+            if (!tagIds || tagIds.length === 0) {
+                setSimilarProjects([]);
+                return;
+            }
+            setSimilarLoading(true);
+            setSimilarError(null);
+            try {
+                const response = await axios.post(`http://localhost:8000/api/projects/projects/${id}/similar/`, { tags: tagIds });
+                setSimilarProjects(response.data);
+            } catch (err) {
+                setSimilarError('Failed to load similar projects.');
+            } finally {
+                setSimilarLoading(false);
+            }
+        };
+
+        const fetchComments = async () => {
+            setCommentsLoading(true);
+            setCommentsError(null);
+            try {
+                const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/comments/`);
+                setComments(response.data);
+            } catch (err) {
+                setCommentsError('Failed to load comments.');
+            } finally {
+                setCommentsLoading(false);
+            }
+        };
+        if(id){
+        fetchProjectDetails(id);
+        fetchProjectDetails(id);}
     }, [id]);
 
-    // Fetch comments for the project
-    const fetchComments = async () => {
-        setCommentsLoading(true);
-        setCommentsError(null);
-        try {
-            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/comments/`);
-            setComments(response.data);
-        } catch (err) {
-            setCommentsError('Failed to load comments.');
-        } finally {
-            setCommentsLoading(false);
-        }
-    };
-
-    // Post a new comment or reply
     const postComment = async (parentId = null) => {
         if ((parentId === null && !newCommentText.trim()) || (parentId !== null && !replyText.trim())) {
             Alert.error('Error', 'Comment text cannot be empty.');
@@ -80,13 +99,13 @@ const ProjectDetails = () => {
                 setReplyText('');
                 setReplyToCommentId(null);
             }
-            fetchComments();
+            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/comments/`);
+            setComments(response.data);
         } catch (err) {
             Alert.error('Error', err.response?.data?.detail || 'Failed to post comment.');
         }
     };
 
-    // Open report modal for project or comment
     const openReportModal = (type, targetId) => {
         setReportType(type);
         setReportTargetId(targetId);
@@ -94,7 +113,6 @@ const ProjectDetails = () => {
         setShowReportModal(true);
     };
 
-    // Submit report
     const submitReport = async () => {
         if (!reportReason.trim()) {
             Alert.error('Error', 'Reason is required for reporting.');
@@ -117,11 +135,11 @@ const ProjectDetails = () => {
             });
             Alert.success('Reported', 'Your report has been submitted.');
             setShowReportModal(false);
-            setReportedBy('You'); // For demo, show "You" as reporter
+            setReportedBy('You');
             setReportReason('');
             setReportTargetId(null);
-            fetchComments();
-            // Optionally, fetch project details again if needed
+            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/comments/`);
+            setComments(response.data);
         } catch (err) {
             Alert.error('Error reporting', err.response?.data?.detail || 'Something went wrong.');
         }

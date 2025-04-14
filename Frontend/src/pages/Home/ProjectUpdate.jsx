@@ -9,6 +9,7 @@ const ProjectUpdate = () => {
     const [loading, setLoading] = useState(true);
     const [tags, setTags] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
+    const [newTagInput, setNewTagInput] = useState('');
     const [error, setError] = useState(null);
 
     const [formData, setFormData] = useState({
@@ -30,8 +31,6 @@ const ProjectUpdate = () => {
     };
 
     useEffect(() => {
-
-
         const fetchProjectDetails = async () => {
             try {
                 const [projectRes, tagsRes] = await Promise.all([
@@ -51,7 +50,7 @@ const ProjectUpdate = () => {
                     is_active: project.is_active
                 });
 
-                setSelectedTags(project.tags.map(tag => tag.id));
+                setSelectedTags(project.tags.map(tag => tag.name));
                 setTags(tagsRes.data);
             } catch (err) {
                 setError(err);
@@ -74,10 +73,8 @@ const ProjectUpdate = () => {
         }
     };
 
-    const handleTagChange = (tagId) => {
-        setSelectedTags(prev =>
-            prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
-        );
+    const handleTagRemove = (tagName) => {
+        setSelectedTags(prev => prev.filter(t => t !== tagName));
     };
 
     const handleSubmit = async (e) => {
@@ -89,7 +86,7 @@ const ProjectUpdate = () => {
             if (value !== null) data.append(key, value);
         });
 
-        selectedTags.forEach(tag => data.append('tags', tag));
+        selectedTags.forEach(tag => data.append('tags_ids', tag));
 
         try {
             await axios.put(`http://localhost:8000/api/projects/projects/${id}/`, data, {
@@ -144,37 +141,67 @@ const ProjectUpdate = () => {
                     <div className="mb-4">
                         <label className="block text-gray-700 font-semibold mb-2">Tags</label>
                         <div className="flex flex-wrap gap-2 mb-2">
-                            {selectedTags.map(tagId => {
-                                const tag = tags.find(t => t.id === tagId);
-                                return tag ? (
-                                    <span key={tagId} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
-                                        {tag.name}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleTagChange(tagId)}
-                                            className="ml-2 text-blue-600 hover:text-blue-800"
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
-                                ) : null;
-                            })}
-                        </div>
-                        <select
-                            value=""
-                            onChange={(e) => {
-                                if (e.target.value) {
-                                    handleTagChange(parseInt(e.target.value));
-                                    e.target.value = "";
-                                }
-                            }}
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        >
-                            <option value="">Add more tags...</option>
-                            {tags.filter(tag => !selectedTags.includes(tag.id)).map(tag => (
-                                <option key={tag.id} value={tag.id}>{tag.name}</option>
+                            {selectedTags.map(tagName => (
+                                <span key={tagName} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
+                                    {tagName}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTagRemove(tagName)}
+                                        className="ml-2 text-blue-600 hover:text-blue-800"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
                             ))}
-                        </select>
+                        </div>
+                        <div className="flex space-x-2">
+                            <input
+                                type="text"
+                                value={newTagInput}
+                                onChange={(e) => setNewTagInput(e.target.value)}
+                                placeholder="Add new tag"
+                                className="w-full p-3 border border-gray-300 rounded-md"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && newTagInput.trim()) {
+                                        e.preventDefault();
+                                        if (!selectedTags.includes(newTagInput.trim())) {
+                                            setSelectedTags([...selectedTags, newTagInput.trim()]);
+                                        }
+                                        setNewTagInput('');
+                                    }
+                                }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (newTagInput.trim() && !selectedTags.includes(newTagInput.trim())) {
+                                        setSelectedTags([...selectedTags, newTagInput.trim()]);
+                                        setNewTagInput('');
+                                    }
+                                }}
+                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                            >
+                                Add
+                            </button>
+                        </div>
+                        <div className="mt-2">
+                            <label className="block text-gray-700 font-semibold mb-2">Select Existing Tags</label>
+                            <select
+                                value=""
+                                onChange={(e) => {
+                                    if (e.target.value && !selectedTags.includes(e.target.value)) {
+                                        setSelectedTags([...selectedTags, e.target.value]);
+                                    }
+                                    e.target.value = "";
+                                }}
+                                className="w-full p-3 border border-gray-300 rounded-md"
+                            >
+                                <option value="">Add existing tag...</option>
+                                {tags.filter(tag => !selectedTags.includes(tag.name)).map(tag => (
+                                    <option key={tag.id} value={tag.name}>{tag.name}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <label className="flex items-center space-x-2">

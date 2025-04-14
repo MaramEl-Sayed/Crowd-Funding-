@@ -34,7 +34,7 @@ class DonationSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source="owner.username")
     tags = TagSerializer(many=True, read_only=True)
-    tags_ids = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True, write_only=True, source='tags')
+    tags_ids = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     average_rating = serializers.SerializerMethodField()
     total_donations = serializers.SerializerMethodField()
     can_be_cancelled = serializers.SerializerMethodField()
@@ -67,6 +67,28 @@ class ProjectSerializer(serializers.ModelSerializer):
         if obj.total_target > 0:
             return round((obj.total_donations() / obj.total_target) * 100, 2)
         return 0
+
+    def create(self, validated_data):
+        tags_data = validated_data.pop('tags_ids', [])
+        project = Project.objects.create(**validated_data)
+        self._handle_tags(project, tags_data)
+        return project
+
+    def update(self, instance, validated_data):
+        tags_data = validated_data.pop('tags_ids', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if tags_data is not None:
+            self._handle_tags(instance, tags_data)
+        return instance
+
+    def _handle_tags(self, project, tags_data):
+        tag_objs = []
+        for tag_name in tags_data:
+            tag_obj, created = Tag.objects.get_or_create(name=tag_name)
+            tag_objs.append(tag_obj)
+        project.tags.set(tag_objs)
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username') 
