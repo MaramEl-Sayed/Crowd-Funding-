@@ -1,25 +1,23 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
-// Memoized DescriptionSection component to prevent unnecessary re-renders
-const DescriptionSection = memo(({ details }) => {
-    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-    const DESCRIPTION_TRUNCATE_LENGTH = 48; // 80% of an average first line (~60 characters)
+const DESCRIPTION_TRUNCATE_LENGTH = 48;
 
+const DescriptionSection = ({ details }) => {
+    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const shouldTruncateDescription = details.length > DESCRIPTION_TRUNCATE_LENGTH;
 
-    // Memoize the displayed description to avoid recalculating on every render
     const displayedDescription = useMemo(() => {
         return isDescriptionExpanded
             ? details
             : shouldTruncateDescription
             ? `${details.substring(0, DESCRIPTION_TRUNCATE_LENGTH)}...`
             : details;
-    }, [details, isDescriptionExpanded, shouldTruncateDescription]);
+    }, [details, isDescriptionExpanded]);
 
     const toggleDescription = () => {
-        setIsDescriptionExpanded(!isDescriptionExpanded);
+        setIsDescriptionExpanded(prev => !prev);
     };
 
     return (
@@ -28,7 +26,7 @@ const DescriptionSection = memo(({ details }) => {
             {shouldTruncateDescription && (
                 <button
                     onClick={(e) => {
-                        e.preventDefault(); // Prevent the Link click when clicking the button
+                        e.preventDefault(); // Prevent Link click when toggling
                         toggleDescription();
                     }}
                     className="text-blue-500 hover:underline text-sm cursor-pointer"
@@ -38,19 +36,24 @@ const DescriptionSection = memo(({ details }) => {
             )}
         </div>
     );
-});
+};
 
 const Projects = () => {
     const [projects, setProjects] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchProjects = async () => {
+        const fetchProjectsAndCategories = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/projects/projects/');
-                setProjects(response.data);
+                const [projectsRes, categoriesRes] = await Promise.all([
+                    axios.get('http://localhost:8000/api/projects/projects/'),
+                    axios.get('http://localhost:8000/api/projects/categories/')
+                ]);
+                setProjects(projectsRes.data);
+                setCategories(categoriesRes.data);
             } catch (err) {
                 setError(err);
             } finally {
@@ -58,8 +61,16 @@ const Projects = () => {
             }
         };
 
-        fetchProjects();
+        fetchProjectsAndCategories();
     }, []);
+
+    const categoryMap = useMemo(() => {
+        const map = {};
+        categories.forEach(cat => {
+            map[cat.id] = cat.name;
+        });
+        return map;
+    }, [categories]);
 
     if (loading) return <p className="text-center text-gray-500">Loading...</p>;
     if (error) return <p className="text-center text-red-500">Error loading projects: {error.message}</p>;
@@ -86,7 +97,7 @@ const Projects = () => {
                             </Link>
                             <DescriptionSection details={project.details} />
                             <div className="text-sm text-gray-500 space-y-1 mt-3">
-                                <p><strong>Category:</strong> {project.category}</p>
+                                <p><strong>Category:</strong> {categoryMap[project.category] || 'Unknown'}</p>
                                 <p><strong>Average Rating:</strong> {project.average_rating || 'No ratings yet'}</p>
                             </div>
                         </li>
