@@ -178,13 +178,13 @@
 }
 
 .socialButtonsContainer {
-  display: flex;
+  display: flex-column;
   justify-content: center;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 .socialButton {
-  width: 48px;
+  min-width: 100px;
   height: 48px;
   display: flex;
   align-items: center;
@@ -193,26 +193,24 @@
   border-radius: 8px;
   background: white;
   cursor: pointer;
+  font-weight: 400;
+  font-size: 1rem;
   transition: all 0.2s;
+  font-family: Roboto, sans-serif;
 }
 
 .googleButton:hover {
   background: #EF4444; /* Red on hover */
   border-color: #EF4444;
+  color: white;
 }
-
-.googleIcon {
-  font-size: 1.5rem;
-}
-
+ 
 .facebookButton:hover {
   background: #87CEEB; /* Sky blue on hover */
   border-color: #87CEEB;
-}
+  color: white;
+} 
 
-.facebookIcon {
-  font-size: 1.5rem;
-}
 
 /* Footer links */
 .authFooter {
@@ -242,6 +240,8 @@
   animation: spin 1s linear infinite;
   margin-right: 0.5rem;
 }
+
+
 
 @keyframes spin {
   to { transform: rotate(360deg); }

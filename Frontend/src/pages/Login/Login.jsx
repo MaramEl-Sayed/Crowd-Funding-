@@ -193,7 +193,7 @@ const Login = () => {
                     onClick={renderProps.onClick}
                     disabled={renderProps.disabled}
                   >
-                    <FcGoogle className={styles.googleIcon} />
+                    <FcGoogle className={styles.googleIcon} /> 
                   </button>
                 )}
               />
@@ -234,7 +234,7 @@ const Login = () => {
               }}
               className={`${styles.socialButton} ${styles.facebookButton}`}
             >
-              <FaFacebookF className={styles.facebookIcon} />
+              <FaFacebookF className={styles.facebookIcon} /> Sign in with Facebook
             </button>
           </div>
         </div>

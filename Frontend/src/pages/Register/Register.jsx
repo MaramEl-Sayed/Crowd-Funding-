@@ -329,28 +329,6 @@ const Register = () => {
         <div className={styles.socialLogin}>
           <div className={styles.divider}>Other sign up options</div>
           <div className={styles.socialButtonsContainer}>
-            <button
-              type="button"
-              onClick={() => {
-                window.FB.login(response => {
-                  if (response.authResponse) {
-                    authAPI.facebookLogin({ access_token: response.authResponse.accessToken })
-                      .then(() => {
-                        toast.success('Facebook registration successful!');
-                        navigate('/home');
-                      })
-                      .catch(error => {
-                        toast.error(error.error || 'Facebook registration failed');
-                      });
-                  } else {
-                    toast.error('Facebook registration cancelled');
-                  }
-                }, {scope: 'public_profile,email'});
-              }}
-              className={`${styles.socialButton} ${styles.facebookButton}`}
-            >
-              <FaFacebookF className={styles.facebookIcon} />
-            </button>
             <GoogleOAuthProvider clientId="75773251008-89sei1vuligu58shbmup4f5ttqq097o5.apps.googleusercontent.com">
               <GoogleLogin
                 onSuccess={async (credentialResponse) => {
@@ -414,6 +392,28 @@ const Register = () => {
                 )}
               />
             </GoogleOAuthProvider>
+            <button
+              type="button"
+              onClick={() => {
+                window.FB.login(response => {
+                  if (response.authResponse) {
+                    authAPI.facebookLogin({ access_token: response.authResponse.accessToken })
+                      .then(() => {
+                        toast.success('Facebook registration successful!');
+                        navigate('/home');
+                      })
+                      .catch(error => {
+                        toast.error(error.error || 'Facebook registration failed');
+                      });
+                  } else {
+                    toast.error('Facebook registration cancelled');
+                  }
+                }, {scope: 'public_profile,email'});
+              }}
+              className={`${styles.socialButton} ${styles.facebookButton}`}
+            >
+              <FaFacebookF className={styles.facebookIcon} /> Sign in with Facebook
+            </button>
           </div>
         </div>
 
