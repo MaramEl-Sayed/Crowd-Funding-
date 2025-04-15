@@ -15,7 +15,16 @@ from rest_framework.permissions import IsAuthenticated
 from allauth.socialaccount.models import SocialAccount
 from .models import User
 from .serializers import RegisterSerializer, UserProfileSerializer
+from django.core.files.base import ContentFile
 
+# Email check view
+class CheckEmailView(APIView):
+    def get(self, request):
+        email = request.query_params.get('email')
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        exists = User.objects.filter(email=email).exists()
+        return Response({"exists": exists})
 
 # Registration view
 @api_view(['POST'])
@@ -40,7 +49,7 @@ def activate_account(request, uidb64, token):
         if user.is_active:
             return Response({'message': 'Account already activated'}, status=status.HTTP_200_OK)
         user.is_active = True
-        user.is_activated = True  # Update the is_activated field
+        user.is_activated = True
         user.save()
         return Response({'message': 'Account activated successfully'}, status=status.HTTP_200_OK)
     else:
@@ -120,6 +129,23 @@ class PasswordResetConfirmView(APIView):
         else:
             return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
+# Password change view
+class PasswordChangeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        new_password = request.data.get('new_password')
+        if not new_password:
+            return Response({'error': 'New password is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 8:
+            return Response({'error': 'Password must be at least 8 characters'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
+
 # Social login views
 @api_view(['POST'])
 def facebook_login(request):
@@ -134,19 +160,21 @@ def facebook_login(request):
             return Response({'error': 'Invalid Facebook access token'}, status=status.HTTP_400_BAD_REQUEST)
 
         user_info = response.json()
-        # Handle case where name might not be provided
-        username = user_info.get('name', user_info['email'].split('@')[0])
-        
-        # Create user without phone number if not provided
-        user, created = User.objects.get_or_create(
-            email=user_info['email'],
-            defaults={
-                'username': username,
-                'is_active': True,
-                'mobile_phone': None  # Explicitly set to None to avoid empty string
-            }
-        )
-        
+        if not user_info.get('email'):
+            return Response(
+                {'error': 'Email not provided by Facebook'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if the user exists
+        try:
+            user = User.objects.get(email=user_info['email'])
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Account does not exist. Please register first.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         refresh = RefreshToken.for_user(user)
         return Response({
             'refresh': str(refresh),
@@ -161,51 +189,58 @@ def google_login(request):
     try:
         token = request.data.get('access_token')
         token_type = request.data.get('token_type', 'access_token')
-        
+        profile_picture_url = request.data.get('profile_picture')
+
         if not token:
             return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Handle both access tokens and ID tokens
         if token_type == 'id_token':
-            # Verify ID token
             response = requests.get(
                 f'https://oauth2.googleapis.com/tokeninfo?id_token={token}'
             )
         else:
-            # Verify access token
             response = requests.get(
                 f'https://www.googleapis.com/oauth2/v3/userinfo?access_token={token}'
             )
 
         if response.status_code != 200:
             return Response(
-                {'error': 'Invalid Google token'}, 
+                {'error': 'Invalid Google token'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         user_info = response.json()
         if not user_info.get('email'):
             return Response(
-                {'error': 'Email not provided by Google'}, 
+                {'error': 'Email not provided by Google'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        # First try to get existing user
+
+        # Check if the user exists
         try:
             user = User.objects.get(email=user_info['email'])
-            # Ensure existing user is activated
-            if not user.is_activated:
-                user.is_activated = True
-                user.save()
         except User.DoesNotExist:
-            # Create new user if doesn't exist
-            user = User.objects.create(
-                email=user_info['email'],
-                username=user_info.get('name', user_info['email'].split('@')[0]),
-                is_active=True,
-                is_activated=True,  # Explicitly activate social login users
-                mobile_phone=None
+            return Response(
+                {'error': 'Account does not exist. Please register first.'},
+                status=status.HTTP_400_BAD_REQUEST
             )
-        
+
+        # Ensure existing user is activated
+        if not user.is_activated:
+            user.is_activated = True
+            user.save()
+
+        # Update profile picture if provided
+        if profile_picture_url:
+            try:
+                image_response = requests.get(profile_picture_url)
+                if image_response.status_code == 200:
+                    filename = f"{user.username}_profile.jpg"
+                    user.profile_picture.save(filename, ContentFile(image_response.content), save=True)
+            except Exception as e:
+                print(f"Error updating profile picture: {e}")
+
         refresh = RefreshToken.for_user(user)
         return Response({
             'refresh': str(refresh),

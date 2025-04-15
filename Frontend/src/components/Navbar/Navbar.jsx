@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'; // Use NavLink instead of Link
+import { NavLink } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { authAPI } from '../../api/auth';
 import styles from './Navbar.module.css';
@@ -7,9 +7,7 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-
     setUser(authAPI.getCurrentUser());
-
 
     const handleStorageChange = () => {
       setUser(authAPI.getCurrentUser());
@@ -23,6 +21,7 @@ const Navbar = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     window.dispatchEvent(new Event('storage'));
+    setUser(null); // Ensure user state is cleared immediately
     window.location.href = '/login';
   };
 
@@ -83,6 +82,5 @@ const Navbar = () => {
     </nav>
   );
 };
-
 
 export default Navbar;

@@ -1,7 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import Slider from "react-slick";
 import Alert from '../../alert/Alert';
+
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { motion, AnimatePresence } from "framer-motion";
+
+
+// Memoized DescriptionSection component to prevent unnecessary re-renders
+const DescriptionSection = memo(({ details }) => {
+    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    const DESCRIPTION_TRUNCATE_LENGTH = 40;
+
+    const shouldTruncateDescription = details.length > DESCRIPTION_TRUNCATE_LENGTH;
+
+    const displayedDescription = useMemo(() => {
+        return isDescriptionExpanded
+            ? details
+            : shouldTruncateDescription
+            ? `${details.substring(0, DESCRIPTION_TRUNCATE_LENGTH)}...`
+            : details;
+    }, [details, isDescriptionExpanded, shouldTruncateDescription]);
+
+    const toggleDescription = () => {
+        setIsDescriptionExpanded(!isDescriptionExpanded);
+    };
+
+    return (
+        <div className="mb-4 pt-4">
+            <AnimatePresence initial={false} mode="wait">
+                <motion.div
+                    key={isDescriptionExpanded ? 'expanded' : 'collapsed'}
+                    className="text-gray-700 mb-2 whitespace-pre-wrap break-words p-4 border border-gray-300 rounded-lg shadow-sm transition-all duration-300"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                >
+                    {displayedDescription}
+                </motion.div>
+            </AnimatePresence>
+
+            {shouldTruncateDescription && (
+                <motion.button
+                    onClick={toggleDescription}
+                    className="mt-1 px-3 py-1 rounded-md bg-blue-500 text-white text-sm hover:bg-blue-600 transition duration-200 shadow-md"
+                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.05 }}
+                >
+                    {isDescriptionExpanded ? 'Read Less' : 'Read More'}
+                </motion.button>
+            )}
+        </div>
+    );
+});
 
 const ProjectDetails = () => {
     const { id } = useParams();
@@ -28,49 +83,60 @@ const ProjectDetails = () => {
     const [similarLoading, setSimilarLoading] = useState(false);
     const [similarError, setSimilarError] = useState(null);
 
+    const sliderSettings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        arrows: true,
+        autoplay: true,
+        autoplaySpeed: 3000,
+    };
+
+    const fetchProjectDetails = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/`);
+            setProject(response.data);
+            setAverageRating(response.data.average_rating);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchSimilarProjects = async () => {
+        setSimilarLoading(true);
+        setSimilarError(null);
+        try {
+            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/similar/`);
+            setSimilarProjects(response.data);
+        } catch (err) {
+            setSimilarError('Failed to load similar projects.');
+        } finally {
+            setSimilarLoading(false);
+        }
+    };
+
+    const fetchComments = async () => {
+        setCommentsLoading(true);
+        setCommentsError(null);
+        try {
+            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/comments/`);
+            setComments(response.data);
+        } catch (err) {
+            setCommentsError('Failed to load comments.');
+        } finally {
+            setCommentsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchProjectDetails = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/`);
-                setProject(response.data);
-                setAverageRating(response.data.average_rating);
-                fetchSimilarProjects();
-                fetchComments();
-            } catch (err) {
-                setError(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const fetchSimilarProjects = async () => {
-            setSimilarLoading(true);
-            setSimilarError(null);
-            try {
-                const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/similar/`);
-                console.log('Similar projects data:', response.data);
-                setSimilarProjects(response.data);
-            } catch (err) {
-                setSimilarError('Failed to load similar projects.');
-            } finally {
-                setSimilarLoading(false);
-            }
-        };
-
-        const fetchComments = async () => {
-            setCommentsLoading(true);
-            setCommentsError(null);
-            try {
-                const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/comments/`);
-                setComments(response.data);
-            } catch (err) {
-                setCommentsError('Failed to load comments.');
-            } finally {
-                setCommentsLoading(false);
-            }
-        };
-        if(id){
-            fetchProjectDetails(id);
+        if (id) {
+            fetchProjectDetails();
+            fetchSimilarProjects();
+            fetchComments();
         }
     }, [id]);
 
@@ -96,8 +162,7 @@ const ProjectDetails = () => {
                 setReplyText('');
                 setReplyToCommentId(null);
             }
-            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/comments/`);
-            setComments(response.data);
+            await fetchComments();
         } catch (err) {
             Alert.error('Error', err.response?.data?.detail || 'Failed to post comment.');
         }
@@ -135,64 +200,62 @@ const ProjectDetails = () => {
             setReportedBy('You');
             setReportReason('');
             setReportTargetId(null);
-            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/comments/`);
-            setComments(response.data);
+            await fetchComments();
         } catch (err) {
             Alert.error('Error reporting', err.response?.data?.detail || 'Something went wrong.');
         }
     };
 
-    // Render comments recursively with replies
     const renderComments = (commentsList) => {
         return commentsList.map((comment) => (
-                <div key={comment.id} className="border rounded p-3 mb-3 bg-gray-50 relative">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="font-semibold text-blue-700">{comment.user}</span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs text-gray-500">{new Date(comment.created_at).toLocaleString()}</span>
-                          <button
+            <div key={comment.id} className="border rounded p-3 mb-3 bg-gray-50 relative">
+                <div className="flex justify-between items-center mb-1">
+                    <span className="font-semibold text-blue-700">{comment.user}</span>
+                    <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-500">{new Date(comment.created_at).toLocaleString()}</span>
+                        <button
                             onClick={() => openReportModal('comment', comment.id)}
                             title="Report Comment"
                             className="text-red-500 hover:text-red-700 focus:outline-none"
                             aria-label="Report Comment"
-                          >
-                            &#9873;
-                          </button>
-                        </div>
+                        >
+                            ⚑
+                        </button>
                     </div>
-                    <p className="mb-2">{comment.text}</p>
-                    {comment.reported_by && (
-                        <p className="text-sm text-red-600 mb-1">Reported by: {comment.reported_by}</p>
-                    )}
-                    <button
-                        className="text-sm text-blue-500 hover:underline mb-2"
-                        onClick={() => setReplyToCommentId(comment.id === replyToCommentId ? null : comment.id)}
-                    >
-                        {comment.id === replyToCommentId ? 'Cancel Reply' : 'Reply'}
-                    </button>
-                    {comment.id === replyToCommentId && (
-                        <div className="mb-2">
-                            <textarea
-                                className="w-full border border-gray-300 rounded p-2 mb-1"
-                                rows="3"
-                                value={replyText}
-                                onChange={(e) => setReplyText(e.target.value)}
-                                placeholder="Write your reply..."
-                            />
-                            <button
-                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                                onClick={() => postComment(comment.id)}
-                            >
-                                Submit Reply
-                            </button>
-                        </div>
-                    )}
-                    {comment.replies && comment.replies.length > 0 && (
-                        <div className="ml-6 mt-3 border-l-2 border-gray-300 pl-4">
-                            {renderComments(comment.replies)}
-                        </div>
-                    )}
                 </div>
+                <p className="mb-2">{comment.text}</p>
+                {comment.reported_by && (
+                    <p className="text-sm text-red-600 mb-1">Reported by: {comment.reported_by}</p>
+                )}
+                <button
+                    className="text-sm text-blue-500 hover:underline mb-2"
+                    onClick={() => setReplyToCommentId(comment.id === replyToCommentId ? null : comment.id)}
+                >
+                    {comment.id === replyToCommentId ? 'Cancel Reply' : 'Reply'}
+                </button>
+                {comment.id === replyToCommentId && (
+                    <div className="mb-2">
+                        <textarea
+                            className="w-full border border-gray-300 rounded p-2 mb-1"
+                            rows="3"
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Write your reply..."
+                        />
+                        <button
+                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                            onClick={() => postComment(comment.id)}
+                        >
+                            Submit Reply
+                        </button>
+                    </div>
+                )}
+                {comment.replies && comment.replies.length > 0 && (
+                    <div className="ml-6 mt-3 border-l-2 border-gray-300 pl-4">
+                        {renderComments(comment.replies)}
+                    </div>
+                )}
+            </div>
         ));
     };
 
@@ -207,10 +270,7 @@ const ProjectDetails = () => {
                 }
             });
             Alert.success('Rating submitted!', 'Thank you for your feedback.');
-            // Refresh project data
-            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/`);
-            setProject(response.data);
-            setAverageRating(response.data.average_rating);
+            await fetchProjectDetails();
             setUserRating(0);
         } catch (err) {
             Alert.error('Error!', err.response.data.detail);
@@ -243,11 +303,38 @@ const ProjectDetails = () => {
     if (error) return <p className="text-center text-red-500">Error loading project: {error.message}</p>;
 
     return (
-        <div className="min-h-screen bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center py-10">
             <div className="container bg-white shadow-lg rounded-lg p-8 max-w-3xl">
                 <h1 className="text-3xl font-bold mb-4 text-center text-blue-600">{project.title}</h1>
-                <img src={`http://localhost:8000${project.image}`} alt={project.title} className="w-full h-64 object-cover rounded-md mb-4" />
-                <p className="text-gray-700 mb-4">{project.details}</p>
+
+                {project.images && project.images.length > 1 ? (
+                    <div className="mb-4">
+                        <Slider {...sliderSettings}>
+                            {project.images.map((image, index) => (
+                                <div key={image.id}>
+                                    <img
+                                        src={`http://localhost:8000${image.url}`}
+                                        alt={`${project.title} image ${index + 1}`}
+                                        className="w-full h-64 object-cover rounded-md"
+                                    />
+                                </div>
+                            ))}
+                        </Slider>
+                    </div>
+                ) : project.images && project.images.length === 1 ? (
+                    <img
+                        src={`http://localhost:8000${project.images[0].url}`}
+                        alt={project.title}
+                        className="w-full h-64 object-cover rounded-md mb-4"
+                    />
+                ) : (
+                    <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500 rounded-md mb-4">
+                        No Images
+                    </div>
+                )}
+
+                <DescriptionSection details={project.details} />
+
                 <p className="text-gray-600 mb-2"><strong>Category:</strong> {project.category}</p>
                 <p className="text-gray-600 mb-2"><strong>Total Target:</strong> ${project.total_target}</p>
                 <p className="text-gray-600 mb-2"><strong>Start:</strong> {new Date(project.start_time).toLocaleDateString()} - <strong>End:</strong> {new Date(project.end_time).toLocaleDateString()}</p>
@@ -299,7 +386,6 @@ const ProjectDetails = () => {
                     ))}
                 </div>
 
-                {/* Similar Projects Section */}
                 <div className="mb-6">
                     <h2 className="text-xl font-bold mb-4 text-gray-800">Similar Projects</h2>
                     {similarLoading && <p>Loading similar projects...</p>}
@@ -307,7 +393,7 @@ const ProjectDetails = () => {
                     {!similarLoading && similarProjects.length === 0 && <p>No similar projects found.</p>}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {similarProjects.map(similar => {
-                            const imageUrl = similar.image && (similar.image.startsWith('http') ? similar.image : `http://localhost:8000${similar.image}`);
+                            const imageUrl = similar.images && similar.images.length > 0 ? `http://localhost:8000${similar.images[0].url}` : null;
                             return (
                                 <Link
                                     key={similar.id}
@@ -394,14 +480,12 @@ const ProjectDetails = () => {
                     </button>
                 </div>
 
-                {/* Comments Section */}
                 <div className="mt-8">
                     <h2 className="text-2xl font-bold mb-4 text-gray-800">Comments</h2>
 
                     {commentsLoading && <p>Loading comments...</p>}
                     {commentsError && <p className="text-red-500">{commentsError}</p>}
 
-                    {/* New Comment Input */}
                     <div className="mb-4">
                         <textarea
                             className="w-full border border-gray-300 rounded p-2 mb-2"
@@ -418,7 +502,6 @@ const ProjectDetails = () => {
                         </button>
                     </div>
 
-                    {/* Comments List */}
                     <div>
                         {comments.length === 0 && !commentsLoading && <p>No comments yet. Be the first to comment!</p>}
                         {renderComments(comments)}

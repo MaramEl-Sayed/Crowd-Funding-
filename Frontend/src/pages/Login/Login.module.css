@@ -1,4 +1,3 @@
-
 /* Main container */
 .authContainer {
   display: flex;
@@ -16,7 +15,14 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   width: 100%;
-  max-width: 400px;
+  max-width: 600px;
+}
+
+/* Responsive adjustment for smaller screens */
+@media (max-width: 640px) {
+  .authForm {
+    max-width: 90%;
+  }
 }
 
 .authTitle {
@@ -52,11 +58,17 @@
   margin-top: 0.25rem;
 }
 
+/* Forgot Password */
+.forgotPassword {
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
 /* Buttons */
 .submitButton {
   width: 100%;
   padding: 0.75rem;
-  background: #4299e1;
+  background: #A855F7; /* Changed to purple */
   color: white;
   border: none;
   border-radius: 6px;
@@ -67,7 +79,7 @@
 }
 
 .submitButton:hover {
-  background: #3182ce;
+  background: #9333EA; /* Darker purple on hover */
 }
 
 .submitButton:disabled {
@@ -78,13 +90,20 @@
 /* Social login */
 .socialLogin {
   margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column; /* Changed from row to column */
+  align-items: center;
+  gap: 1rem;
 }
 
 .divider {
   display: flex;
   align-items: center;
-  margin: 1.5rem 0;
+  justify-content: center;
+  margin-bottom: 1.5rem; /* Changed from margin to margin-bottom */
   color: #718096;
+  width: 100%;
+  font-size: 0.875rem;
 }
 
 .divider::before,
@@ -102,26 +121,41 @@
   margin-left: 1rem;
 }
 
+.socialButtonsContainer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
 .socialButton {
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 0.75rem;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 8px;
   background: white;
-  color: #4a5568;
-  font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.socialButton:hover {
-  background: #f7fafc;
-  border-color: #cbd5e0;
+.googleButton:hover {
+  background: #EF4444; /* Red on hover */
+  border-color: #EF4444;
+}
+
+.googleIcon {
+  font-size: 1.5rem;
+}
+
+.facebookButton:hover {
+  background: #87CEEB; /* Sky blue on hover */
+  border-color: #87CEEB;
+}
+
+.facebookIcon {
+  font-size: 1.5rem;
 }
 
 /* Footer links */

@@ -1,14 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-
-
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/accounts/',
-  headers: {
-    'Content-Type': 'application/json',
-   
-  },
   baseURL: 'http://localhost:8000/api/accounts/',
   headers: {
     'Content-Type': 'application/json',
@@ -40,8 +33,8 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) throw error;
 
-        const response = await axios.post(`${api.defaults.baseURL}/token/refresh/`, {
-          refresh: refreshToken
+        const response = await axios.post(`${api.defaults.baseURL}token/refresh/`, {
+          refresh: refreshToken,
         });
 
         localStorage.setItem('accessToken', response.data.access);
@@ -76,25 +69,13 @@ export const authAPI = {
 
   login: async (credentials) => {
     try {
-      const response = await fetch('http://localhost:8000/api/accounts/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      if (!response.ok) {
-        throw await response.json();
-      }
-
-      const data = await response.json();
-      localStorage.setItem('accessToken', data.access);
-      localStorage.setItem('refreshToken', data.refresh);
+      const response = await api.post('/login/', credentials);
+      localStorage.setItem('accessToken', response.data.access);
+      localStorage.setItem('refreshToken', response.data.refresh);
       window.dispatchEvent(new Event('storage'));
-      return data;
+      return response.data;
     } catch (error) {
-      throw error;
+      throw error.response?.data || { error: 'Login failed' };
     }
   },
 
@@ -125,6 +106,7 @@ export const authAPI = {
   logout: () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    window.dispatchEvent(new Event('storage')); // Added storage event
   },
 
   getProtectedData: async () => {
@@ -152,7 +134,7 @@ export const authAPI = {
       const response = await api.post('/login/google/', data);
       localStorage.setItem('accessToken', response.data.access);
       localStorage.setItem('refreshToken', response.data.refresh);
-      window.dispatchEvent(new Event('storage')); // Add storage event
+      window.dispatchEvent(new Event('storage'));
       return response.data;
     } catch (error) {
       throw error.response?.data || { error: 'Google login failed' };
@@ -164,26 +146,35 @@ export const authAPI = {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) throw new Error('No refresh token available');
 
-      const response = await fetch('http://localhost:8000/api/auth/refresh/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh: refreshToken }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to refresh access token');
-      }
-
-      const data = await response.json();
-      localStorage.setItem('accessToken', data.access);
-      return data.access;
+      const response = await api.post('/token/refresh/', { refresh: refreshToken });
+      localStorage.setItem('accessToken', response.data.access);
+      return response.data.access;
     } catch (error) {
-      console.error('Error refreshing access token:', error);
-      throw error;
+      throw error.response?.data || { error: 'Failed to refresh access token' };
     }
-  }
+  },
+
+  requestPasswordReset: async (email) => {
+    try {
+      const response = await api.post('/password/reset/request/', { email });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { error: 'Failed to request password reset' };
+    }
+  },
+
+  confirmPasswordReset: async (uid, token, new_password) => {
+    try {
+      const response = await api.post('/password/reset/confirm/', {
+        uid,
+        token,
+        new_password,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { error: 'Failed to reset password' };
+    }
+  },
 };
 
 export const handleSessionExpired = () => {

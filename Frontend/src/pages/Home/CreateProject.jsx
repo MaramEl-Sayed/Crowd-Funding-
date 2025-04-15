@@ -14,7 +14,6 @@ const CreateProject = () => {
         total_target: '',
         start_time: '',
         end_time: '',
-        image: null,
         is_active: true,
     });
     const [tags, setTags] = useState([]);
@@ -23,6 +22,10 @@ const CreateProject = () => {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
+    // State for new images to upload (File objects)
+    const [newImages, setNewImages] = useState([]);
+    // State for preview URLs of new images
+    const [newImagePreviews, setNewImagePreviews] = useState([]);
 
     const categories = [
         "Technology",
@@ -47,13 +50,34 @@ const CreateProject = () => {
     }, []);
 
     const handleChange = useCallback((e) => {
-        const { name, value, files } = e.target;
-        if (name === 'image') {
-            setFormData(prevFormData => ({ ...prevFormData, image: files[0] }));
-        } else {
-            setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
-        }
+        const { name, value } = e.target;
+        setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
     }, []);
+
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        // Add new files to the state
+        setNewImages(prev => [...prev, ...files]);
+
+        // Generate preview URLs for the new images
+        const previews = files.map(file => URL.createObjectURL(file));
+        setNewImagePreviews(prev => [...prev, ...previews]);
+
+        // Reset the input field to allow selecting the same files again
+        e.target.value = null;
+    };
+
+    const handleRemoveNewImage = (index) => {
+        // Remove the image at the given index from both newImages and newImagePreviews
+        setNewImages(prev => prev.filter((_, i) => i !== index));
+        setNewImagePreviews(prev => {
+            const previewToRemove = prev[index];
+            URL.revokeObjectURL(previewToRemove); // Clean up the object URL
+            return prev.filter((_, i) => i !== index);
+        });
+    };
 
     const handleTagRemove = useCallback((tagName) => {
         setSelectedTags(prevSelected => prevSelected.filter(t => t !== tagName));
@@ -65,12 +89,20 @@ const CreateProject = () => {
             setError('Please fill in all required fields.');
             return;
         }
+        if (newImages.length === 0) {
+            setError('Please upload at least one image.');
+            return;
+        }
         setLoading(true);
         const formDataToSend = new FormData();
         for (const key in formData) {
             formDataToSend.append(key, formData[key]);
         }
         selectedTags.forEach(tag => formDataToSend.append('tags_ids', tag));
+        // Append new images
+        newImages.forEach((image) => {
+            formDataToSend.append('images_files', image); // Backend should expect 'images' as a list
+        });
 
         try {
             await axios.post('http://localhost:8000/api/projects/projects/', formDataToSend, {
@@ -79,6 +111,10 @@ const CreateProject = () => {
                     'Authorization': `Bearer ${token}`,
                 },
             });
+            // Clean up preview URLs
+            newImagePreviews.forEach(url => URL.revokeObjectURL(url));
+            setNewImages([]);
+            setNewImagePreviews([]);
             setSuccess(true);
             setError(null);
             navigate('/home');
@@ -187,15 +223,38 @@ const CreateProject = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-gray-700 font-semibold">Image</label>
+                        <label className="block text-gray-700 font-semibold">Images</label>
                         <input
                             type="file"
-                            name="image"
-                            onChange={handleChange}
+                            name="images"
+                            onChange={handleImageChange}
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             accept="image/*"
-                            aria-label="Project Image"
+                            multiple
+                            aria-label="Project Images"
                         />
+                        {/* Preview New Images */}
+                        {newImagePreviews.length > 0 && (
+                            <div className="grid grid-cols-3 gap-4 mt-4">
+                                {newImagePreviews.map((preview, index) => (
+                                    <div key={index} className="relative">
+                                        <img
+                                            src={preview}
+                                            alt={`New project image ${index + 1}`}
+                                            className="w-full h-32 object-cover rounded"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveNewImage(index)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                            aria-label="Remove new image"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <div className="mb-4">
                         <label className="block text-gray-700 font-semibold mb-2">Tags</label>
