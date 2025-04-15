@@ -6,11 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
-<<<<<<< HEAD
-from .models import Project, Tag, Donation, Comment, Report, Rating
-=======
 from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating
->>>>>>> origin/Final
 from .serializers import (
     ProjectSerializer, TagSerializer, DonationSerializer,
     CommentSerializer, ReportSerializer, RatingSerializer
@@ -40,10 +36,6 @@ class ProjectListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/Final
 class ProjectDetailUpdateDeleteView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -59,15 +51,9 @@ class ProjectDetailUpdateDeleteView(APIView):
         project = get_object_or_404(Project, id=project_id)
         if project.owner != request.user:
             raise PermissionDenied("You do not have permission to edit this project.")
-<<<<<<< HEAD
-        serializer = ProjectSerializer(project, data=request.data)
-        if serializer.is_valid():
-            serializer.save(owner=request.user)
-=======
         serializer = ProjectSerializer(project, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
->>>>>>> origin/Final
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,8 +64,6 @@ class ProjectDetailUpdateDeleteView(APIView):
         project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-<<<<<<< HEAD
-=======
 class ProjectImageDeleteView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -90,7 +74,6 @@ class ProjectImageDeleteView(APIView):
         image = get_object_or_404(ProjectImage, id=image_id, project=project)
         image.delete()
         return Response({"detail": "Image deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
->>>>>>> origin/Final
 
 class ProjectCancelView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -112,10 +95,6 @@ class ProjectCancelView(APIView):
 
         return Response({"detail": "Project has been cancelled."}, status=status.HTTP_200_OK)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/Final
 class DonationCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -142,10 +121,6 @@ class DonationCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/Final
 class CommentListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -164,10 +139,6 @@ class CommentListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/Final
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import generics
@@ -210,10 +181,6 @@ class SimilarProjectsView(generics.ListAPIView):
         similar_projects = similar_projects.annotate(shared_tags=Count('tags')).order_by('-shared_tags', '-start_time')
         return similar_projects
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/Final
 class RatingCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -227,10 +194,6 @@ class RatingCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/Final
 class ProjectRatingAverageView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -241,10 +204,6 @@ class ProjectRatingAverageView(APIView):
         average = round(sum(r.value for r in ratings) / len(ratings), 2)
         return Response({"average_rating": average})
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/Final
 class TagListView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -252,10 +211,6 @@ class TagListView(APIView):
         tags = Tag.objects.all()
         serializer = TagSerializer(tags, many=True)
         return Response(serializer.data)
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/Final
 class TopRatedProjectsView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
@@ -270,21 +225,12 @@ class TopRatedProjectsView(APIView):
         project_data.sort(key=lambda x: x[0], reverse=True)
         sorted_projects = [data for (rating, data) in project_data]
         return Response(sorted_projects)
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/Final
 class LatestProjectsView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
         projects = Project.objects.filter(is_active=True).order_by('-start_time')[:5]
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
-<<<<<<< HEAD
-# Add this at the end of projects/views.py
-=======
-
->>>>>>> origin/Final
 class UserDonationsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 

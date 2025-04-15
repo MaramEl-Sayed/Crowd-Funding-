@@ -3,11 +3,8 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from decimal import Decimal
-<<<<<<< HEAD
-=======
 from django.core.exceptions import ValidationError
 
->>>>>>> origin/Final
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -41,17 +38,9 @@ class Project(models.Model):
     total_target = models.DecimalField(max_digits=10, decimal_places=2)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-<<<<<<< HEAD
-    image = models.ImageField(upload_to="images/", default="blank.jpg")
     slug = models.SlugField(unique=True, blank=True)
     is_active = models.BooleanField(default=True)
 
-
-=======
-    slug = models.SlugField(unique=True, blank=True)
-    is_active = models.BooleanField(default=True)
-
->>>>>>> origin/Final
     def clean(self):
         super().clean()
         if Project.objects.filter(title__iexact=self.title).exclude(pk=self.pk).exists():
@@ -65,11 +54,6 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> origin/Final
     def donations(self):
         return self.donations.all()
 
@@ -78,11 +62,6 @@ class Project(models.Model):
 
     def can_be_cancelled(self):
         return self.total_donations() < (Decimal('0.25') * self.total_target)
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> origin/Final
     def average_rating(self):
         ratings = self.ratings.all()
         if not ratings:
@@ -97,8 +76,6 @@ class Project(models.Model):
         ).order_by('-avg_rating')[:limit]
 
 
-<<<<<<< HEAD
-=======
 class ProjectImage(models.Model):
     project = models.ForeignKey(Project, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to="images/")
@@ -108,7 +85,6 @@ class ProjectImage(models.Model):
         return f"Image for {self.project.title}"
 
 
->>>>>>> origin/Final
 class Donation(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="donations"
@@ -121,20 +97,6 @@ class Donation(models.Model):
 
     def __str__(self):
         return f"{self.user.username} donated {self.amount} to {self.project.title}"
-<<<<<<< HEAD
-    
-class Comment(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="comments") 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) 
-    text = models.TextField() 
-    created_at = models.DateTimeField(auto_now_add=True) 
-    parent = models.ForeignKey( "self", null=True, blank=True, on_delete=models.CASCADE, related_name="replies" )
-    def __str__(self):
-        return f"{self.user.username} on {self.project.title}"
-    
-class Report(models.Model): 
-    REPORT_TYPE_CHOICES = [ ("project", "Project"), ("comment", "Comment"), ]
-=======
 
 
 class Comment(models.Model):
@@ -150,7 +112,6 @@ class Comment(models.Model):
 
 class Report(models.Model):
     REPORT_TYPE_CHOICES = [("project", "Project"), ("comment", "Comment")]
->>>>>>> origin/Final
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.CASCADE)
     comment = models.ForeignKey(Comment, null=True, blank=True, on_delete=models.CASCADE)
@@ -161,17 +122,6 @@ class Report(models.Model):
     def __str__(self):
         return f"{self.user.username} reported {self.report_type}"
 
-<<<<<<< HEAD
-class Rating(models.Model): 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="ratings") 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) 
-    value = models.PositiveSmallIntegerField() # typically 1 to 5  
-    class Meta:
-        unique_together = ("project", "user")
-    def __str__(self):
-        return f"{self.user.username} rated {self.project.title} - {self.value}"
-  
-=======
 
 class Rating(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="ratings")
@@ -183,4 +133,3 @@ class Rating(models.Model):
 
     def __str__(self):
         return f"{self.user.username} rated {self.project.title} - {self.value}"
->>>>>>> origin/Final
