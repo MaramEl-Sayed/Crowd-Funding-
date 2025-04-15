@@ -68,7 +68,6 @@ const Projects = () => {
         <div className="bg-gradient-to-r py-10 from-blue-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center">
             <div className="container bg-white shadow-lg rounded-lg p-8 max-w-3xl">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold text-gray-700">Projects</h1>
                     <button
                         onClick={() => navigate('/create-project')}
                         className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"

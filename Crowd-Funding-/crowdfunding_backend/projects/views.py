@@ -6,11 +6,25 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
-from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating
+from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category
 from .serializers import (
     ProjectSerializer, TagSerializer, DonationSerializer,
-    CommentSerializer, ReportSerializer, RatingSerializer
+    CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer
 )
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+
+# existing views ...
+
+class CategoryListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
 
 class ProjectListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]

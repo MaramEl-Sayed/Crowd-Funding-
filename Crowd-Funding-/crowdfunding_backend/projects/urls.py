@@ -4,7 +4,7 @@ from .views import (
     DonationCreateView, CommentListCreateView, ReportCreateView,
     RatingCreateView, ProjectRatingAverageView, ProjectCancelView,
     UserDonationsView, TopRatedProjectsView, LatestProjectsView,
-    SimilarProjectsView, ProjectImageDeleteView
+    SimilarProjectsView, ProjectImageDeleteView, CategoryListView
 )
 
 app_name = "projects"
@@ -21,6 +21,8 @@ urlpatterns = [
     path("my-donations/", UserDonationsView.as_view(), name="user-donations"),
     # Tags
     path("tags/", TagListView.as_view(), name="tag-list"),
+    # Categories
+    path("categories/", CategoryListView.as_view(), name="category-list"),
 
     # Donations
     path("donations/", DonationCreateView.as_view(), name="donation-create"),

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating
+from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category
 
 User = get_user_model()
 
@@ -8,6 +8,12 @@ User = get_user_model()
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
+        fields = ["id", "name"]
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
         fields = ["id", "name"]
 
 

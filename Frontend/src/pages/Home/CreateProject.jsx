@@ -27,13 +27,7 @@ const CreateProject = () => {
     // State for preview URLs of new images
     const [newImagePreviews, setNewImagePreviews] = useState([]);
 
-    const categories = [
-        "Technology",
-        "Health",
-        "Education",
-        "Art",
-        "Charity",
-    ];
+    const [categories, setCategories] = React.useState([]);
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -46,7 +40,18 @@ const CreateProject = () => {
             }
         };
 
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/projects/categories/');
+                setCategories(response.data);
+            } catch (err) {
+                console.error('Error fetching categories:', err);
+                Alert.error('Error!', err.response?.data?.detail || 'Error fetching categories.');
+            }
+        };
+
         fetchTags();
+        fetchCategories();
     }, []);
 
     const handleChange = useCallback((e) => {
@@ -180,8 +185,8 @@ const CreateProject = () => {
                         >
                             <option value="">Select a category</option>
                             {categories.map(category => (
-                                <option key={category} value={category}>
-                                    {category}
+                                <option key={category.id} value={category.id}>
+                                    {category.name}
                                 </option>
                             ))}
                         </select>

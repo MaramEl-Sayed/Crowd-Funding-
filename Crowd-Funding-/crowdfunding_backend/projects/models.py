@@ -12,6 +12,12 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+class Category(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
 
 class Project(models.Model):
     CATEGORY_CHOICES = [
@@ -33,7 +39,7 @@ class Project(models.Model):
         }
     )
     details = models.TextField()
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
     total_target = models.DecimalField(max_digits=10, decimal_places=2)
     start_time = models.DateTimeField()

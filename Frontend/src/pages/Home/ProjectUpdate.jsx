@@ -8,6 +8,7 @@ const ProjectUpdate = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [tags, setTags] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
     const [newTagInput, setNewTagInput] = useState('');
     const [error, setError] = useState(null);
@@ -35,9 +36,10 @@ const ProjectUpdate = () => {
 
     const fetchProjectDetails = async () => {
         try {
-            const [projectRes, tagsRes] = await Promise.all([
+            const [projectRes, tagsRes, categoriesRes] = await Promise.all([
                 axios.get(`http://localhost:8000/api/projects/projects/${id}/`),
-                axios.get('http://localhost:8000/api/projects/tags/')
+                axios.get('http://localhost:8000/api/projects/tags/'),
+                axios.get('http://localhost:8000/api/projects/categories/')
             ]);
 
             const project = projectRes.data;
@@ -54,6 +56,7 @@ const ProjectUpdate = () => {
             setExistingImages(project.images || []);
             setSelectedTags(project.tags.map(tag => tag.name));
             setTags(tagsRes.data);
+            setCategories(categoriesRes.data);
         } catch (err) {
             setError(err);
         } finally {
@@ -185,14 +188,18 @@ const ProjectUpdate = () => {
                         required
                     />
 
-                    <input
-                        type="text"
+                    <select
                         name="category"
                         value={formData.category}
                         onChange={handleChange}
-                        placeholder="Category"
                         className="w-full p-3 border rounded"
-                    />
+                        required
+                    >
+                        <option value="">Select a category</option>
+                        {categories.map(category => (
+                            <option key={category.id} value={category.id}>{category.name}</option>
+                        ))}
+                    </select>
 
                     <input
                         type="number"
@@ -369,4 +376,5 @@ const ProjectUpdate = () => {
     );
 };
 
+                          
 export default ProjectUpdate;
