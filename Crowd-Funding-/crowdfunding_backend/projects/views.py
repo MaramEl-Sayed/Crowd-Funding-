@@ -39,7 +39,7 @@ class ProjectListCreateView(APIView):
         else:
             projects = Project.objects.all()
         if category:
-            projects = projects.filter(category=category)
+            projects = projects.filter(category__name=category)
         if search:
             for letter in search:
                 projects = projects.filter(title__icontains=letter)
@@ -232,13 +232,11 @@ class TopRatedProjectsView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
         projects = Project.get_top_rated_active_projects()
-        # Calculate average rating for each project and create a list of tuples
         project_data = []
         for project in projects:
             avg_rating = project.average_rating() or 0
             serializer = ProjectSerializer(project)
             project_data.append((avg_rating, serializer.data))
-        # Sort by average rating (descending) and extract just the serialized data
         project_data.sort(key=lambda x: x[0], reverse=True)
         sorted_projects = [data for (rating, data) in project_data]
         return Response(sorted_projects)

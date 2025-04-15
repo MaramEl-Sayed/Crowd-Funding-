@@ -10,7 +10,7 @@ const CreateProject = () => {
     const [formData, setFormData] = useState({
         title: '',
         details: '',
-        category: '',
+        category_id: '', // Use category_id instead of category
         total_target: '',
         start_time: '',
         end_time: '',
@@ -22,12 +22,9 @@ const CreateProject = () => {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
-    // State for new images to upload (File objects)
     const [newImages, setNewImages] = useState([]);
-    // State for preview URLs of new images
     const [newImagePreviews, setNewImagePreviews] = useState([]);
-
-    const [categories, setCategories] = React.useState([]);
+    const [categories, setCategories] = useState([]);
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -63,23 +60,17 @@ const CreateProject = () => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
 
-        // Add new files to the state
         setNewImages(prev => [...prev, ...files]);
-
-        // Generate preview URLs for the new images
         const previews = files.map(file => URL.createObjectURL(file));
         setNewImagePreviews(prev => [...prev, ...previews]);
-
-        // Reset the input field to allow selecting the same files again
         e.target.value = null;
     };
 
     const handleRemoveNewImage = (index) => {
-        // Remove the image at the given index from both newImages and newImagePreviews
         setNewImages(prev => prev.filter((_, i) => i !== index));
         setNewImagePreviews(prev => {
             const previewToRemove = prev[index];
-            URL.revokeObjectURL(previewToRemove); // Clean up the object URL
+            URL.revokeObjectURL(previewToRemove);
             return prev.filter((_, i) => i !== index);
         });
     };
@@ -90,7 +81,7 @@ const CreateProject = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.title || !formData.details || !formData.category || !formData.total_target || !formData.start_time || !formData.end_time) {
+        if (!formData.title || !formData.details || !formData.category_id || !formData.total_target || !formData.start_time || !formData.end_time) {
             setError('Please fill in all required fields.');
             return;
         }
@@ -104,9 +95,8 @@ const CreateProject = () => {
             formDataToSend.append(key, formData[key]);
         }
         selectedTags.forEach(tag => formDataToSend.append('tags_ids', tag));
-        // Append new images
         newImages.forEach((image) => {
-            formDataToSend.append('images_files', image); // Backend should expect 'images' as a list
+            formDataToSend.append('images_files', image);
         });
 
         try {
@@ -116,7 +106,6 @@ const CreateProject = () => {
                     'Authorization': `Bearer ${token}`,
                 },
             });
-            // Clean up preview URLs
             newImagePreviews.forEach(url => URL.revokeObjectURL(url));
             setNewImages([]);
             setNewImagePreviews([]);
@@ -176,8 +165,8 @@ const CreateProject = () => {
                     <div>
                         <label className="block text-gray-700 font-semibold">Category</label>
                         <select
-                            name="category"
-                            value={formData.category}
+                            name="category_id"
+                            value={formData.category_id}
                             onChange={handleChange}
                             className="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                             required
@@ -238,7 +227,6 @@ const CreateProject = () => {
                             multiple
                             aria-label="Project Images"
                         />
-                        {/* Preview New Images */}
                         {newImagePreviews.length > 0 && (
                             <div className="grid grid-cols-3 gap-4 mt-4">
                                 {newImagePreviews.map((preview, index) => (

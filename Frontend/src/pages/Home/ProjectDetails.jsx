@@ -20,8 +20,8 @@ const DescriptionSection = memo(({ details }) => {
         return isDescriptionExpanded
             ? details
             : shouldTruncateDescription
-            ? `${details.substring(0, DESCRIPTION_TRUNCATE_LENGTH)}...`
-            : details;
+                ? `${details.substring(0, DESCRIPTION_TRUNCATE_LENGTH)}...`
+                : details;
     }, [details, isDescriptionExpanded, shouldTruncateDescription]);
 
     const toggleDescription = () => {
@@ -335,7 +335,7 @@ const ProjectDetails = () => {
 
                 <DescriptionSection details={project.details} />
 
-                <p className="text-gray-600 mb-2"><strong>Category:</strong> {project.category}</p>
+                <p className="text-gray-600 mb-2"><strong>Category:</strong> {project.category.name}</p>
                 <p className="text-gray-600 mb-2"><strong>Total Target:</strong> ${project.total_target}</p>
                 <p className="text-gray-600 mb-2"><strong>Start:</strong> {new Date(project.start_time).toLocaleDateString()} - <strong>End:</strong> {new Date(project.end_time).toLocaleDateString()}</p>
                 <p className="text-gray-600 mb-4"><strong>Average Rating:</strong> {averageRating || 'No ratings yet'}</p>

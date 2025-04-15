@@ -45,6 +45,8 @@ class ProjectImageSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source="owner.username")
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source='category', write_only=True, required=False)
     tags = TagSerializer(many=True, read_only=True)
     tags_ids = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     average_rating = serializers.SerializerMethodField()
@@ -59,11 +61,17 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            'id', 'title', 'details', 'category', 'total_target', 'start_time',
+            'id', 'title', 'details', 'category', 'category_id', 'total_target', 'start_time',
             'end_time', 'slug', 'is_active', 'owner', 'tags', 'tags_ids',
             'average_rating', 'total_donations', 'can_be_cancelled', 'donations',
             'remaining_amount', 'progress_percentage', 'images', 'images_files'
         ]
+
+    def validate(self, data):
+        # Ensure category_id is provided when creating or updating
+        if self.instance is None and 'category' not in data:
+            raise serializers.ValidationError({"category_id": "This field is required."})
+        return data
 
     def get_average_rating(self, obj):
         return obj.average_rating()
@@ -89,8 +97,12 @@ class ProjectSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags_data = validated_data.pop('tags_ids', [])
         images_files = validated_data.pop('images_files', [])
+        category = validated_data.pop('category', None)
 
         project = Project.objects.create(**validated_data)
+        if category:
+            project.category = category
+            project.save()
         self._handle_tags(project, tags_data)
         for image_file in images_files:
             ProjectImage.objects.create(project=project, image=image_file)
@@ -99,9 +111,12 @@ class ProjectSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         tags_data = validated_data.pop('tags_ids', None)
         images_files = validated_data.pop('images_files', [])
+        category = validated_data.pop('category', None)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+        if category is not None:
+            instance.category = category
         instance.save()
         if tags_data is not None:
             self._handle_tags(instance, tags_data)

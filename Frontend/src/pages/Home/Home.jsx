@@ -12,15 +12,8 @@ const Home = () => {
     const [searchResults, setSearchResults] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
+    const [categories, setCategories] = useState([]);
     const navigate = useNavigate();
-
-    const categories = [
-        "Technology",
-        "Health",
-        "Education",
-        "Art",
-        "Charity",
-    ];
 
     // Helper function to get the first available image URL
     const getFirstImageUrl = (images) => {
@@ -62,6 +55,14 @@ const Home = () => {
         axios.get("http://127.0.0.1:8000/api/projects/projects/featured/")
             .then((res) => setFeaturedProjects(res.data))
             .catch((err) => console.error("Error fetching featured projects", err));
+
+        axios.get("http://127.0.0.1:8000/api/projects/categories/")
+            .then((res) => {
+                // Assuming the API returns an array of objects with a 'name' property
+                const categoryNames = res.data.map(category => category.name);
+                setCategories(categoryNames);
+            })
+            .catch((err) => console.error("Error fetching categories", err));
 
         return () => {
             debouncedSearch.cancel();
@@ -269,8 +270,9 @@ const Home = () => {
                     ))}
                 </div>
             </div>
-             {/* Featured Projects Section */}
-             <div className="py-8">
+
+            {/* Featured Projects Section */}
+            <div className="py-8">
                 <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Featured Projects</h2>
                 <div className="grid gap-6 md:grid-cols-2">
                     {featuredProjects.length > 0 ? (
@@ -313,11 +315,12 @@ const Home = () => {
                     )}
                 </div>
             </div>
+
             {/* Category Filter */}
             <div className="py-8">
                 <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Categories</h2>
                 <div className="flex justify-center mb-8">
-                    {categories.map((category) => (
+                    {categories.length > 0 ? categories.map((category) => (
                         <button
                             key={category}
                             onClick={() => fetchProjectsByCategory(category)}
@@ -325,7 +328,7 @@ const Home = () => {
                         >
                             {category}
                         </button>
-                    ))}
+                    )) : <p className="text-center text-gray-500">Loading categories...</p>}
                 </div>
             </div>
 
