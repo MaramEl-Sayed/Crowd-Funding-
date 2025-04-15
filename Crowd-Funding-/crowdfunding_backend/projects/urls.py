@@ -4,7 +4,7 @@ from .views import (
     DonationCreateView, CommentListCreateView, ReportCreateView,
     RatingCreateView, ProjectRatingAverageView, ProjectCancelView,
     UserDonationsView, TopRatedProjectsView, LatestProjectsView,
-    SimilarProjectsView, ProjectImageDeleteView, CategoryListView
+    SimilarProjectsView, ProjectImageDeleteView, CategoryListView,LatestFeaturedProjectsView
 )
 
 app_name = "projects"
@@ -44,4 +44,7 @@ urlpatterns = [
 
     # Similar Projects
     path("projects/<int:project_id>/similar/", SimilarProjectsView.as_view(), name="project-similar"),
+    # Featured Projects
+    path('projects/featured/', LatestFeaturedProjectsView.as_view(), name='latest-featured-projects'),
+
 ]

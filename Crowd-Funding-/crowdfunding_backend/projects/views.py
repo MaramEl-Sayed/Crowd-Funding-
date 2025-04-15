@@ -7,6 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
 from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category
+from rest_framework.permissions import AllowAny
+from .models import Project
+
 from .serializers import (
     ProjectSerializer, TagSerializer, DonationSerializer,
     CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer
@@ -252,3 +255,11 @@ class UserDonationsView(APIView):
         donations = Donation.objects.filter(user=request.user)
         serializer = DonationSerializer(donations, many=True)
         return Response(serializer.data)
+    
+class LatestFeaturedProjectsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        projects = Project.get_latest_featured_projects()
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data)    

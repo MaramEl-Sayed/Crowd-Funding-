@@ -1,10 +1,8 @@
 from django.db import models
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.utils.text import slugify
 from decimal import Decimal
 from django.core.exceptions import ValidationError
-
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -17,7 +15,6 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Project(models.Model):
     CATEGORY_CHOICES = [
@@ -46,6 +43,7 @@ class Project(models.Model):
     end_time = models.DateTimeField()
     slug = models.SlugField(unique=True, blank=True)
     is_active = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False)  # New field for featured projects
 
     def clean(self):
         super().clean()
@@ -60,6 +58,7 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
     def donations(self):
         return self.donations.all()
 
@@ -68,6 +67,7 @@ class Project(models.Model):
 
     def can_be_cancelled(self):
         return self.total_donations() < (Decimal('0.25') * self.total_target)
+
     def average_rating(self):
         ratings = self.ratings.all()
         if not ratings:
@@ -81,6 +81,9 @@ class Project(models.Model):
             avg_rating=Coalesce(models.Avg('ratings__value'), 0.0)
         ).order_by('-avg_rating')[:limit]
 
+    @classmethod
+    def get_latest_featured_projects(cls, limit=5):
+        return cls.objects.filter(is_active=True, is_featured=True).order_by('-start_time')[:limit]
 
 class ProjectImage(models.Model):
     project = models.ForeignKey(Project, related_name='images', on_delete=models.CASCADE)
@@ -89,7 +92,6 @@ class ProjectImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.project.title}"
-
 
 class Donation(models.Model):
     user = models.ForeignKey(
@@ -104,7 +106,6 @@ class Donation(models.Model):
     def __str__(self):
         return f"{self.user.username} donated {self.amount} to {self.project.title}"
 
-
 class Comment(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="comments")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -114,7 +115,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.user.username} on {self.project.title}"
-
 
 class Report(models.Model):
     REPORT_TYPE_CHOICES = [("project", "Project"), ("comment", "Comment")]
@@ -127,7 +127,6 @@ class Report(models.Model):
 
     def __str__(self):
         return f"{self.user.username} reported {self.report_type}"
-
 
 class Rating(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="ratings")

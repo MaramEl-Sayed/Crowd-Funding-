@@ -7,6 +7,7 @@ import { debounce } from "lodash";
 const Home = () => {
     const [topRatedProjects, setTopRatedProjects] = useState([]);
     const [latestProjects, setLatestProjects] = useState([]);
+    const [featuredProjects, setFeaturedProjects] = useState([]);
     const [categoryProjects, setCategoryProjects] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState("");
@@ -26,7 +27,7 @@ const Home = () => {
         if (images && images.length > 0) {
             return `http://localhost:8000${images[0].url}`;
         }
-        return null; // Return null if no images are available
+        return null;
     };
 
     // Debounced search function
@@ -37,13 +38,12 @@ const Home = () => {
                     .then((res) => setSearchResults(res.data))
                     .catch((err) => console.error("Error fetching search results", err));
             } else {
-                setSearchResults([]); // Clear search results if the query is empty
+                setSearchResults([]);
             }
-        }, 300), // 300ms delay
+        }, 300),
         []
     );
 
-    // Handle input change and trigger debounced search
     const handleSearchInputChange = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
@@ -51,17 +51,18 @@ const Home = () => {
     };
 
     useEffect(() => {
-        // Fetch top-rated projects
         axios.get("http://127.0.0.1:8000/api/projects/projects/top-rated/")
             .then((res) => setTopRatedProjects(res.data))
             .catch((err) => console.error("Error fetching top-rated projects", err));
 
-        // Fetch latest projects
         axios.get("http://127.0.0.1:8000/api/projects/projects/latest/")
             .then((res) => setLatestProjects(res.data))
             .catch((err) => console.error("Error fetching latest projects", err));
 
-        // Cleanup debounce on component unmount
+        axios.get("http://127.0.0.1:8000/api/projects/projects/featured/")
+            .then((res) => setFeaturedProjects(res.data))
+            .catch((err) => console.error("Error fetching featured projects", err));
+
         return () => {
             debouncedSearch.cancel();
         };
@@ -268,7 +269,50 @@ const Home = () => {
                     ))}
                 </div>
             </div>
-
+             {/* Featured Projects Section */}
+             <div className="py-8">
+                <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Featured Projects</h2>
+                <div className="grid gap-6 md:grid-cols-2">
+                    {featuredProjects.length > 0 ? (
+                        featuredProjects.map((project) => (
+                            <div
+                                key={project.id}
+                                className="bg-white rounded-2xl shadow-lg p-5 flex flex-col md:flex-row gap-4 items-center transform hover:scale-105 hover:shadow-xl transition-all duration-300"
+                            >
+                                {getFirstImageUrl(project.images) ? (
+                                    <img
+                                        src={getFirstImageUrl(project.images)}
+                                        alt={project.title}
+                                        className="w-full md:w-48 h-48 object-cover object-center rounded-lg border border-gray-200 shadow-sm"
+                                    />
+                                ) : (
+                                    <div className="w-full md:w-48 h-48 bg-gray-200 flex items-center justify-center text-gray-500 rounded-lg border border-gray-200 shadow-sm">
+                                        No Image
+                                    </div>
+                                )}
+                                <div className="flex-1 flex flex-col items-center justify-center gap-4">
+                                    <Link
+                                        to={`/projects/${project.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:opacity-75"
+                                    >
+                                        <h3 className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">{project.title}</h3>
+                                    </Link>
+                                    <button
+                                        onClick={() => handleDonateNow(project.id)}
+                                        className="bg-gradient-to-r from-green-500 to-green-700 text-white px-6 py-3 rounded-full shadow-lg hover:from-green-600 hover:to-green-800 transform hover:scale-105 transition-all duration-300"
+                                    >
+                                        Donate Now
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-center text-gray-500">No featured projects available.</p>
+                    )}
+                </div>
+            </div>
             {/* Category Filter */}
             <div className="py-8">
                 <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Categories</h2>
