@@ -241,18 +241,18 @@ ADMINS = [('Admin', 'crowdfunding449@gmail.com')]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React frontend URL
-    "https://e94f-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
-    "https://1fdd-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
+    "https://c720-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
+    "https://5bbc-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
 ]
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "1fdd-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
-    "e94f-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
+    "5bbc-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
+    "c720-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
 ]
 
-FRONTEND_URL = "https://1fdd-102-189-207-6.ngrok-free.app"  # Updated to ngrok URL
+FRONTEND_URL = "https://5bbc-102-189-207-6.ngrok-free.app"  # Updated to ngrok URL
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1), 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category
+from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category,Share
 
 User = get_user_model()
 
@@ -155,3 +155,11 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ['id', 'user', 'project', 'project_title', 'value']
+
+class ShareSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+    project_title = serializers.ReadOnlyField(source='project.title')
+
+    class Meta:
+        model = Share
+        fields = ['id', 'user', 'project', 'project_title', 'platform', 'shared_at']

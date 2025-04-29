@@ -1,25 +1,21 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny
-from django.db import models
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, permissions,generics
 from django.shortcuts import get_object_or_404
-from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category, Payment
-from rest_framework.permissions import AllowAny
-from .models import Project
+from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category, Payment,Share
 from django.conf import settings
 import requests
 import json
 import uuid
 from django.core.mail import send_mail
-from rest_framework import generics
 from django.db.models import Count
 
 from .serializers import (
     ProjectSerializer, TagSerializer, DonationSerializer,
-    CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer
+    CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer,ShareSerializer
 )
 
 import logging
@@ -415,3 +411,12 @@ class LatestFeaturedProjectsView(APIView):
         projects = Project.get_latest_featured_projects()
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)    
+    
+class ShareCreateView(generics.CreateAPIView):
+    queryset = Share.objects.all()
+    serializer_class = ShareSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(user=user)    

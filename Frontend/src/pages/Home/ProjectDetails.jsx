@@ -307,8 +307,28 @@ const ProjectDetails = () => {
         }
     };
 
+    // New function to open social media share windows and log share event
+    const openShareWindow = async (platform, url) => {
+        window.open(url, '_blank', 'width=600,height=400');
+        try {
+            await axios.post('http://localhost:8000/api/projects/shares/', {
+                project: project.id,
+                platform: platform,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            });
+        } catch (err) {
+            console.error('Error logging share event:', err);
+        }
+    };
+
     if (loading) return <p className="text-center text-gray-500">Loading...</p>;
     if (error) return <p className="text-center text-red-500">Error loading project: {error.message}</p>;
+
+    // Construct share URL using project slug
+    const shareUrl = project ? `${window.location.origin}/projects/${project.slug}` : '';
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center py-10">
@@ -347,6 +367,38 @@ const ProjectDetails = () => {
                 <p className="text-gray-600 mb-2"><strong>Total Target:</strong> ${project.total_target}</p>
                 <p className="text-gray-600 mb-2"><strong>Start:</strong> {new Date(project.start_time).toLocaleDateString()} - <strong>End:</strong> {new Date(project.end_time).toLocaleDateString()}</p>
                 <p className="text-gray-600 mb-4"><strong>Average Rating:</strong> {averageRating || 'No ratings yet'}</p>
+
+                {/* Social Media Share Buttons */}
+                <div className="mb-6 flex space-x-4 justify-center">
+                    <button
+                        onClick={() => openShareWindow('facebook', `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
+                        aria-label="Share on Facebook"
+                    >
+                        Facebook
+                    </button>
+                    <button
+                        onClick={() => openShareWindow('twitter', `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(project.title)}`)}
+                        className="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-500 transition duration-200"
+                        aria-label="Share on Twitter"
+                    >
+                        Twitter
+                    </button>
+                    <button
+                        onClick={() => openShareWindow('linkedin', `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`)}
+                        className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition duration-200"
+                        aria-label="Share on LinkedIn"
+                    >
+                        LinkedIn
+                    </button>
+                    <button
+                        onClick={() => openShareWindow('whatsapp', `https://api.whatsapp.com/send?text=${encodeURIComponent(project.title + ' ' + shareUrl)}`)}
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200"
+                        aria-label="Share on WhatsApp"
+                    >
+                        WhatsApp
+                    </button>
+                </div>
 
                 <div className="mb-4">
                     <label className="block mb-2">Rate this project:</label>

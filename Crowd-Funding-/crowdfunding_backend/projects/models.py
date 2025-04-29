@@ -189,3 +189,22 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.paymob_order_id} - {self.status}"
+
+
+# New Share model to log project shares
+class Share(models.Model):
+    PLATFORM_CHOICES = [
+        ('facebook', 'Facebook'),
+        ('twitter', 'Twitter'),
+        ('linkedin', 'LinkedIn'),
+        ('whatsapp', 'WhatsApp'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='shares')
+    platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
+    shared_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        user_str = self.user.username if self.user else "Anonymous"
+        return f"{user_str} shared {self.project.title} on {self.platform} at {self.shared_at}"
