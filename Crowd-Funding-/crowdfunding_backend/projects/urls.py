@@ -12,12 +12,19 @@ app_name = "projects"
 
 urlpatterns = [
     # Project endpoints
+
+    # Project List and Create
     path("projects/", ProjectListCreateView.as_view(), name="project-list-create"),
+    # Project Detail, Update and Delete
     path("projects/<int:project_id>/", ProjectDetailUpdateDeleteView.as_view(), name="project-detail-update-delete"),
+    # Cancel a project
     path("projects/<int:project_id>/cancel/", ProjectCancelView.as_view(), name="project-cancel"),
+    # Project images
     path("projects/<int:project_id>/images/<int:image_id>/", ProjectImageDeleteView.as_view(),
          name="project-image-delete"),
 
+    # Donations
+    path("donations/", DonationCreateView.as_view(), name="donation-create"),
     # User's donations
     path("my-donations/", UserDonationsView.as_view(), name="user-donations"),
     # Tags
@@ -25,9 +32,6 @@ urlpatterns = [
     # Categories
     path("categories/", CategoryListView.as_view(), name="category-list"),
     path("categories/create/", CategoryCreateView.as_view(), name="category-create"),
-
-    # Donations
-    path("donations/", DonationCreateView.as_view(), name="donation-create"),
 
     # Paymob payment endpoints
     path("paymob/create_intention/", PaymobIntentionCreateView.as_view(), name="paymob-create-intention"),
@@ -43,8 +47,9 @@ urlpatterns = [
     path("projects/<int:project_id>/ratings/average/", ProjectRatingAverageView.as_view(),
          name="project-average-rating"),
 
-    # Top Rated and Latest Projects
+    # Top Rated 
     path("projects/top-rated/", TopRatedProjectsView.as_view(), name="top-rated-projects"),
+    # Latest Projects
     path("projects/latest/", LatestProjectsView.as_view(), name="latest-projects"),
 
     # Similar Projects

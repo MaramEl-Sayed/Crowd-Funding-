@@ -3,8 +3,8 @@ from .models import Project, Category, Tag, Donation, Comment, Report, Rating, P
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('title', 'owner', 'category', 'is_active', 'is_featured', 'start_time', 'end_time')
-    list_filter = ('is_active', 'is_featured', 'category')
+    list_display = ('title', 'owner', 'category', 'is_featured', 'status','start_time', 'end_time')
+    list_filter = ('is_featured', 'category','status')
     search_fields = ('title', 'owner__username')
     ordering = ('-start_time',)
 

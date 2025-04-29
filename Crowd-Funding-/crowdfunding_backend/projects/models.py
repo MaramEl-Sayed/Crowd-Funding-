@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils.text import slugify
 from decimal import Decimal
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -43,8 +44,16 @@ class Project(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     slug = models.SlugField(unique=True, blank=True)
-    is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)  # New field for featured projects
+
+    STATUS_CHOICES = [
+        ('waiting', 'Waiting'),
+        ('active', 'Active'),
+        ('rejected', 'Rejected'),
+        ('in-active', 'In-active'),
+        ('finished', 'Finished'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='waiting')
 
     def clean(self):
         super().clean()
@@ -53,6 +62,27 @@ class Project(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+        # Check if this is an update (existing instance)
+        if self.pk:
+            old = Project.objects.get(pk=self.pk)
+            if old.status != self.status:
+                # Status changed, send email notification
+                subject = ''
+                message = ''
+                if self.status == 'active':
+                    subject = 'Your project has been accepted'
+                    message = f'Dear {self.owner.username},\n\nYour project "{self.title}" has been accepted by the admins.'
+                elif self.status == 'rejected':
+                    subject = 'Your project has been rejected'
+                    message = f'Dear {self.owner.username},\n\nWe regret to inform you that your project "{self.title}" has been rejected by the admins.'
+                if subject and message:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [self.owner.email],
+                        fail_silently=True,
+                    )
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
@@ -78,13 +108,13 @@ class Project(models.Model):
     @classmethod
     def get_top_rated_active_projects(cls, limit=5):
         from django.db.models.functions import Coalesce
-        return cls.objects.filter(is_active=True).annotate(
+        return cls.objects.filter(status='active').annotate(
             avg_rating=Coalesce(models.Avg('ratings__value'), 0.0)
         ).order_by('-avg_rating')[:limit]
 
     @classmethod
     def get_latest_featured_projects(cls, limit=5):
-        return cls.objects.filter(is_active=True, is_featured=True).order_by('-start_time')[:limit]
+        return cls.objects.filter(status='active', is_featured=True).order_by('-start_time')[:limit]
 
 class ProjectImage(models.Model):
     project = models.ForeignKey(Project, related_name='images', on_delete=models.CASCADE)

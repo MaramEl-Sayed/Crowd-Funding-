@@ -13,7 +13,6 @@ from django.conf import settings
 import requests
 import json
 import uuid
-
 from django.core.mail import send_mail
 from rest_framework import generics
 from django.db.models import Count
@@ -176,21 +175,32 @@ class ProjectListCreateView(APIView):
         if request.user.is_authenticated:
             projects = Project.objects.filter(owner=request.user)
         else:
-            projects = Project.objects.all()
+            projects = Project.objects.filter(status='active')
         if category:
             projects = projects.filter(category__name=category)
         if search:
-            for letter in search:
-                projects = projects.filter(title__icontains=letter)
+            projects = projects.filter(title__icontains=search)
+       
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
+
+   
 
     def post(self, request):
         serializer = ProjectSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(owner=request.user)
+            project = serializer.save(owner=request.user, status='waiting')
+
+            # Send email to admin on project creation
+            admin_emails = [admin[1] for admin in getattr(settings, 'ADMINS', [])]
+            if admin_emails:
+                subject = f"New Project Creation Request: {project.title}"
+                message = f"A new project titled '{project.title}' with description '{project.details}' has been created by '{project.owner}' in '{project.category}' category and is awaiting approval."
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, admin_emails)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ProjectDetailUpdateDeleteView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -233,7 +243,6 @@ class ProjectImageDeleteView(APIView):
 
 class ProjectCancelView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
 
@@ -246,10 +255,15 @@ class ProjectCancelView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        project.is_active = False
+        project.status = 'in-active'
         project.save()
 
-        return Response({"detail": "Project has been cancelled."}, status=status.HTTP_200_OK)
+        # Send email to user about cancellation
+        subject = f"Your project '{project.title}' has been cancelled"
+        message = f"Your project '{project.title}' has been cancelled successfully."
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [project.owner.email])
+
+        return Response({"detail": "Project has been in-active."}, status=status.HTTP_200_OK)
 
 class DonationCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -260,9 +274,9 @@ class DonationCreateView(APIView):
             project = serializer.validated_data['project']
             amount = serializer.validated_data['amount']
 
-            if not project.is_active:
+            if not project.status['active']:
                 return Response(
-                    {'detail': 'Donations cannot be made to a canceled project.'},
+                    {'detail': 'Donations cannot be made to a in-active project.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -273,7 +287,19 @@ class DonationCreateView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            serializer.save(user=request.user)
+            donation = serializer.save(user=request.user)
+
+            # Check if donation target reached or exceeded
+            total_donations = project.total_donations()
+            if total_donations >= project.total_target and project.status != 'finished':
+                project.status = 'finished'
+                project.save()
+
+                # Send email to project owner about completion
+                subject = f"Congratulations! Your project '{project.title}' has reached its target"
+                message = f"Your project '{project.title}' has successfully reached its donation target and is now finished."
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [project.owner.email])
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -366,18 +392,12 @@ class TopRatedProjectsView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
         projects = Project.get_top_rated_active_projects()
-        project_data = []
-        for project in projects:
-            avg_rating = project.average_rating() or 0
-            serializer = ProjectSerializer(project)
-            project_data.append((avg_rating, serializer.data))
-        project_data.sort(key=lambda x: x[0], reverse=True)
-        sorted_projects = [data for (rating, data) in project_data]
-        return Response(sorted_projects)
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data)
 class LatestProjectsView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
-        projects = Project.objects.filter(is_active=True).order_by('-start_time')[:5]
+        projects = Project.objects.filter(status='active').order_by('-start_time')[:5]
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 class UserDonationsView(APIView):

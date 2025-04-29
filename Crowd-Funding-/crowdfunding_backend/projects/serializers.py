@@ -61,10 +61,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            'id', 'title', 'details', 'category', 'category_id', 'total_target', 'start_time',
-            'end_time', 'slug', 'is_active', 'owner', 'tags', 'tags_ids',
-            'average_rating', 'total_donations', 'can_be_cancelled', 'donations',
-            'remaining_amount', 'progress_percentage', 'images', 'images_files'
+            'id', 'title', 'details', 'category', 'category_id', 'total_target', 'start_time','end_time', 'slug', 'status','owner', 'tags', 'tags_ids','average_rating', 'total_donations', 'can_be_cancelled', 'donations','remaining_amount', 'progress_percentage', 'images', 'images_files'
         ]
 
     def validate(self, data):
