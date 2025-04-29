@@ -12,6 +12,7 @@ class Tag(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    image = models.ImageField(upload_to='category_icons/', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -138,3 +139,23 @@ class Rating(models.Model):
 
     def __str__(self):
         return f"{self.user.username} rated {self.project.title} - {self.value}"
+
+class Payment(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='payments')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='payments')
+    donation = models.ForeignKey('Donation', on_delete=models.SET_NULL, null=True, blank=True, related_name='payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    paymob_order_id = models.CharField(max_length=500, unique=True)
+    paymob_payment_key = models.CharField(max_length=2000, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Payment {self.paymob_order_id} - {self.status}"

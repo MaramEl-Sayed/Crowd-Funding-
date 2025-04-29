@@ -1,13 +1,14 @@
 from django.urls import path, include
 from .views import (
     register_user, activate_account, login_user, PasswordResetRequestView,
-    PasswordResetConfirmView, facebook_login, google_login, UserProfileView, CheckEmailView,
+    PasswordResetConfirmView, facebook_login, google_login,facebook_register, UserProfileView, CheckEmailView,
     PasswordChangeView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('register/', register_user, name='register'),
+    path('register/facebook/', facebook_register, name='facebook_register'),
     path('activate/<uidb64>/<token>/', activate_account, name='activate'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('login/', login_user, name='login'),

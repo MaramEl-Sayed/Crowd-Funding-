@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, memo } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import Slider from "react-slick";
 import Alert from '../../alert/Alert';
 
@@ -61,6 +61,7 @@ const DescriptionSection = memo(({ details }) => {
 const ProjectDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userRating, setUserRating] = useState(0);
@@ -134,11 +135,18 @@ const ProjectDetails = () => {
 
     useEffect(() => {
         if (id) {
+            // Check for payment success query param
+            const params = new URLSearchParams(location.search);
+            if (params.get('payment') === 'success') {
+                Alert.success('Payment Successful!', 'Thank you for your donation.');
+                // Refetch project details to update donations
+                fetchProjectDetails();
+            }
             fetchProjectDetails();
             fetchSimilarProjects();
             fetchComments();
         }
-    }, [id]);
+    }, [id, location.search]);
 
     const postComment = async (parentId = null) => {
         if ((parentId === null && !newCommentText.trim()) || (parentId !== null && !replyText.trim())) {

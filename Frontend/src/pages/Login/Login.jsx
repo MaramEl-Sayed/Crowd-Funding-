@@ -61,7 +61,7 @@ const Login = () => {
     script.crossOrigin = 'anonymous';
     script.onload = () => {
       window.FB.init({
-        appId: '1004483484552046',
+        appId: '583449137409337',
         cookie: true,
         xfbml: true,
         version: 'v19.0'
@@ -200,38 +200,37 @@ const Login = () => {
             </GoogleOAuthProvider>
             <button
               type="button"
-              onClick={async () => {
-                window.FB.login(async response => {
-                  if (response.authResponse) {
-                    const accessToken = response.authResponse.accessToken;
+            onClick={() => {
+              window.FB.login(response => {
+                if (response.authResponse) {
+                  const accessToken = response.authResponse.accessToken;
+                  window.FB.api('/me', { fields: 'email' }, async userInfo => {
+                    const email = userInfo.email;
+
+                    if (!email) {
+                      toast.error('Email not found in Facebook profile');
+                      return;
+                    }
+
+                    const emailExists = await checkEmailExists(email);
+                    if (!emailExists) {
+                      toast.error("Account does not exist. Please register first.");
+                      return;
+                    }
+
                     try {
-                      const userInfo = await new Promise((resolve) => {
-                        window.FB.api('/me', { fields: 'email' }, resolve);
-                      });
-                      const email = userInfo.email;
-
-                      if (!email) {
-                        toast.error('Email not found in Facebook profile');
-                        return;
-                      }
-
-                      const emailExists = await checkEmailExists(email);
-                      if (!emailExists) {
-                        toast.error("Account does not exist. Please register first.");
-                        return;
-                      }
-
                       await authAPI.facebookLogin({ access_token: accessToken });
                       toast.success('Facebook login successful!');
                       navigate('/home');
                     } catch (error) {
                       toast.error(error.error || 'Facebook login failed');
                     }
-                  } else {
-                    toast.error('Facebook login cancelled');
-                  }
-                }, { scope: 'public_profile,email' });
-              }}
+                  });
+                } else {
+                  toast.error('Facebook login cancelled');
+                }
+              }, { scope: 'public_profile,email' });
+            }}
               className={`${styles.socialButton} ${styles.facebookButton}`}
             >
               <FaFacebookF className={styles.facebookIcon} /> Sign in with Facebook

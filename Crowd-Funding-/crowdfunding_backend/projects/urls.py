@@ -4,10 +4,11 @@ from .views import (
     DonationCreateView, CommentListCreateView, ReportCreateView,
     RatingCreateView, ProjectRatingAverageView, ProjectCancelView,
     UserDonationsView, TopRatedProjectsView, LatestProjectsView,
-    SimilarProjectsView, ProjectImageDeleteView, CategoryListView,LatestFeaturedProjectsView
+    SimilarProjectsView, ProjectImageDeleteView, CategoryListView, CategoryCreateView, LatestFeaturedProjectsView, PaymobIntentionCreateView
 )
 
 app_name = "projects"
+
 
 urlpatterns = [
     # Project endpoints
@@ -23,9 +24,13 @@ urlpatterns = [
     path("tags/", TagListView.as_view(), name="tag-list"),
     # Categories
     path("categories/", CategoryListView.as_view(), name="category-list"),
+    path("categories/create/", CategoryCreateView.as_view(), name="category-create"),
 
     # Donations
     path("donations/", DonationCreateView.as_view(), name="donation-create"),
+
+    # Paymob payment endpoints
+    path("paymob/create_intention/", PaymobIntentionCreateView.as_view(), name="paymob-create-intention"),
 
     # Comments (nested under project)
     path("projects/<int:project_id>/comments/", CommentListCreateView.as_view(), name="comment-list-create"),

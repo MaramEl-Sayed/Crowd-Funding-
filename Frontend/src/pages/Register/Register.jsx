@@ -82,10 +82,10 @@ const Register = () => {
     script.crossOrigin = 'anonymous';
     script.onload = () => {
       window.FB.init({
-        appId: '1004483484552046',
+        appId: '583449137409337',
         cookie: true,
         xfbml: true,
-        version: 'v19.0'
+        version: 'v22.0'
       });
     };
     document.body.appendChild(script);
@@ -397,14 +397,29 @@ const Register = () => {
               onClick={() => {
                 window.FB.login(response => {
                   if (response.authResponse) {
-                    authAPI.facebookLogin({ access_token: response.authResponse.accessToken })
-                      .then(() => {
-                        toast.success('Facebook registration successful!');
-                        navigate('/home');
-                      })
-                      .catch(error => {
-                        toast.error(error.error || 'Facebook registration failed');
-                      });
+                    const accessToken = response.authResponse.accessToken;
+                    // Check if email exists and then register or show error
+                    window.FB.api('/me', { fields: 'name,email,first_name,last_name,picture' }, async userInfo => {
+                      const email = userInfo.email;
+                      if (!email) {
+                        toast.error('Email not found in Facebook profile');
+                        return;
+                      }
+                      const emailExists = await checkEmailExists(email);
+                      if (emailExists) {
+                        toast.error('Account already exists. Please login.');
+                        return;
+                      }
+                      try {
+                        await authAPI.facebookRegister({ access_token: accessToken });
+                        toast.success('Facebook registration successful! ');
+                        navigate('/login');
+                      } catch (error) {
+                        console.error('Facebook registration error:', error);
+                        const errorMessage = error.error || error.message || 'Facebook registration failed';
+                        toast.error(errorMessage);
+                      }
+                    });
                   } else {
                     toast.error('Facebook registration cancelled');
                   }

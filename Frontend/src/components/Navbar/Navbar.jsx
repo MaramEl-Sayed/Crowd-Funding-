@@ -34,6 +34,13 @@ const Navbar = () => {
         <div className={styles.navLinks}>
           {user ? (
             <>
+              {user.profile_picture ? (
+                <img
+                  src={user.profile_picture}
+                  alt="Profile"
+                  className={styles.profilePicture}
+                />
+              ) : null}
               <NavLink
                 to="/home"
                 className={({ isActive }) =>

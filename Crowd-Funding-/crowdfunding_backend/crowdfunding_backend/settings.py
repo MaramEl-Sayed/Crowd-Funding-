@@ -25,14 +25,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^p93g4bb)c-dv2si9xq(m&*g^f5-^l#8imemwt!(_s_k(#68u7'
+import os
+from pathlib import Path
+from datetime import timedelta
+from dotenv import load_dotenv
+from urllib.parse import urlparse
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+load_dotenv()
 
-ALLOWED_HOSTS = []
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Application definition
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'fallback-secret-key')
+
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
+
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS').split(',')
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -52,40 +59,41 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.facebook",  # Facebook Login
     "allauth.socialaccount.providers.google",   # Google provider
+    "social_django",
     "corsheaders",
     "accounts.apps.AccountsConfig",
     "projects.apps.ProjectsConfig",
-
 ]
-
-
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
         'APP': {
-            'client_id': '75773251008-89sei1vuligu58shbmup4f5ttqq097o5.apps.googleusercontent.com',  # From Google Cloud Console
-            'secret': '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',  # From Google Cloud Console
+            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_SECRET'),
         }
     },
     'facebook': {
-        'METHOD': 'oauth2',
+        'METHOD': 'js_sdk',
+        'SDK_URL': 'https://connect.facebook.net/en_US/sdk.js',
         'SCOPE': ['email', 'public_profile'],
         'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'INIT_PARAMS': {'cookie': True},
         'FIELDS': [
             'id',
             'email',
             'name',
             'first_name',
             'last_name',
+            'picture',
         ],
         'EXCHANGE_TOKEN': True,
         'VERIFIED_EMAIL': False,
-        'VERSION': 'v13.0',
+        'VERSION': 'v22.0',
         'APP': {
-            'client_id': '1004483484552046',  # From Meta Developer Portal
-            'secret': '628fb68c0b385a64d3e5c16d7d3fd03e',  # From Meta Developer Portal
+            'client_id': os.getenv('FACEBOOK_CLIENT_ID'),
+            'secret': os.getenv('FACEBOOK_SECRET'),
         }
     }
 }
@@ -121,14 +129,15 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "social_django.context_processors.backends",
             ],
         },
     },
 ]
 
 AUTHENTICATION_BACKENDS = [
+    'allauth.account.auth_backends.AuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',  # Required for django-allauth
 ]
 
 SITE_ID = 1  # Required for django-allauth
@@ -143,7 +152,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'demo',
         'USER': 'postgres',
-        'PASSWORD': '1234',
+        'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -187,6 +196,12 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 AUTH_USER_MODEL = "accounts.User"
 
+# Paymob payment gateway settings
+PAYMOB_API_KEY = os.getenv('PAYMOB_API_KEY')
+PAYMOB_SECRET_KEY = os.getenv('PAYMOB_SECRET_KEY')
+PAYMOB_PUBLIC_KEY = os.getenv('PAYMOB_PUBLIC_KEY')  
+PAYMOB_INTEGRATION_ID_CARD = os.getenv('PAYMOB_INTEGRATION_ID_CARD') 
+PAYMOB_INTEGRATION_ID_WALLET = os.getenv('PAYMOB_INTEGRATION_ID_WALLET')  
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -200,8 +215,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "crowdfunding449@gmail.com"
-EMAIL_HOST_PASSWORD = "fngwxnftkzvxhjen"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = "crowdfunding449@gmail.com"  # Added for email sending
 
 # Django-Allauth settings
@@ -219,17 +234,25 @@ ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
 
 # Frontend URL for email links
-FRONTEND_URL = "http://localhost:3000"  # Added for activation and password reset links
+# FRONTEND_URL = "http://localhost:3000"  # Added for activation and password reset links
 
 # Admins for email notifications
 ADMINS = [('Admin', 'crowdfunding449@gmail.com')]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React frontend URL
-    "http://localhost:5173",  # Vite frontend URL
-    "https://3f22-156-206-125-147.ngrok-free.app" # Ngrok URL for testing
-
+    "https://e94f-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
+    "https://1fdd-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
 ]
+
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "1fdd-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
+    "e94f-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
+]
+
+FRONTEND_URL = "https://1fdd-102-189-207-6.ngrok-free.app"  # Updated to ngrok URL
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1), 

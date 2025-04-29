@@ -6,20 +6,149 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.shortcuts import get_object_or_404
-from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category
+from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category, Payment
 from rest_framework.permissions import AllowAny
 from .models import Project
+from django.conf import settings
+import requests
+import json
+import uuid
+
+from django.core.mail import send_mail
+from rest_framework import generics
+from django.db.models import Count
 
 from .serializers import (
     ProjectSerializer, TagSerializer, DonationSerializer,
     CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer
 )
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+import logging
 
-# existing views ...
+class PaymobIntentionCreateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        logging.info(f"PaymobIntentionCreateView POST called with path: {request.path} and data: {request.data}")
+        user = request.user
+        project_id = request.data.get('project')
+        amount = request.data.get('amount')
+        payment_methods = request.data.get('payment_methods', [settings.PAYMOB_INTEGRATION_ID_CARD,settings.PAYMOB_INTEGRATION_ID_WALLET])
+        items = request.data.get('items', [])
+        billing_data = request.data.get('billing_data', {})
+        notification_url = request.data.get('notification_url', '')
+        redirection_url = request.data.get('redirection_url', '')
+
+        # Fill missing billing_data fields from user profile if blank or missing
+        if not billing_data.get('first_name'):
+            billing_data['first_name'] = getattr(request.user, 'first_name', '') or request.user.username or 'NA'
+        if not billing_data.get('last_name'):
+            billing_data['last_name'] = getattr(request.user, 'last_name', '') or 'NA'
+        if not billing_data.get('phone_number'):
+            billing_data['phone_number'] = getattr(request.user, 'phone_number', '') or 'NA'
+        if not billing_data.get('email'):
+            billing_data['email'] = request.user.email or 'NA'
+        if not billing_data.get('country'):
+            billing_data['country'] = 'NA'
+        if not billing_data.get('apartment'):
+            billing_data['apartment'] = 'NA'
+        if not billing_data.get('floor'):
+            billing_data['floor'] = 'NA'
+        if not billing_data.get('street'):
+            billing_data['street'] = 'NA'
+        if not billing_data.get('building'):
+            billing_data['building'] = 'NA'
+        if not billing_data.get('city'):
+            billing_data['city'] = 'NA'
+        if not billing_data.get('state'):
+            billing_data['state'] = 'NA'
+
+        if not project_id or not amount:
+            return Response({'detail': 'Project and amount are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({'detail': 'Project not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Prepare headers and payload for Intention API
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Token {settings.PAYMOB_SECRET_KEY}'
+        }
+
+        # Prepare items array with required fields if provided
+        formatted_items = []
+        for item in items:
+            if 'name' in item and 'amount' in item:
+                formatted_items.append({
+                    'name': item['name'],
+                    'amount': int(item['amount']),
+                    'description': item.get('description', '')[:255],
+                    'quantity': item.get('quantity', 1)
+                })
+
+
+        payload = {
+            'amount': int(float(amount) * 100),  # amount in cents
+            'currency': 'EGP',
+            'payment_methods': payment_methods,
+            'items': formatted_items if formatted_items else None,
+            'billing_data': {
+                'first_name': billing_data.get('first_name', user.username)[:50],
+                'last_name': billing_data.get('last_name', 'NA')[:50],
+                'email': billing_data.get('email', user.email),
+                'phone_number': billing_data.get('phone_number', 'NA'),
+                'country': billing_data.get('country', 'NA'),
+                'apartment': billing_data.get('apartment', 'NA'),
+                'floor': billing_data.get('floor', 'NA'),
+                'street': billing_data.get('street', 'NA'),
+                'building': billing_data.get('building', 'NA'),
+                'city': billing_data.get('city', 'NA'),
+                'state': billing_data.get('state', 'NA'),
+            },
+            'notification_url': notification_url,
+            'redirection_url': redirection_url,
+            'special_reference': f'project_{project_id}_user_{user.id}_{uuid.uuid4()}',
+            'extras': request.data.get('extras', {}),
+            'expiration': request.data.get('expiration', 3600)
+        }
+
+        # Remove items key if empty
+        if not formatted_items:
+            payload.pop('items', None)
+
+        url = 'https://accept.paymob.com/v1/intention/'
+
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            if response.status_code in [200, 201]:
+                data = response.json()
+                client_secret = data.get('client_secret')
+                if not client_secret:
+                    return Response({'detail': 'Failed to get client secret from Intention API.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                # Save Payment record with status pending
+                payment = Payment.objects.create(
+                    user=user,
+                    project=project,
+                    amount=amount,
+                    paymob_order_id='intention_' + str(data.get('id', '')),
+                    paymob_payment_key=client_secret,
+                    status='pending'
+                )
+
+                return Response({
+                    'client_secret': client_secret,
+                    'public_key': settings.PAYMOB_PUBLIC_KEY
+                })
+            else:
+                logging.error(f"Paymob intention creation failed: {response.status_code} - {response.text}")
+                return Response({'detail': 'Failed to create intention.', 'error': response.text}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            logging.error(f"Exception during Paymob intention creation: {str(e)}", exc_info=True)
+            return Response({'detail': 'Error communicating with Intention API.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class CategoryListView(APIView):
     permission_classes = [AllowAny]
@@ -28,6 +157,16 @@ class CategoryListView(APIView):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
+
+class CategoryCreateView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request):
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ProjectListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -155,11 +294,6 @@ class CommentListCreateView(APIView):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-from django.core.mail import send_mail
-from django.conf import settings
-from rest_framework import generics
-from django.db.models import Count
 
 class ReportCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]

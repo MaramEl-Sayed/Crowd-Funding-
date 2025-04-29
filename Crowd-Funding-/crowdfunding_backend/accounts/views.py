@@ -154,8 +154,8 @@ def facebook_login(request):
         if not access_token:
             return Response({'error': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Verify token with Facebook and get user info
-        response = requests.get(f'https://graph.facebook.com/me?access_token={access_token}&fields=id,name,email')
+        # Verify token with Facebook and get user info including picture
+        response = requests.get(f'https://graph.facebook.com/me?access_token={access_token}&fields=id,name,email,picture.type(large)')
         if response.status_code != 200:
             return Response({'error': 'Invalid Facebook access token'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -176,10 +176,69 @@ def facebook_login(request):
             )
 
         refresh = RefreshToken.for_user(user)
+        picture_url = user_info.get('picture', {}).get('data', {}).get('url', '')
+
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
+            'profile_picture': picture_url,
         }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def facebook_register(request):
+    try:
+        access_token = request.data.get('access_token')
+        if not access_token:
+            return Response({'error': 'Access token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify token with Facebook and get user info
+        response = requests.get(f'https://graph.facebook.com/me?access_token={access_token}&fields=id,name,email,first_name,last_name')
+        if response.status_code != 200:
+            return Response({'error': 'Invalid Facebook access token'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_info = response.json()
+        email = user_info.get('email')
+        if not email:
+            return Response(
+                {'error': 'Email not provided by Facebook'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if the user already exists
+        if User.objects.filter(email=email).exists():
+            return Response(
+                {'error': 'Account already exists. Please login.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Create new user
+        username = email.split('@')[0]
+        first_name = user_info.get('first_name', '')
+        last_name = user_info.get('last_name', '')
+        # Generate a random password or use a fixed one for social accounts
+        from django.utils.crypto import get_random_string
+        password = get_random_string(length=12)
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            password=password,
+            is_active=True,
+            is_activated=True,
+        )
+        user.save()
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'message': 'Registration successful',
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_201_CREATED)
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
