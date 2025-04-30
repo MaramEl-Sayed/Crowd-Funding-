@@ -41,6 +41,9 @@ const DonationPage = () => {
             const response = await axios.post('http://localhost:8000/api/projects/paymob/create_intention/', {
                 project: id,
                 amount: parseFloat(amount),
+                payment_methods: [
+                    5066659,5066761
+                ],  
                 billing_data: {
                     first_name: '', // Optionally fill with user data
                     last_name: '',
