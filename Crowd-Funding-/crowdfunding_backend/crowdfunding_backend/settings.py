@@ -201,7 +201,9 @@ PAYMOB_API_KEY = os.getenv('PAYMOB_API_KEY')
 PAYMOB_SECRET_KEY = os.getenv('PAYMOB_SECRET_KEY')
 PAYMOB_PUBLIC_KEY = os.getenv('PAYMOB_PUBLIC_KEY')  
 PAYMOB_INTEGRATION_ID_CARD = os.getenv('PAYMOB_INTEGRATION_ID_CARD') 
-PAYMOB_INTEGRATION_ID_WALLET = os.getenv('PAYMOB_INTEGRATION_ID_WALLET')  
+PAYMOB_INTEGRATION_ID_WALLET = os.getenv('PAYMOB_INTEGRATION_ID_WALLET') 
+PAYMOB_INTEGRATION_ID_CASH = os.getenv('PAYMOB_INTEGRATION_ID_CASH')
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -234,7 +236,7 @@ ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
 
 # Frontend URL for email links
-# FRONTEND_URL = "http://localhost:3000"  # Added for activation and password reset links
+FRONTEND_URL = "http://localhost:3000"  # Added for activation and password reset links
 
 # Admins for email notifications
 ADMINS = [('Admin', 'crowdfunding449@gmail.com')]

@@ -1,4 +1,3 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
@@ -7,18 +6,14 @@ from rest_framework import status, permissions,generics
 from django.shortcuts import get_object_or_404
 from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category, Payment,Share
 from django.conf import settings
-import requests
-import json
-import uuid
+import logging, uuid,requests
 from django.core.mail import send_mail
 from django.db.models import Count
-
 from .serializers import (
     ProjectSerializer, TagSerializer, DonationSerializer,
     CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer,ShareSerializer
 )
 
-import logging
 
 class PaymobIntentionCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -28,7 +23,7 @@ class PaymobIntentionCreateView(APIView):
         user = request.user
         project_id = request.data.get('project')
         amount = request.data.get('amount')
-        payment_methods = request.data.get('payment_methods', [settings.PAYMOB_INTEGRATION_ID_CARD,settings.PAYMOB_INTEGRATION_ID_WALLET])
+        payment_methods = request.data.get('payment_methods', [settings.PAYMOB_INTEGRATION_ID_CARD,settings.PAYMOB_INTEGRATION_ID_WALLET,settings.PAYMOB_INTEGRATION_ID_CASH])
         items = request.data.get('items', [])
         billing_data = request.data.get('billing_data', {})
         notification_url = request.data.get('notification_url', '')
@@ -60,7 +55,7 @@ class PaymobIntentionCreateView(APIView):
 
         if not project_id or not amount:
             return Response({'detail': 'Project and amount are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         try:
             project = Project.objects.get(id=project_id)
         except Project.DoesNotExist:
@@ -133,10 +128,24 @@ class PaymobIntentionCreateView(APIView):
                     status='pending'
                 )
 
-                return Response({
-                    'client_secret': client_secret,
+                # Return the full relevant data from the Paymob intention response along with public_key
+                response_data = {
+                    'payment_keys': data.get('payment_keys'),
+                    'intention_order_id': data.get('intention_order_id'),
+                    'id': data.get('id'),
+                    'intention_detail': data.get('intention_detail'),
+                    'client_secret': data.get('client_secret'),
+                    'payment_methods': data.get('payment_methods'),
+                    'special_reference': data.get('special_reference'),
+                    'extras': data.get('extras'),
+                    'confirmed': data.get('confirmed'),
+                    'status': data.get('status'),
+                    'created': data.get('created'),
+                    'card_detail': data.get('card_detail'),
+                    'card_tokens': data.get('card_tokens'),
                     'public_key': settings.PAYMOB_PUBLIC_KEY
-                })
+                }
+                return Response(response_data)
             else:
                 logging.error(f"Paymob intention creation failed: {response.status_code} - {response.text}")
                 return Response({'detail': 'Failed to create intention.', 'error': response.text}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

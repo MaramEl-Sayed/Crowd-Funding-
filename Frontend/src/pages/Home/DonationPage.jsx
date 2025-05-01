@@ -42,8 +42,7 @@ const DonationPage = () => {
                 project: id,
                 amount: parseFloat(amount),
                 payment_methods: [
-                    5066659,5066761
-                ],  
+                  5066761,5066659,5066835,                ],  
                 billing_data: {
                     first_name: '', // Optionally fill with user data
                     last_name: '',
