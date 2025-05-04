@@ -4,7 +4,7 @@ from .views import (
     DonationCreateView, CommentListCreateView, ReportCreateView,
     RatingCreateView, ProjectRatingAverageView, ProjectCancelView,
     UserDonationsView, TopRatedProjectsView, LatestProjectsView,
-    SimilarProjectsView, ProjectImageDeleteView, CategoryListView, CategoryCreateView, LatestFeaturedProjectsView, PaymobIntentionCreateView,ShareCreateView
+    SimilarProjectsView, ProjectImageDeleteView, CategoryListView, CategoryCreateView, LatestFeaturedProjectsView, PaymobIntentionCreateView,ShareCreateView, PaymobCallbackView
 )
 
 app_name = "projects"
@@ -35,6 +35,8 @@ urlpatterns = [
 
     # Paymob payment endpoints
     path("paymob/create_intention/", PaymobIntentionCreateView.as_view(), name="paymob-create-intention"),
+    path("paymob/callback/", PaymobCallbackView.as_view(), name="paymob-callback"),
+
 
     # Comments (nested under project)
     path("projects/<int:project_id>/comments/", CommentListCreateView.as_view(), name="comment-list-create"),

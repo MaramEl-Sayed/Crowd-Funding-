@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from rest_framework import status, permissions,generics
 from django.shortcuts import get_object_or_404
 from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category, Payment,Share
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+
 from django.conf import settings
 import logging, uuid,requests
 from django.core.mail import send_mail
@@ -123,7 +126,7 @@ class PaymobIntentionCreateView(APIView):
                     user=user,
                     project=project,
                     amount=amount,
-                    paymob_order_id='intention_' + str(data.get('id', '')),
+                    paymob_order_id=data.get('intention_order_id'), 
                     paymob_payment_key=client_secret,
                     status='pending'
                 )
@@ -153,7 +156,59 @@ class PaymobIntentionCreateView(APIView):
             logging.error(f"Exception during Paymob intention creation: {str(e)}", exc_info=True)
             return Response({'detail': 'Error communicating with Intention API.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@method_decorator(csrf_exempt, name='dispatch')
+class PaymobCallbackView(APIView):
+    permission_classes = [AllowAny]  # Paymob will not be authenticated
 
+    def post(self, request):
+        data = request.data
+        # Optionally: Validate HMAC here for security
+        print("Callback received:", data)  # Add this line for debugging
+        # Extract order id
+
+        paymob_order_id = None
+        if 'obj' in data and 'order' in data['obj']:
+            paymob_order_id = data['obj']['order'].get('id')
+        elif 'order' in data:
+            paymob_order_id = data['order'].get('id')
+        else:
+            paymob_order_id = data.get('order_id')
+
+        print("Looking for Payment with paymob_order_id:", paymob_order_id)
+
+        # Extract success status
+        success = False
+        if 'obj' in data:
+            success = data['obj'].get('success', False)
+        elif 'success' in data:
+            success = data.get('success', False)
+       
+
+        # Find the Payment record
+        try:
+            payment = Payment.objects.get(paymob_order_id=paymob_order_id)
+        except Payment.DoesNotExist:
+            return Response({'detail': 'Payment not found.'}, status=404)
+
+        if success:
+            # Mark payment as paid
+            payment.status = 'paid'
+            payment.save()
+            # Create a Donation if not already created
+            if not payment.donation:
+                donation = Donation.objects.create(
+                    user=payment.user,
+                    project=payment.project,
+                    amount=payment.amount
+                )
+                payment.donation = donation
+                payment.save()
+        else:
+            payment.status = 'failed'
+            payment.save()
+
+        return Response({'status': 'ok'})
+    
 class CategoryListView(APIView):
     permission_classes = [AllowAny]
 
