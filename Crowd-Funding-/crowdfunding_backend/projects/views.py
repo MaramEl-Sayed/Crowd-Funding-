@@ -17,245 +17,7 @@ from .serializers import (
     CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer,ShareSerializer
 )
 
-
-class PaymobIntentionCreateView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        logging.info(f"PaymobIntentionCreateView POST called with path: {request.path} and data: {request.data}")
-        user = request.user
-        project_id = request.data.get('project')
-        amount = request.data.get('amount')
-        payment_methods = request.data.get('payment_methods', [settings.PAYMOB_INTEGRATION_ID_CARD,settings.PAYMOB_INTEGRATION_ID_WALLET,settings.PAYMOB_INTEGRATION_ID_CASH])
-        items = request.data.get('items', [])
-        billing_data = request.data.get('billing_data', {})
-        notification_url = request.data.get('notification_url', '')
-        redirection_url = request.data.get('redirection_url', '')
-
-        # Fill missing billing_data fields from user profile if blank or missing
-        if not billing_data.get('first_name'):
-            billing_data['first_name'] = getattr(request.user, 'first_name', '') or request.user.username or 'NA'
-        if not billing_data.get('last_name'):
-            billing_data['last_name'] = getattr(request.user, 'last_name', '') or 'NA'
-        if not billing_data.get('phone_number'):
-            billing_data['phone_number'] = getattr(request.user, 'phone_number', '') or 'NA'
-        if not billing_data.get('email'):
-            billing_data['email'] = request.user.email or 'NA'
-        if not billing_data.get('country'):
-            billing_data['country'] = 'NA'
-        if not billing_data.get('apartment'):
-            billing_data['apartment'] = 'NA'
-        if not billing_data.get('floor'):
-            billing_data['floor'] = 'NA'
-        if not billing_data.get('street'):
-            billing_data['street'] = 'NA'
-        if not billing_data.get('building'):
-            billing_data['building'] = 'NA'
-        if not billing_data.get('city'):
-            billing_data['city'] = 'NA'
-        if not billing_data.get('state'):
-            billing_data['state'] = 'NA'
-
-        if not project_id or not amount:
-            return Response({'detail': 'Project and amount are required.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            project = Project.objects.get(id=project_id)
-        except Project.DoesNotExist:
-            return Response({'detail': 'Project not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        # Prepare headers and payload for Intention API
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Token {settings.PAYMOB_SECRET_KEY}'
-        }
-
-        # Prepare items array with required fields if provided
-        formatted_items = []
-        for item in items:
-            if 'name' in item and 'amount' in item:
-                formatted_items.append({
-                    'name': item['name'],
-                    'amount': int(item['amount']),
-                    'description': item.get('description', '')[:255],
-                    'quantity': item.get('quantity', 1)
-                })
-
-
-        payload = {
-            'amount': int(float(amount) * 100),  # amount in cents
-            'currency': 'EGP',
-            'payment_methods': payment_methods,
-            'items': formatted_items if formatted_items else None,
-            'billing_data': {
-                'first_name': billing_data.get('first_name', user.username)[:50],
-                'last_name': billing_data.get('last_name', 'NA')[:50],
-                'email': billing_data.get('email', user.email),
-                'phone_number': billing_data.get('phone_number', 'NA'),
-                'country': billing_data.get('country', 'NA'),
-                'apartment': billing_data.get('apartment', 'NA'),
-                'floor': billing_data.get('floor', 'NA'),
-                'street': billing_data.get('street', 'NA'),
-                'building': billing_data.get('building', 'NA'),
-                'city': billing_data.get('city', 'NA'),
-                'state': billing_data.get('state', 'NA'),
-            },
-            'notification_url': notification_url,
-            'redirection_url': redirection_url,
-            'special_reference': f'project_{project_id}_user_{user.id}_{uuid.uuid4()}',
-            'extras': request.data.get('extras', {}),
-            'expiration': request.data.get('expiration', 3600)
-        }
-
-        # Remove items key if empty
-        if not formatted_items:
-            payload.pop('items', None)
-
-        url = 'https://accept.paymob.com/v1/intention/'
-
-        try:
-            response = requests.post(url, headers=headers, json=payload)
-            if response.status_code in [200, 201]:
-                data = response.json()
-                client_secret = data.get('client_secret')
-                if not client_secret:
-                    return Response({'detail': 'Failed to get client secret from Intention API.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-                # Save Payment record with status pending
-                payment = Payment.objects.create(
-                    user=user,
-                    project=project,
-                    amount=amount,
-                    paymob_order_id=data.get('intention_order_id'), 
-                    paymob_payment_key=client_secret,
-                    status='pending'
-                )
-
-                # Return the full relevant data from the Paymob intention response along with public_key
-                response_data = {
-                    'payment_keys': data.get('payment_keys'),
-                    'intention_order_id': data.get('intention_order_id'),
-                    'id': data.get('id'),
-                    'intention_detail': data.get('intention_detail'),
-                    'client_secret': data.get('client_secret'),
-                    'payment_methods': data.get('payment_methods'),
-                    'special_reference': data.get('special_reference'),
-                    'extras': data.get('extras'),
-                    'confirmed': data.get('confirmed'),
-                    'status': data.get('status'),
-                    'created': data.get('created'),
-                    'card_detail': data.get('card_detail'),
-                    'card_tokens': data.get('card_tokens'),
-                    'public_key': settings.PAYMOB_PUBLIC_KEY
-                }
-                return Response(response_data)
-            else:
-                logging.error(f"Paymob intention creation failed: {response.status_code} - {response.text}")
-                return Response({'detail': 'Failed to create intention.', 'error': response.text}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        except Exception as e:
-            logging.error(f"Exception during Paymob intention creation: {str(e)}", exc_info=True)
-            return Response({'detail': 'Error communicating with Intention API.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@method_decorator(csrf_exempt, name='dispatch')
-class PaymobCallbackView(APIView):
-    permission_classes = [AllowAny]  # Paymob will not be authenticated
-
-    def post(self, request):
-        data = request.data
-        # Optionally: Validate HMAC here for security
-        print("Callback received:", data)  # Add this line for debugging
-        # Extract order id
-
-        paymob_order_id = None
-        if 'obj' in data and 'order' in data['obj']:
-            paymob_order_id = data['obj']['order'].get('id')
-        elif 'order' in data:
-            paymob_order_id = data['order'].get('id')
-        else:
-            paymob_order_id = data.get('order_id')
-
-        print("Looking for Payment with paymob_order_id:", paymob_order_id)
-
-        # Extract success status
-        success = False
-        if 'obj' in data:
-            success = data['obj'].get('success', False)
-        elif 'success' in data:
-            success = data.get('success', False)
-       
-
-        # Find the Payment record
-        try:
-            payment = Payment.objects.get(paymob_order_id=paymob_order_id)
-        except Payment.DoesNotExist:
-            return Response({'detail': 'Payment not found.'}, status=404)
-
-        if success:
-            # Mark payment as paid
-            payment.status = 'paid'
-            payment.save()
-            # Create a Donation if not already created
-            if not payment.donation:
-                donation = Donation.objects.create(
-                    user=payment.user,
-                    project=payment.project,
-                    amount=payment.amount
-                )
-                payment.donation = donation
-                payment.save()
-                # Send thank you email to the user (donor)
-                subject_user = "Thank you for your donation!"
-                message_user = (
-                    f"Dear {payment.user.username},\n\n"
-                    f"Thank you for your generous donation of {payment.amount} EGP to the campaign '{payment.project.title}'.\n"
-                    "Your support is greatly appreciated!"
-                )
-                send_mail(
-                    subject_user,
-                    message_user,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [payment.user.email],
-                    fail_silently=True,
-                )
-
-                # Send notification email to the admin(s)
-                admin_emails = [admin[1] for admin in getattr(settings, 'ADMINS', [])]
-                if admin_emails:
-                    subject_admin = f"New Donation Received for '{payment.project.title}'"
-                    message_admin = (
-                        f"A new donation of {payment.amount} EGP was made by {payment.user.username} "
-                        f"to the campaign '{payment.project.title}'."
-                    )
-                send_mail(
-                subject_admin,
-                message_admin,
-                settings.DEFAULT_FROM_EMAIL,
-                admin_emails,
-                fail_silently=True,
-                )    
-        else:
-            payment.status = 'failed'
-            payment.save()
-
-        return Response({'status': 'ok'})
-    
-class CategoryListView(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        categories = Category.objects.all()
-        serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
-
-class CategoryCreateView(APIView):
-    permission_classes = [permissions.IsAdminUser]
-
-    def post(self, request):
-        serializer = CategorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
 
 class ProjectListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -330,6 +92,25 @@ class ProjectImageDeleteView(APIView):
         image = get_object_or_404(ProjectImage, id=image_id, project=project)
         image.delete()
         return Response({"detail": "Image deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+class CategoryListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+class CategoryCreateView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request):
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ProjectCancelView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -514,3 +295,227 @@ class ShareCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user if self.request.user.is_authenticated else None
         serializer.save(user=user)    
+
+
+
+class PaymobIntentionCreateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        logging.info(f"PaymobIntentionCreateView POST called with path: {request.path} and data: {request.data}")
+        user = request.user
+        project_id = request.data.get('project')
+        amount = request.data.get('amount')
+        payment_methods = request.data.get('payment_methods', [settings.PAYMOB_INTEGRATION_ID_CARD,settings.PAYMOB_INTEGRATION_ID_WALLET,settings.PAYMOB_INTEGRATION_ID_CASH])
+        items = request.data.get('items', [])
+        billing_data = request.data.get('billing_data', {})
+        notification_url = request.data.get('notification_url', '')
+        redirection_url = request.data.get('redirection_url', '')
+
+        # Fill missing billing_data fields from user profile if blank or missing
+        if not billing_data.get('first_name'):
+            billing_data['first_name'] = getattr(request.user, 'first_name', '') or request.user.username or 'NA'
+        if not billing_data.get('last_name'):
+            billing_data['last_name'] = getattr(request.user, 'last_name', '') or 'NA'
+        if not billing_data.get('phone_number'):
+            billing_data['phone_number'] = getattr(request.user, 'phone_number', '') or 'NA'
+        if not billing_data.get('email'):
+            billing_data['email'] = request.user.email or 'NA'
+        if not billing_data.get('country'):
+            billing_data['country'] = 'NA'
+        if not billing_data.get('apartment'):
+            billing_data['apartment'] = 'NA'
+        if not billing_data.get('floor'):
+            billing_data['floor'] = 'NA'
+        if not billing_data.get('street'):
+            billing_data['street'] = 'NA'
+        if not billing_data.get('building'):
+            billing_data['building'] = 'NA'
+        if not billing_data.get('city'):
+            billing_data['city'] = 'NA'
+        if not billing_data.get('state'):
+            billing_data['state'] = 'NA'
+
+        if not project_id or not amount:
+            return Response({'detail': 'Project and amount are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({'detail': 'Project not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Prepare headers and payload for Intention API
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Token {settings.PAYMOB_SECRET_KEY}'
+        }
+
+        # Prepare items array with required fields if provided
+        formatted_items = []
+        for item in items:
+            if 'name' in item and 'amount' in item:
+                formatted_items.append({
+                    'name': item['name'],
+                    'amount': int(item['amount']),
+                    'description': item.get('description', '')[:255],
+                    'quantity': item.get('quantity', 1)
+                })
+
+
+        payload = {
+            'amount': int(float(amount) * 100),  # amount in cents
+            'currency': 'EGP',
+            'payment_methods': payment_methods,
+            'items': formatted_items if formatted_items else None,
+            'billing_data': {
+                'first_name': billing_data.get('first_name', user.username)[:50],
+                'last_name': billing_data.get('last_name', 'NA')[:50],
+                'email': billing_data.get('email', user.email),
+                'phone_number': billing_data.get('phone_number', 'NA'),
+                'country': billing_data.get('country', 'NA'),
+                'apartment': billing_data.get('apartment', 'NA'),
+                'floor': billing_data.get('floor', 'NA'),
+                'street': billing_data.get('street', 'NA'),
+                'building': billing_data.get('building', 'NA'),
+                'city': billing_data.get('city', 'NA'),
+                'state': billing_data.get('state', 'NA'),
+            },
+            'notification_url': notification_url,
+            'redirection_url': redirection_url,
+            'special_reference': f'project_{project_id}_user_{user.id}_{uuid.uuid4()}',
+            'extras': request.data.get('extras', {}),
+            'expiration': request.data.get('expiration', 3600)
+        }
+
+        # Remove items key if empty
+        if not formatted_items:
+            payload.pop('items', None)
+
+        url = 'https://accept.paymob.com/v1/intention/'
+
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            if response.status_code in [200, 201]:
+                data = response.json()
+                client_secret = data.get('client_secret')
+                if not client_secret:
+                    return Response({'detail': 'Failed to get client secret from Intention API.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                # Save Payment record with status pending
+                payment = Payment.objects.create(
+                    user=user,
+                    project=project,
+                    amount=amount,
+                    paymob_order_id=data.get('intention_order_id'), 
+                    paymob_payment_key=client_secret,
+                    status='pending'
+                )
+
+                # Return the full relevant data from the Paymob intention response along with public_key
+                response_data = {
+                    'payment_keys': data.get('payment_keys'),
+                    'intention_order_id': data.get('intention_order_id'),
+                    'id': data.get('id'),
+                    'intention_detail': data.get('intention_detail'),
+                    'client_secret': data.get('client_secret'),
+                    'payment_methods': data.get('payment_methods'),
+                    'special_reference': data.get('special_reference'),
+                    'extras': data.get('extras'),
+                    'confirmed': data.get('confirmed'),
+                    'status': data.get('status'),
+                    'created': data.get('created'),
+                    'card_detail': data.get('card_detail'),
+                    'card_tokens': data.get('card_tokens'),
+                    'public_key': settings.PAYMOB_PUBLIC_KEY
+                }
+                return Response(response_data)
+            else:
+                logging.error(f"Paymob intention creation failed: {response.status_code} - {response.text}")
+                return Response({'detail': 'Failed to create intention.', 'error': response.text}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            logging.error(f"Exception during Paymob intention creation: {str(e)}", exc_info=True)
+            return Response({'detail': 'Error communicating with Intention API.', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PaymobCallbackView(APIView):
+    permission_classes = [AllowAny]  # Paymob will not be authenticated
+
+    def post(self, request):
+        data = request.data
+        # Optionally: Validate HMAC here for security
+        # print("Callback received:", data)  # Add this line for debugging
+        # Extract order id
+
+        paymob_order_id = None
+        if 'obj' in data and 'order' in data['obj']:
+            paymob_order_id = data['obj']['order'].get('id')
+        elif 'order' in data:
+            paymob_order_id = data['order'].get('id')
+        else:
+            paymob_order_id = data.get('order_id')
+
+        # print("Looking for Payment with paymob_order_id:", paymob_order_id)
+
+        # Extract success status
+        success = False
+        if 'obj' in data:
+            success = data['obj'].get('success', False)
+        elif 'success' in data:
+            success = data.get('success', False)
+       
+
+        # Find the Payment record
+        try:
+            payment = Payment.objects.get(paymob_order_id=paymob_order_id)
+        except Payment.DoesNotExist:
+            return Response({'detail': 'Payment not found.'}, status=404)
+
+        if success:
+            # Mark payment as paid
+            payment.status = 'paid'
+            payment.save()
+            # Create a Donation if not already created
+            if not payment.donation:
+                donation = Donation.objects.create(
+                    user=payment.user,
+                    project=payment.project,
+                    amount=payment.amount
+                )
+                payment.donation = donation
+                payment.save()
+                # Send thank you email to the user (donor)
+                subject_user = "Thank you for your donation!"
+                message_user = (
+                    f"Dear {payment.user.username},\n\n"
+                    f"Thank you for your generous donation of {payment.amount} EGP to the campaign '{payment.project.title}'.\n"
+                    "Your support is greatly appreciated!"
+                )
+                send_mail(
+                    subject_user,
+                    message_user,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [payment.user.email],
+                    fail_silently=True,
+                )
+
+                # Send notification email to the admin(s)
+                admin_emails = [admin[1] for admin in getattr(settings, 'ADMINS', [])]
+                if admin_emails:
+                    subject_admin = f"New Donation Received for '{payment.project.title}'"
+                    message_admin = (
+                        f"A new donation of {payment.amount} EGP was made by {payment.user.username} "
+                        f"to the campaign '{payment.project.title}'."
+                    )
+                send_mail(
+                subject_admin,
+                message_admin,
+                settings.DEFAULT_FROM_EMAIL,
+                admin_emails,
+                fail_silently=True,
+                )    
+        else:
+            payment.status = 'failed'
+            payment.save()
+
+        return Response({'status': 'ok'})
+         

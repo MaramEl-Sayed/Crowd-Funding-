@@ -64,7 +64,7 @@ const Login = () => {
         appId: '583449137409337',
         cookie: true,
         xfbml: true,
-        version: 'v19.0'
+        version: 'v22.0'
       });
     };
     document.body.appendChild(script);

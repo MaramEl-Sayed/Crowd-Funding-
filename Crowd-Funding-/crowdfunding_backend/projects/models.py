@@ -44,7 +44,7 @@ class Project(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     slug = models.SlugField(unique=True, blank=True)
-    is_featured = models.BooleanField(default=False)  # New field for featured projects
+    is_featured = models.BooleanField(default=False)  
 
     STATUS_CHOICES = [
         ('waiting', 'Waiting'),
