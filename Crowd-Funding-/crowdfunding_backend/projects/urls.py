@@ -4,7 +4,7 @@ from .views import (
     DonationCreateView, CommentListCreateView, ReportCreateView,
     RatingCreateView, ProjectRatingAverageView, ProjectCancelView,
     UserDonationsView, TopRatedProjectsView, LatestProjectsView,
-    SimilarProjectsView, ProjectImageDeleteView, CategoryListView, CategoryCreateView, LatestFeaturedProjectsView, PaymobIntentionCreateView,ShareCreateView, PaymobCallbackView
+    SimilarProjectsView, ProjectImageDeleteView, CategoryListView, CategoryCreateView, LatestFeaturedProjectsView, PaymobIntentionCreateView,ShareCreateView, PaymobCallbackView,ProjectListFinished
 )
 
 app_name = "projects"
@@ -15,6 +15,8 @@ urlpatterns = [
 
     # Project List and Create
     path("projects/", ProjectListCreateView.as_view(), name="project-list-create"),
+    #project list finished
+    path("projects/finished/", ProjectListFinished.as_view(), name="project-list-finished"),
     # Project Detail, Update and Delete
     path("projects/<int:project_id>/", ProjectDetailUpdateDeleteView.as_view(), name="project-detail-update-delete"),
     # Cancel a project

@@ -20,20 +20,24 @@ class CategorySerializer(serializers.ModelSerializer):
 class DonationSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.username")
     user_id = serializers.ReadOnlyField(source="user.id")
-    user_avatar = serializers.SerializerMethodField()
+    user_image = serializers.SerializerMethodField()
     project_title = serializers.ReadOnlyField(source="project.title")
     project_slug = serializers.ReadOnlyField(source="project.slug")
 
     class Meta:
         model = Donation
         fields = [
-            'id', 'user', 'user_id', 'user_avatar', 'project',
+            'id', 'user', 'user_id', 'user_image', 'project',
             'project_title', 'project_slug', 'amount', 'date'
         ]
 
-    def get_user_avatar(self, obj):
+    def get_user_image(self, obj):
+        request = self.context.get('request')
         if obj.user.profile_picture:
-            return obj.user.profile_picture.url
+            avatar_url = obj.user.profile_picture.url
+            if request is not None:
+                return request.build_absolute_uri(avatar_url)
+            return avatar_url
         return None
 
 

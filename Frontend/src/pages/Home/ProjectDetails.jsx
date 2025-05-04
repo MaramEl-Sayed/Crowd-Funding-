@@ -488,9 +488,9 @@ const ProjectDetails = () => {
                             {project.donations.map(donation => (
                                 <div key={donation.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                     <div className="flex items-center">
-                                        {donation.user_avatar && (
+                                        {donation.user['profile_picture'] && (
                                             <img
-                                                src={donation.user_avatar}
+                                                src={donation.user['profile_picture']}
                                                 alt={donation.user}
                                                 className="w-8 h-8 rounded-full mr-3"
                                             />

@@ -16,6 +16,7 @@ import ProjectUpdate from './pages/Home/ProjectUpdate';
 import DonationPage from './pages/Home/DonationPage';
 import TopRatedSlider from './pages/Home/Home';
 import Projects from './pages/Home/Projects';
+import FinishedProjects from './pages/Home/FinishedProjects';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path="/reset-password/:uid/:token" element={<ResetPassword />} /> {/* New route */}
             <Route path="/activate/:uidb64/:token" element={<Activate />} />
             <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/finished" element={<FinishedProjects />} />
             <Route path="/projects/:id" element={<ProjectDetails />} />
             <Route path="/create-project" element={<CreateProject />} />
             <Route path="/projects/:id/update" element={<ProjectUpdate />} />

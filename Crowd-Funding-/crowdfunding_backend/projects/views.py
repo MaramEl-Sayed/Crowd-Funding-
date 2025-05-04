@@ -17,6 +17,23 @@ from .serializers import (
     CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer,ShareSerializer
 )
 
+
+class ProjectListFinished(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    def get(self, request):
+        category = request.query_params.get('category')
+        search = request.query_params.get('search')
+        if request.user.is_authenticated:
+            projects = Project.objects.filter(owner=request.user)
+        else:
+            projects = Project.objects.filter(status='finished')
+        if category:
+            projects = projects.filter(category__name=category)
+        if search:
+            projects = projects.filter(title__icontains=search)
+       
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data)
    
 
 class ProjectListCreateView(APIView):
@@ -60,7 +77,7 @@ class ProjectDetailUpdateDeleteView(APIView):
     def get(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
         serializer = ProjectSerializer(project)
-        donations = DonationSerializer(project.donations.all(), many=True)
+        donations = DonationSerializer(project.donations.all(), many=True,context={'request': request})
         response_data = serializer.data
         response_data['donations'] = donations.data
         return Response(response_data)
@@ -236,12 +253,19 @@ class RatingCreateView(APIView):
         serializer = RatingSerializer(data=request.data)
         if serializer.is_valid():
             project = serializer.validated_data['project']
-            if Rating.objects.filter(project=project, user=request.user).exists():
-                return Response({'detail': 'You have already rated this project.'}, status=status.HTTP_400_BAD_REQUEST)
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            value = serializer.validated_data['value']
+            rating, created = Rating.objects.get_or_create(
+                project=project,
+                user=request.user,
+                defaults={'value': value}
+            )
+            if not created:
+                # Update the existing rating
+                rating.value = value
+                rating.save()
+                return Response(RatingSerializer(rating).data, status=status.HTTP_200_OK)
+            return Response(RatingSerializer(rating).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class ProjectRatingAverageView(APIView):
     permission_classes = [permissions.AllowAny]
 
