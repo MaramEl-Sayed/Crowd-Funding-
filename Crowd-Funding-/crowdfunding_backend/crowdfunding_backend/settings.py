@@ -242,7 +242,8 @@ FRONTEND_URL = "http://localhost:3000"  # Added for activation and password rese
 ADMINS = [('Admin', 'crowdfunding449@gmail.com')]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React frontend URL
+    "http://localhost:3000",
+    "http://localhost:3001",  # React frontend URL
     "https://1357-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
     "https://a64d-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
 ]

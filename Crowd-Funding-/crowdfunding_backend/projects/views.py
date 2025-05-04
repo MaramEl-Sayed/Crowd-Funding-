@@ -203,6 +203,36 @@ class PaymobCallbackView(APIView):
                 )
                 payment.donation = donation
                 payment.save()
+                # Send thank you email to the user (donor)
+                subject_user = "Thank you for your donation!"
+                message_user = (
+                    f"Dear {payment.user.username},\n\n"
+                    f"Thank you for your generous donation of {payment.amount} EGP to the campaign '{payment.project.title}'.\n"
+                    "Your support is greatly appreciated!"
+                )
+                send_mail(
+                    subject_user,
+                    message_user,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [payment.user.email],
+                    fail_silently=True,
+                )
+
+                # Send notification email to the admin(s)
+                admin_emails = [admin[1] for admin in getattr(settings, 'ADMINS', [])]
+                if admin_emails:
+                    subject_admin = f"New Donation Received for '{payment.project.title}'"
+                    message_admin = (
+                        f"A new donation of {payment.amount} EGP was made by {payment.user.username} "
+                        f"to the campaign '{payment.project.title}'."
+                    )
+                send_mail(
+                subject_admin,
+                message_admin,
+                settings.DEFAULT_FROM_EMAIL,
+                admin_emails,
+                fail_silently=True,
+                )    
         else:
             payment.status = 'failed'
             payment.save()
