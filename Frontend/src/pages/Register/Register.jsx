@@ -1,14 +1,12 @@
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Field, ErrorMessage, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { authAPI } from "../../api/auth";
 import { useNavigate } from "react-router-dom";
-import styles from "./Register.module.css";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useEffect, useState } from 'react';
 import defaultProfilePic from '../../assets/default-profile-pic.png';
-import { FcGoogle } from 'react-icons/fc';
-import { FaFacebookF } from 'react-icons/fa';
+import { FaCamera, FaUser, FaEnvelope, FaLock, FaPhone, FaCalendarAlt, FaGlobe, FaFacebookF } from 'react-icons/fa';
 
 const checkEmailExists = async (email) => {
   try {
@@ -19,7 +17,7 @@ const checkEmailExists = async (email) => {
       },
     });
     if (!response.ok) {
-      throw new Error('Failed to check email');
+      throw new Error(`Failed to check email: ${response.statusText}`);
     }
     const data = await response.json();
     return data.exists;
@@ -68,6 +66,10 @@ const RegisterSchema = Yup.object().shape({
     .required("Please confirm your password"),
   birthdate: Yup.date().required("Birthdate is required").nullable(),
   country: Yup.string().nullable(),
+  profile_picture: Yup.mixed().nullable(),
+  terms: Yup.boolean()
+    .oneOf([true], "You must agree to the terms and privacy policy")
+    .required("You must agree to the terms and privacy policy"),
 });
 
 const Register = () => {
@@ -95,240 +97,86 @@ const Register = () => {
     };
   }, []);
 
+  const handleProfilePictureChange = (event, setFieldValue) => {
+    const file = event.currentTarget.files[0];
+    setFieldValue("profile_picture", file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setProfilePicture(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
-    <div className={styles.authContainer}>
-      <div className={styles.authForm}>
-        <h2 className={styles.authTitle}>Create Account</h2>
-        <Formik
-          initialValues={{
-            username: "",
-            first_name: "",
-            last_name: "",
-            email: "",
-            mobile_phone: "",
-            password: "",
-            confirm_password: "",
-            birthdate: "",
-            country: "",
-            profile_picture: null,
-          }}
-          validationSchema={RegisterSchema}
-          onSubmit={async (values, { setSubmitting, setFieldError }) => {
-            try {
-              const emailExists = await checkEmailExists(values.email);
-              if (emailExists) {
-                toast.error("Account already exists with this email.");
-                return;
-              }
+    <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7] p-4">
+      <div className="flex flex-col md:flex-row w-full max-w-4xl rounded-lg shadow-lg overflow-hidden">
+        {/* Left Side */}
+        <div className="w-full md:w-1/2 bg-[#006A71] p-6 sm:p-8 flex flex-col justify-center items-center text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-4">Already have an account?</h2>
+          <p className="text-[#ffffff] mb-6 text-sm sm:text-base">Let's get you logged back in.</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="border-2 border-[#ffffff] text-[#ffffff] hover:bg-[#48A6A7] hover:border-[#48A6A7] font-semibold py-2 px-4 sm:px-6 rounded-lg transition duration-300 text-sm sm:text-base"
+          >
+            Login
+          </button>
+        </div>
 
-              const formData = new FormData();
-              formData.append("username", values.username);
-              formData.append("first_name", values.first_name);
-              formData.append("last_name", values.last_name);
-              formData.append("email", values.email);
-              formData.append("mobile_phone", values.mobile_phone);
-              formData.append("password", values.password);
-              formData.append("confirm_password", values.confirm_password);
-              if (values.birthdate) formData.append("birthdate", values.birthdate);
-              if (values.country) formData.append("country", values.country);
-              if (values.profile_picture) {
-                formData.append("profile_picture", values.profile_picture);
-              }
+        {/* Right Side */}
+        <div className="w-full md:w-1/2 bg-white p-6 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#006A71] text-center mb-6">Create account</h2>
 
-              await authAPI.register(formData);
-              toast.success(
-                "Registration successful! Please check your email to activate your account."
-              );
-              navigate("/login");
-            } catch (error) {
-              console.error(error);
-              const errorMessage = error.response?.data?.detail || "Registration failed";
-              if (error.response?.data?.username) {
-                setFieldError("username", error.response.data.username);
-              } else {
-                toast.error(errorMessage);
-              }
-            } finally {
-              setSubmitting(false);
-            }
-          }}
-          encType="multipart/form-data"
-        >
-          {({ setFieldValue, isSubmitting }) => (
-            <Form>
-              <div className={styles.formGroup}>
-                <div className={styles.profilePictureWrapper}>
-                  <img
-                    src={profilePicture}
-                    alt="Profile Preview"
-                    className={styles.profilePicture}
-                  />
-                  <div className={styles.uploadOverlay}>
-                    <label htmlFor="profile_picture" className={styles.uploadLabel}>
-                      Upload Picture
-                    </label>
-                    <input
-                      type="file"
-                      id="profile_picture"
-                      name="profile_picture"
-                      accept="image/*"
-                      onChange={(event) => {
-                        const file = event.currentTarget.files[0];
-                        setFieldValue("profile_picture", file);
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = () => {
-                            setProfilePicture(reader.result);
-                          };
-                          reader.readAsDataURL(file);
+          {/* Social Login Buttons */}
+          <div className="flex flex-col items-center gap-4 mb-6">
+          <button
+              type="button"
+              onClick={() => {
+                window.FB.login(
+                  response => {
+                    if (response.authResponse) {
+                      const accessToken = response.authResponse.accessToken;
+
+                      // Fetch user info from Facebook
+                      window.FB.api('/me', { fields: 'name,email,first_name,last_name,picture' }, async userInfo => {
+                        const email = userInfo.email;
+
+                        if (!email) {
+                          toast.error('Email not found in Facebook profile');
+                          return;
                         }
-                      }}
-                      className={styles.uploadInput}
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <div className={styles.formGroup}>
-                <Field
-                  type="text"
-                  name="first_name"
-                  placeholder="First Name"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="first_name"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
+                        try {
+                          const emailExists = await checkEmailExists(email);
 
-              <div className={styles.formGroup}>
-                <Field
-                  type="text"
-                  name="last_name"
-                  placeholder="Last Name"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="last_name"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
+                          if (emailExists) {
+                            toast.error('Account already exists. Please login.');
+                            return;
+                          }
 
-              <div className={styles.formGroup}>
-                <Field
-                  type="text"
-                  name="username"
-                  placeholder="Username"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="username"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
+                          await authAPI.facebookRegister({ access_token: accessToken });
 
-              <div className={styles.formGroup}>
-                <Field
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="email"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
+                          toast.success('Facebook registration successful!');
+                          navigate('/login');
+                        } catch (error) {
+                          console.error('Facebook registration error:', error);
+                          toast.error(error?.error || 'Facebook registration failed');
+                        }
+                      });
+                    } else {
+                      toast.error('Facebook registration cancelled');
+                    }
+                  },
+                  { scope: 'public_profile,email' }
+                );
+              }}
+              className="p-1 max-w-xs h-10 border border-[#48A6A7] rounded-lg hover:bg-[#48A6A7] hover:text-white transition duration-300 text-[#006A71] font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
+            >
+              <FaFacebookF className="w-5 h-5 text-[#006A71] hover:text-white" />
+              Continue with Facebook
+            </button>
 
-              <div className={styles.formGroup}>
-                <Field
-                  type="text"
-                  name="mobile_phone"
-                  placeholder="Mobile Phone (e.g., 01234567890)"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="mobile_phone"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <Field
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="password"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <Field
-                  type="password"
-                  name="confirm_password"
-                  placeholder="Confirm Password"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="confirm_password"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <Field
-                  type="date"
-                  name="birthdate"
-                  placeholder="Birthdate"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="birthdate"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <Field
-                  type="text"
-                  name="country"
-                  placeholder="Country (optional)"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="country"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={styles.submitButton}
-              >
-                {isSubmitting ? "Registering..." : "Continue with email"}
-              </button>
-            </Form>
-          )}
-        </Formik>
-
-        <div className={styles.socialLogin}>
-          <div className={styles.divider}>Other sign up options</div>
-          <div className={styles.socialButtonsContainer}>
             <GoogleOAuthProvider clientId="75773251008-89sei1vuligu58shbmup4f5ttqq097o5.apps.googleusercontent.com">
               <GoogleLogin
                 onSuccess={async (credentialResponse) => {
@@ -367,12 +215,16 @@ const Register = () => {
                       formData.append('profile_picture_url', profilePicture);
                     }
 
-                    await authAPI.register(formData);
+                    console.log("Sending Google registration data:", Object.fromEntries(formData));
+
+                    const response = await authAPI.register(formData);
+                    console.log("Google registration response:", response);
+
                     toast.success('Google registration successful! Please check your email to activate your account.');
                     navigate('/login');
                   } catch (error) {
                     console.error('Google registration error:', error);
-                    toast.error(error.message || error.error || 'Google registration failed');
+                    toast.error(error.error || error.message || 'Google registration failed');
                   }
                 }}
                 onError={(error) => {
@@ -383,61 +235,256 @@ const Register = () => {
                 render={(renderProps) => (
                   <button
                     type="button"
-                    className={`${styles.socialButton} ${styles.googleButton}`}
+                    className="p-1 max-w-xs h-10 border border-[#48A6A7] rounded-lg hover:bg-[#48A6A7] hover:text-white transition duration-300 text-[#006A71] font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
                     onClick={renderProps.onClick}
                     disabled={renderProps.disabled}
                   >
-                    <FcGoogle className={styles.googleIcon} />
+                    <svg
+                      className="w-5 h-5 text-[#006A71] hover:text-white"
+                      viewBox="0 0 24 24"
+                    >
+                      <text
+                        x="50%"
+                        y="65%"
+                        dominantBaseline="middle"
+                        textAnchor="middle"
+                        fill="currentColor"
+                        fontSize="16"
+                        fontWeight="bold"
+                        fontFamily="Arial, sans-serif"
+                      >
+                        G
+                      </text>
+                    </svg>
+                    Continue with Google
                   </button>
                 )}
               />
             </GoogleOAuthProvider>
-            <button
-              type="button"
-              onClick={() => {
-                window.FB.login(response => {
-                  if (response.authResponse) {
-                    const accessToken = response.authResponse.accessToken;
-                    // Check if email exists and then register or show error
-                    window.FB.api('/me', { fields: 'name,email,first_name,last_name,picture' }, async userInfo => {
-                      const email = userInfo.email;
-                      if (!email) {
-                        toast.error('Email not found in Facebook profile');
-                        return;
-                      }
-                      const emailExists = await checkEmailExists(email);
-                      if (emailExists) {
-                        toast.error('Account already exists. Please login.');
-                        return;
-                      }
-                      try {
-                        await authAPI.facebookRegister({ access_token: accessToken });
-                        toast.success('Facebook registration successful! ');
-                        navigate('/login');
-                      } catch (error) {
-                        console.error('Facebook registration error:', error);
-                        const errorMessage = error.error || error.message || 'Facebook registration failed';
-                        toast.error(errorMessage);
-                      }
-                    });
-                  } else {
-                    toast.error('Facebook registration cancelled');
-                  }
-                }, {scope: 'public_profile,email'});
-              }}
-              className={`${styles.socialButton} ${styles.facebookButton}`}
-            >
-              <FaFacebookF className={styles.facebookIcon} /> Sign in with Facebook
-            </button>
           </div>
-        </div>
 
-        <p className={styles.authFooter}>
-          Already have an account?{" "}
-          <a href="/login" className={styles.authLink}>
-            Login
-          </a>
-        </p>
+          <p className="text-center text-[#1e1e1e] mb-6 text-sm sm:text-base">or use your email for registration:</p>
+
+          {/* Form */}
+          <Formik
+            initialValues={{
+              username: "",
+              first_name: "",
+              last_name: "",
+              email: "",
+              mobile_phone: "",
+              password: "",
+              confirm_password: "",
+              birthdate: "",
+              country: "",
+              profile_picture: null,
+              terms: false,
+            }}
+            validationSchema={RegisterSchema}
+            onSubmit={async (values, { setSubmitting, setFieldError }) => {
+              try {
+                const emailExists = await checkEmailExists(values.email);
+                if (emailExists) {
+                  toast.error("Account already exists with this email.");
+                  setSubmitting(false);
+                  return;
+                }
+
+                const formData = new FormData();
+                formData.append("username", values.username);
+                formData.append("first_name", values.first_name);
+                formData.append("last_name", values.last_name);
+                formData.append("email", values.email);
+                formData.append("mobile_phone", values.mobile_phone);
+                formData.append("password", values.password);
+                formData.append("confirm_password", values.confirm_password);
+                if (values.birthdate) formData.append("birthdate", values.birthdate);
+                if (values.country) formData.append("country", values.country);
+                if (values.profile_picture) {
+                  formData.append("profile_picture", values.profile_picture);
+                }
+
+                console.log("Sending registration data:", Object.fromEntries(formData));
+
+                const response = await authAPI.register(formData);
+                console.log("Registration response:", response);
+
+                toast.success(
+                  "Registration successful! Please check your email to activate your account."
+                );
+                navigate("/login");
+              } catch (error) {
+                console.error("Registration error:", error);
+                if (error.error) {
+                  if (error.username) {
+                    setFieldError("username", error.username);
+                  } else {
+                    toast.error(error.error || "Registration failed");
+                  }
+                } else if (error.message) {
+                  toast.error(error.message);
+                } else {
+                  toast.error("An unexpected error occurred during registration.");
+                }
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            encType="multipart/form-data"
+          >
+            {({ setFieldValue, isSubmitting }) => (
+              <Form className="space-y-4">
+                {/* Profile Picture Upload */}
+                <div className="flex justify-center mb-6">
+                  <div className="relative">
+                    <div className="w-24 sm:w-32 h-24 sm:h-32 rounded-full overflow-hidden border-4 border-[#48A6A7] flex items-center justify-center">
+                      <img
+                        src={profilePicture}
+                        alt="Profile Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <label
+                      htmlFor="profile_picture"
+                      className="absolute bottom-0 right-0 bg-[#006A71] rounded-full p-2 cursor-pointer hover:bg-[#04828c] transition duration-300"
+                    >
+                      <FaCamera className="text-white w-4 h-4 sm:w-5 sm:h-5" />
+                      <input
+                        id="profile_picture"
+                        type="file"
+                        name="profile_picture"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(event) => handleProfilePictureChange(event, setFieldValue)}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="w-full sm:w-1/2 relative">
+                    <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                    <Field
+                      type="text"
+                      name="first_name"
+                      placeholder="Your first name"
+                      className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                    />
+                    <ErrorMessage name="first_name" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                  </div>
+                  <div className="w-full sm:w-1/2 relative">
+                    <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                    <Field
+                      type="text"
+                      name="last_name"
+                      placeholder="Your last name"
+                      className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                    />
+                    <ErrorMessage name="last_name" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <Field
+                    type="text"
+                    name="username"
+                    placeholder="Username"
+                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                  />
+                  <ErrorMessage name="username" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <div className="relative">
+                  <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <Field
+                    type="email"
+                    name="email"
+                    placeholder="Your email"
+                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                  />
+                  <ErrorMessage name="email" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <div className="relative">
+                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <Field
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                  />
+                  <ErrorMessage name="password" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <div className="relative">
+                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <Field
+                    type="password"
+                    name="confirm_password"
+                    placeholder="Confirm Password"
+                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                  />
+                  <ErrorMessage name="confirm_password" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <div className="relative">
+                  <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <Field
+                    type="text"
+                    name="mobile_phone"
+                    placeholder="Mobile Phone (e.g., 01234567890)"
+                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                  />
+                  <ErrorMessage name="mobile_phone" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <div className="relative">
+                  <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <Field
+                    type="date"
+                    name="birthdate"
+                    placeholder="Birthdate"
+                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                  />
+                  <ErrorMessage name="birthdate" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <div className="relative">
+                  <FaGlobe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <Field
+                    type="text"
+                    name="country"
+                    placeholder="Country (optional)"
+                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                  />
+                  <ErrorMessage name="country" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <div className="flex items-center">
+                  <Field
+                    type="checkbox"
+                    name="terms"
+                    id="terms"
+                    className="mr-2 accent-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5"
+                  />
+                  <label htmlFor="terms" className="text-[#1e1e1e] text-xs sm:text-sm">
+                    I have read, understood and agree to the terms and privacy policy
+                  </label>
+                  <ErrorMessage name="terms" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base"
+                >
+                  {isSubmitting ? "Registering..." : "Sign up"}
+                </button>
+              </Form>
+            )}
+          </Formik>
+        </div>
       </div>
     </div>
   );

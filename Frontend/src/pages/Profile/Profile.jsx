@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../../api/auth';
-import styles from './Profile.module.css';
-import defaultProfilePic from '../../assets/default-profile-pic.png';
+import { FaLock, FaBars, FaUser, FaCog, FaSignOutAlt, FaTimes, FaPencilAlt, FaChevronDown } from 'react-icons/fa';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -13,7 +12,7 @@ const Profile = () => {
     mobile_phone: '',
     country: ''
   });
-  const [profilePicture, setProfilePicture] = useState(defaultProfilePic);
+  const [profilePicture, setProfilePicture] = useState('/default-profile-pic.png');
   const [profilePictureFile, setProfilePictureFile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [donations, setDonations] = useState([]);
@@ -22,11 +21,12 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
-  // New states for password change
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
   const calculateAge = (birthdate) => {
     if (!birthdate) return null;
@@ -93,11 +93,9 @@ const Profile = () => {
           ? userData.profile_picture.startsWith('http')
             ? userData.profile_picture
             : `http://localhost:8000${userData.profile_picture}`
-          : defaultProfilePic;
+          : '/default-profile-pic.png';
         setProfilePicture(profilePicUrl);
 
-        // Check if user registered with Google by attempting to log in with a known Google temp password format
-        // This is a workaround since we can't directly check the registration method
         const tempLoginAttempt = await fetch('http://localhost:8000/api/accounts/login/', {
           method: 'POST',
           headers: {
@@ -105,14 +103,12 @@ const Profile = () => {
           },
           body: JSON.stringify({
             email: userData.email,
-            password: 'temp@Google' // A placeholder to check if login fails
+            password: 'temp@Google'
           }),
         });
         if (tempLoginAttempt.status === 401) {
-          // If login fails with a temp password, user likely didn't register with Google
           setShowPasswordForm(false);
         } else {
-          // If login succeeds or we can't determine, assume Google registration and prompt for new password
           setShowPasswordForm(true);
         }
       } catch (err) {
@@ -219,7 +215,7 @@ const Profile = () => {
         ? updatedUser.profile_picture.startsWith('http')
           ? updatedUser.profile_picture
           : `http://localhost:8000${updatedUser.profile_picture}`
-        : defaultProfilePic;
+        : '/default-profile-pic.png';
       setProfilePicture(profilePicUrl);
       setProfilePictureFile(null);
       alert('Profile updated successfully!');
@@ -364,248 +360,416 @@ const Profile = () => {
     setError('');
   };
 
+  const handleLogout = () => {
+    authAPI.logout();
+    navigate('/login');
+  };
+
+  const handleShowProfile = () => {
+    setIsSettingsVisible(false);
+  };
+
+  const handleShowSettings = () => {
+    setIsSettingsVisible(true);
+  };
+
   const age = calculateAge(user.birthdate);
 
   return (
-    <div className={styles.profileContainer}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Your Profile</h1>
-        <p className={styles.subtitle}>Manage your personal information and contributions</p>
-      </div>
-
-      <div className={styles.profilePictureCard}>
-        <div className={styles.profilePictureWrapper}>
-          <img
-            src={typeof profilePicture === 'string' ? profilePicture : defaultProfilePic}
-            alt="Profile"
-            className={styles.profilePicture}
-          />
-          <div className={styles.uploadOverlay}>
-            <label htmlFor="profilePictureInput" className={styles.uploadLabel}>
-              Change Picture
-            </label>
-            <input
-              type="file"
-              id="profilePictureInput"
-              accept="image/*"
-              onChange={handleProfilePictureChange}
-              className={styles.uploadInput}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Personal Information</h2>
-        {error && <p className={styles.error}>{error}</p>}
-        {age !== null && (
-          <p className={styles.ageDisplay}>Age: {age} years</p>
-        )}
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label htmlFor="username" className={styles.label}>Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={user.username}
-              onChange={handleChange}
-              required
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="email" className={styles.label}>Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={user.email}
-              disabled
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="birthdate" className={styles.label}>Birthdate</label>
-            <input
-              type="date"
-              id="birthdate"
-              name="birthdate"
-              value={user.birthdate}
-              onChange={handleChange}
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="mobile_phone" className={styles.label}>Mobile Number</label>
-            <input
-              type="tel"
-              id="mobile_phone"
-              name="mobile_phone"
-              value={user.mobile_phone}
-              onChange={handleChange}
-              placeholder="01012345678"
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="country" className={styles.label}>Country</label>
-            <input
-              type="text"
-              id="country"
-              name="country"
-              value={user.country}
-              onChange={handleChange}
-              className={styles.input}
-            />
-          </div>
-          <button type="submit" className={styles.saveButton}>Save Changes</button>
-        </form>
-      </div>
-
-      {showPasswordForm && (
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>Set a New Password</h2>
-          <p className={styles.warning}>
-            You registered with Google. Please set a new password to manage your account more easily.
-          </p>
-          <form onSubmit={handleChangePassword} className={styles.form}>
-            <div className={styles.formGroup}>
-              <label htmlFor="newPassword" className={styles.label}>New Password</label>
+    <div className="min-h-screen bg-[#F2EFE7] flex flex-col lg:flex-row">
+      {/* Sidebar */}
+      <div className={`fixed inset-0 lg:static lg:w-64 bg-[#006A71] text-[#ffffff] flex flex-col z-50 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between p-4 border-b border-[#48A6A7]">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <img
+                src={typeof profilePicture === 'string' ? profilePicture : '/default-profile-pic.png'}
+                alt="Profile"
+                className="w-10 h-10 rounded-full border-2 border-[#9ACBD0] object-cover"
+              />
+              <label
+                htmlFor="profilePictureSidebar"
+                className="absolute bottom-0 right-0 bg-[#006A71] rounded-full p-1 cursor-pointer hover:bg-[#04828c] transition duration-300"
+              >
+                <FaPencilAlt className="w-3 h-3 text-[#ffffff]" />
+              </label>
               <input
-                type="password"
-                id="newPassword"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className={styles.input}
+                type="file"
+                id="profilePictureSidebar"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                className="hidden"
               />
             </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="confirmPassword" className={styles.label}>Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className={styles.input}
-              />
+            <div>
+              <p className="text-sm font-semibold">{user.username || 'Your Name'}</p>
+              <p className="text-xs">{user.email || 'yourname@gmail.com'}</p>
             </div>
-            {passwordError && <p className={styles.error}>{passwordError}</p>}
-            <button type="submit" className={styles.saveButton}>Change Password</button>
-          </form>
+          </div>
+          <button className="lg:hidden text-[#ffffff]" onClick={() => setIsSidebarOpen(false)}>
+            <FaTimes className="w-5 h-5" />
+          </button>
         </div>
-      )}
 
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Your Projects</h2>
-        {projects.length > 0 ? (
-          <ul className={styles.list}>
-            {projects.map(project => (
-              <li key={project.id} className={styles.listItem}>
-                <span className={styles.listIcon}>📋</span>
+        {/* Sidebar Menu */}
+        <nav className="flex-1 p-4">
+          <ul className="space-y-2">
+            <li>
+              <button
+                onClick={handleShowProfile}
+                className="flex items-center gap-3 w-full text-left p-2 hover:bg-[#04828c] rounded-lg"
+              >
+                <FaUser className="w-5 h-5 text-[#48A6A7]" />
+                <span className="text-sm">My Profile</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={handleShowSettings}
+                className="flex items-center gap-3 w-full text-left p-2 hover:bg-[#04828c] rounded-lg"
+              >
+                <FaCog className="w-5 h-5 text-[#48A6A7]" />
+                <span className="text-sm">Settings</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 w-full text-left p-2 hover:bg-[#04828c] rounded-lg"
+              >
+                <FaSignOutAlt className="w-5 h-5 text-[#48A6A7]" />
+                <span className="text-sm">Log Out</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-4 lg:p-8">
+        {/* Hamburger Menu for Mobile */}
+        <button className="lg:hidden mb-4 text-[#006A71]" onClick={() => setIsSidebarOpen(true)}>
+          <FaBars className="w-6 h-6" />
+        </button>
+
+        {/* Conditional Rendering: Profile or Settings */}
+        {!isSettingsVisible ? (
+          <>
+            {/* Profile Card */}
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-6">
+              <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+                <div className="relative">
+                  <img
+                    src={typeof profilePicture === 'string' ? profilePicture : '/default-profile-pic.png'}
+                    alt="Profile"
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-[#9ACBD0] object-cover"
+                  />
+                  <label
+                    htmlFor="profilePicture"
+                    className="absolute bottom-0 right-0 bg-[#006A71] rounded-full p-0.5 sm:p-1 cursor-pointer hover:bg-[#04828c] transition duration-300"
+                  >
+                    <FaPencilAlt className="w-2 h-2 sm:w-3 sm:h-3 text-[#ffffff]" />
+                  </label>
+                  <input
+                    type="file"
+                    id="profilePicture"
+                    accept="image/*"
+                    onChange={handleProfilePictureChange}
+                    className="hidden"
+                  />
+                </div>
                 <div className="flex-1">
-                  <p className={styles.itemTitle}>
-                    <a
-                      href={`/projects/${project.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-black font-bold hover:opacity-75 transition-opacity duration-200"
-                    >
-                      {project.title}
-                    </a>
-                  </p>
-                  <p className={styles.itemDetail}>Raised: ${project.total_donations}</p>
+                  <p className="text-lg sm:text-xl font-semibold text-[#006A71]">{user.username || 'Your Name'}</p>
+                  <p className="text-sm text-[#1e1e1e]">{user.email || 'yourname@gmail.com'}</p>
+                </div>
+              </div>
+
+              {error && <p className="text-[#ef4444] text-xs sm:text-sm mb-4">{error}</p>}
+              {age !== null && (
+                <div className="inline-block bg-[#006A71] text-[#ffffff] rounded-full px-3 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm lg:text-base font-semibold shadow-md mb-4">
+                  Age: {age} years
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="username" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">Name</label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={user.username}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-xs sm:text-sm lg:text-base"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">Email account</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={user.email}
+                    disabled
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-[#9ACBD0] rounded-lg bg-gray-100 text-[#1e1e1e] text-xs sm:text-sm lg:text-base cursor-not-allowed"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="birthdate" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">Birthdate</label>
+                  <input
+                    type="date"
+                    id="birthdate"
+                    name="birthdate"
+                    value={user.birthdate}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-xs sm:text-sm lg:text-base"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="mobile_phone" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">Mobile number</label>
+                  <input
+                    type="tel"
+                    id="mobile_phone"
+                    name="mobile_phone"
+                    value={user.mobile_phone}
+                    onChange={handleChange}
+                    placeholder="Add number"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-xs sm:text-sm lg:text-base"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="country" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">Location</label>
+                  <input
+                    type="text"
+                    id="country"
+                    name="country"
+                    value={user.country}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-xs sm:text-sm lg:text-base"
+                  />
                 </div>
                 <button
-                  onClick={() => openDeleteProjectModal(project)}
-                  className={`${styles.deleteButton} flex items-center gap-1 ml-2`}
+                  type="submit"
+                  className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
                 >
-                  <span>Delete</span>
-                  <span>🗑️</span>
+                  Save Changes
                 </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className={styles.emptyMessage}>No projects yet.</p>
-        )}
-      </div>
+              </form>
+            </div>
 
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Your Donations</h2>
-        <p className={styles.ageDisplay}>Total Donations: ${totalDonations.toFixed(2)}</p>
-        {donations.length > 0 ? (
-          <ul className={styles.list}>
-            {donations.map(donation => {
-              const isProjectDeleted = !donation.project_title;
-              const projectTitle = isProjectDeleted ? '[Deleted Project]' : donation.project_title;
-              return (
-                <li
-                  key={donation.id}
-                  className={`${styles.listItem} ${isProjectDeleted ? 'opacity-60' : ''}`}
-                >
-                  <span className={styles.listIcon}>💸</span>
-                  <div>
-                    <p className={`${styles.itemTitle} ${isProjectDeleted ? 'line-through text-gray-500' : ''}`}>
-                      {isProjectDeleted ? (
-                        <span
-                          className="cursor-pointer"
-                          onClick={() => handleDeletedProjectClick(projectTitle)}
-                        >
-                          {projectTitle}
-                        </span>
-                      ) : (
-                        projectTitle
-                      )}
-                      {isProjectDeleted && (
-                        <span className="ml-2 inline-block bg-gray-200 text-red-600 text-xs font-semibold px-2 py-1 rounded-full">
-                          Deleted
-                        </span>
-                      )}
-                    </p>
-                    <p className={styles.itemDetail}>
-                      Amount: ${donation.amount} on {formatDate(donation.date)}
-                    </p>
+            {/* Change Password */}
+            {showPasswordForm && (
+              <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-6">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#006A71] mb-4">Set a New Password</h2>
+                <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base mb-4">
+                  You registered with Google. Please set a new password to manage your account more easily.
+                </p>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <div className="space-y-2 relative">
+                    <label htmlFor="newPassword" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">New Password</label>
+                    <FaLock className="absolute left-3 top-9 sm:top-10 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                    <input
+                      type="password"
+                      id="newPassword"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-xs sm:text-sm lg:text-base"
+                    />
                   </div>
-                </li>
-              );
-            })}
-          </ul>
+                  <div className="space-y-2 relative">
+                    <label htmlFor="confirmPassword" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">Confirm Password</label>
+                    <FaLock className="absolute left-3 top-9 sm:top-10 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-xs sm:text-sm lg:text-base"
+                    />
+                  </div>
+                  {passwordError && <p className="text-[#ef4444] text-xs sm:text-sm">{passwordError}</p>}
+                  <button
+                    type="submit"
+                    className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
+                  >
+                    Change Password
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Projects */}
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-6">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#006A71] mb-4">Your Projects</h2>
+              {projects.length > 0 ? (
+                <ul className="space-y-3">
+                  {projects.map(project => (
+                    <li key={project.id} className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#f9fafb] p-3 rounded-lg">
+                      <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                        <span className="text-[#006A71] text-lg">📋</span>
+                        <div>
+                          <p className="text-[#1e1e1e] font-semibold text-xs sm:text-sm lg:text-base">
+                            <a
+                              href={`/projects/${project.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#006A71] hover:underline"
+                            >
+                              {project.title}
+                            </a>
+                          </p>
+                          <p className="text-[#1e1e1e] text-xs sm:text-sm">Raised: ${project.total_donations}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => openDeleteProjectModal(project)}
+                        className="bg-[#d32f2f] hover:bg-[#b71c1c] text-[#ffffff] text-xs sm:text-sm font-semibold px-3 py-1 rounded-lg transition duration-300 flex items-center gap-1 self-start sm:self-center"
+                      >
+                        <span>Delete</span>
+                        <span>🗑️</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base">No projects yet.</p>
+              )}
+            </div>
+
+            {/* Donations */}
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-6">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#006A71] mb-4">Your Donations</h2>
+              <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base mb-4">Total Donations: ${totalDonations.toFixed(2)}</p>
+              {donations.length > 0 ? (
+                <ul className="space-y-3">
+                  {donations.map(donation => {
+                    const isProjectDeleted = !donation.project_title;
+                    const projectTitle = isProjectDeleted ? '[Deleted Project]' : donation.project_title;
+                    return (
+                      <li
+                        key={donation.id}
+                        className={`flex flex-col sm:flex-row sm:items-center bg-[#f9fafb] p-3 rounded-lg ${isProjectDeleted ? 'opacity-60' : ''}`}
+                      >
+                        <span className="text-[#006A71] text-lg mr-3 sm:mr-3">💸</span>
+                        <div className="flex-1">
+                          <p className={`text-[#1e1e1e] font-semibold text-xs sm:text-sm lg:text-base ${isProjectDeleted ? 'line-through text-gray-500' : ''}`}>
+                            {isProjectDeleted ? (
+                              <span
+                                className="cursor-pointer"
+                                onClick={() => handleDeletedProjectClick(projectTitle)}
+                              >
+                                {projectTitle}
+                              </span>
+                            ) : (
+                              projectTitle
+                            )}
+                            {isProjectDeleted && (
+                              <span className="ml-2 inline-block bg-gray-200 text-[#d32f2f] text-[10px] sm:text-xs font-semibold px-2 py-1 rounded-full">
+                                Deleted
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-[#1e1e1e] text-xs sm:text-sm">
+                            Amount: ${donation.amount} on {formatDate(donation.date)}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base">No donations yet.</p>
+              )}
+            </div>
+
+            {/* Delete Account */}
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-6">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#006A71] mb-4">Delete Account</h2>
+              <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base mb-4">
+                This action is permanent and cannot be undone.
+              </p>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full bg-[#d32f2f] hover:bg-[#b71c1c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
+              >
+                Delete My Account
+              </button>
+            </div>
+          </>
         ) : (
-          <p className={styles.emptyMessage}>No donations yet.</p>
+          /* Settings Section */
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-6">
+            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[#006A71] mb-4">Settings</h3>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="theme" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">Theme</label>
+                <div className="relative group">
+                  <select
+                    id="theme"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-xs sm:text-sm lg:text-base bg-[#F2EFE7] appearance-none cursor-pointer hover:bg-[#ffffff] hover:text-[#006A71] hover:shadow-md transition duration-300"
+                  >
+                    <option value="Light">Light</option>
+                    <option value="Dark">Dark</option>
+                  </select>
+                  <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#006A71] w-4 h-4 sm:w-5 sm:h-5 pointer-events-none group-hover:text-[#006A71] transition duration-300" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="language" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">Language</label>
+                <div className="relative group">
+                  <select
+                    id="language"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-xs sm:text-sm lg:text-base bg-[#F2EFE7] appearance-none cursor-pointer hover:bg-[#ffffff] hover:text-[#006A71] hover:shadow-md transition duration-300"
+                  >
+                    <option value="ENG">ENG</option>
+                    <option value="Arabic">Arabic</option>
+                  </select>
+                  <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#006A71] w-4 h-4 sm:w-5 sm:h-5 pointer-events-none group-hover:text-[#006A71] transition duration-300" />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Delete Account</h2>
-        <p className={styles.warning}>This action is permanent and cannot be undone.</p>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className={styles.deleteButton}
-        >
-          Delete My Account
-        </button>
-      </div>
-
+      {/* Account Deletion Modal */}
       {isModalOpen && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <h3 className={styles.modalTitle}>Confirm Account Deletion</h3>
-            <p className={styles.modalText}>Are you sure you want to delete your account? This action cannot be undone.</p>
-            <div className={styles.formGroup}>
-              <label htmlFor="deletePassword" className={styles.label}>Enter Password</label>
+        <div className="fixed inset-0 bg-[#F2EFE7] bg-opacity-80 flex items-center justify-center px-4 py-6 z-40">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 w-full max-w-sm sm:max-w-md relative">
+            <button
+              onClick={() => {
+                setIsModalOpen(false);
+                setDeletePassword('');
+                setError('');
+              }}
+              className="absolute top-4 right-4 text-[#1e1e1e]"
+            >
+              <FaTimes className="w-5 h-5" />
+            </button>
+            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[#006A71] mb-4">Confirm Account Deletion</h3>
+            <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base mb-4">
+              Are you sure you want to delete your account? This action cannot be undone.
+            </p>
+            <div className="space-y-2 relative">
+              <label htmlFor="deletePassword" className="block text-[#1e1e1e] text-xs sm:text-sm font-medium">Enter Password</label>
+              <FaLock className="absolute left-3 top-9 sm:top-10 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
               <input
                 type="password"
                 id="deletePassword"
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
                 required
-                className={styles.input}
+                className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-xs sm:text-sm lg:text-base"
               />
             </div>
-            {error && <p className={styles.error}>{error}</p>}
-            <div className={styles.modalButtons}>
-              <button onClick={handleDelete} className={styles.confirmButton}>
+            {error && <p className="text-[#ef4444] text-xs sm:text-sm mt-2">{error}</p>}
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+              <button
+                onClick={handleDelete}
+                className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
+              >
                 Confirm
               </button>
               <button
@@ -614,7 +778,7 @@ const Profile = () => {
                   setDeletePassword('');
                   setError('');
                 }}
-                className={styles.cancelButton}
+                className="w-full bg-[#6b7280] hover:bg-[#4b5563] text-[#ffffff] font-semibold py-2 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
               >
                 Cancel
               </button>
@@ -623,16 +787,30 @@ const Profile = () => {
         </div>
       )}
 
+      {/* Project Deletion Modal */}
       {isDeleteProjectModalOpen && projectToDelete && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <h3 className={styles.modalTitle}>Confirm Project Deletion</h3>
-            <p className={styles.modalText}>
+        <div className="fixed inset-0 bg-[#F2EFE7] bg-opacity-80 flex items-center justify-center px-4 py-6 z-40">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 w-full max-w-sm sm:max-w-md relative">
+            <button
+              onClick={() => {
+                setIsDeleteProjectModalOpen(false);
+                setProjectToDelete(null);
+                setError('');
+              }}
+              className="absolute top-4 right-4 text-[#1e1e1e]"
+            >
+              <FaTimes className="w-5 h-5" />
+            </button>
+            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[#006A71] mb-4">Confirm Project Deletion</h3>
+            <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base mb-4">
               Are you sure you want to delete the project "{projectToDelete.title}"? This action cannot be undone.
             </p>
-            {error && <p className={styles.error}>{error}</p>}
-            <div className={styles.modalButtons}>
-              <button onClick={handleDeleteProject} className={styles.confirmButton}>
+            {error && <p className="text-[#ef4444] text-xs sm:text-sm mb-4">{error}</p>}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleDeleteProject}
+                className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
+              >
                 Confirm
               </button>
               <button
@@ -641,7 +819,7 @@ const Profile = () => {
                   setProjectToDelete(null);
                   setError('');
                 }}
-                className={styles.cancelButton}
+                className="w-full bg-[#6b7280] hover:bg-[#4b5563] text-[#ffffff] font-semibold py-2 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
               >
                 Cancel
               </button>

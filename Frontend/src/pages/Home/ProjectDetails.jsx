@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+import React, { useState, useEffect, useMemo, memo, useRef } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Slider from "react-slick";
 import Alert from '../../alert/Alert';
+import { FaExclamationCircle, FaSpinner, FaFlag, FaComment, FaDonate, FaEdit, FaTimes, FaShareAlt, FaFacebook, FaWhatsapp, FaTwitter, FaLinkedin } from 'react-icons/fa';
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { motion, AnimatePresence } from "framer-motion";
 
-
-// Memoized DescriptionSection component to prevent unnecessary re-renders
 const DescriptionSection = memo(({ details }) => {
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const DESCRIPTION_TRUNCATE_LENGTH = 40;
@@ -33,7 +32,7 @@ const DescriptionSection = memo(({ details }) => {
             <AnimatePresence initial={false} mode="wait">
                 <motion.div
                     key={isDescriptionExpanded ? 'expanded' : 'collapsed'}
-                    className="text-gray-700 mb-2 whitespace-pre-wrap break-words p-4 border border-gray-300 rounded-lg shadow-sm transition-all duration-300"
+                    className="text-[#1e1e1e] mb-2 whitespace-pre-wrap break-words p-4 border border-[#9ACBD0] rounded-lg bg-[#F2EFE7] transition-all duration-300"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
@@ -47,7 +46,7 @@ const DescriptionSection = memo(({ details }) => {
             {shouldTruncateDescription && (
                 <motion.button
                     onClick={toggleDescription}
-                    className="mt-1 px-3 py-1 rounded-md bg-blue-500 text-white text-sm hover:bg-blue-600 transition duration-200 shadow-md"
+                    className="mt-1 px-3 py-1 rounded-md bg-[#48A6A7] text-white text-sm hover:bg-[#006A71] transition duration-200 shadow-md"
                     whileTap={{ scale: 0.95 }}
                     whileHover={{ scale: 1.05 }}
                 >
@@ -61,10 +60,11 @@ const DescriptionSection = memo(({ details }) => {
 const ProjectDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const location = useLocation();
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userRating, setUserRating] = useState(0);
+    const [previousRating, setPreviousRating] = useState(null);
+    const [ratingLoading, setRatingLoading] = useState(true);
     const [averageRating, setAverageRating] = useState(0);
     const [error, setError] = useState(null);
     const [showReportModal, setShowReportModal] = useState(false);
@@ -72,6 +72,7 @@ const ProjectDetails = () => {
     const [reportType, setReportType] = useState('project');
     const [reportTargetId, setReportTargetId] = useState(null);
     const [reportedBy, setReportedBy] = useState(null);
+    const [showShareDropdown, setShowShareDropdown] = useState(false);
 
     const [comments, setComments] = useState([]);
     const [newCommentText, setNewCommentText] = useState('');
@@ -83,6 +84,8 @@ const ProjectDetails = () => {
     const [similarProjects, setSimilarProjects] = useState([]);
     const [similarLoading, setSimilarLoading] = useState(false);
     const [similarError, setSimilarError] = useState(null);
+    const shareButtonRef = useRef(null);
+
 
     const sliderSettings = {
         dots: true,
@@ -106,6 +109,58 @@ const ProjectDetails = () => {
             setLoading(false);
         }
     };
+    const handleRatingSubmit = async (ratingValue) => {
+        try {
+            const response = await axios.post(`http://localhost:8000/api/projects/ratings/`, {
+                project: project.id,
+                value: ratingValue,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            // Update the states with the new rating value from the response
+            setPreviousRating(response.data.value);
+            setUserRating(response.data.value);
+            Alert.success('Rating submitted!', 'Thank you for your feedback.');
+            // Refresh project details to update average rating
+            await fetchProjectDetails();
+        } catch (err) {
+            console.error('Rating submission error:', err.response?.data);
+            Alert.error('Error!', err.response?.data?.detail || 'Failed to submit rating.');
+        }
+    };
+    const fetchUserRating = async () => {
+        setRatingLoading(true);
+        try {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                setPreviousRating(null);
+                setUserRating(0);
+                return;
+            }
+            const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/ratings/user/`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (response.data.value !== undefined) {
+                setPreviousRating(response.data.value);
+                setUserRating(response.data.value);
+            }
+        } catch (err) {
+            // If user is not authenticated or rating doesn't exist, reset the states
+            if (err.response?.status === 404 || err.response?.status === 401) {
+                setPreviousRating(null);
+                setUserRating(0);
+            } else {
+                Alert.error('Error!', 'Failed to fetch your rating.');
+            }
+        } finally {
+            setRatingLoading(false);
+        }
+    };
 
     const fetchSimilarProjects = async () => {
         setSimilarLoading(true);
@@ -114,7 +169,8 @@ const ProjectDetails = () => {
             const response = await axios.get(`http://localhost:8000/api/projects/projects/${id}/similar/`);
             setSimilarProjects(response.data);
         } catch (err) {
-            setSimilarError('Failed to load similar projects.');
+            setSimilarError('Failed to load similar Campaigns.');
+            Alert.error('Error!', err.response?.data?.detail || 'Failed to load similar campaigns.');
         } finally {
             setSimilarLoading(false);
         }
@@ -128,6 +184,7 @@ const ProjectDetails = () => {
             setComments(response.data);
         } catch (err) {
             setCommentsError('Failed to load comments.');
+            Alert.error('Error!', err.response?.data?.detail || 'Failed to load comments.');
         } finally {
             setCommentsLoading(false);
         }
@@ -135,18 +192,34 @@ const ProjectDetails = () => {
 
     useEffect(() => {
         if (id) {
-            // Check for payment success query param
-            const params = new URLSearchParams(location.search);
-            if (params.get('payment') === 'success') {
-                Alert.success('Payment Successful!', 'Thank you for your donation.');
-                // Refetch project details to update donations
-                fetchProjectDetails();
-            }
             fetchProjectDetails();
+            fetchUserRating();
             fetchSimilarProjects();
             fetchComments();
         }
-    }, [id, location.search]);
+    }, [id]);
+
+ 
+    // Toggle dropdown
+    const handleShare = () => {
+        setShowShareDropdown(prev => !prev);
+    };
+
+   // Close dropdown if clicked outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (shareButtonRef.current && !shareButtonRef.current.contains(event.target)) {
+                setShowShareDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+
+  
 
     const postComment = async (parentId = null) => {
         if ((parentId === null && !newCommentText.trim()) || (parentId !== null && !replyText.trim())) {
@@ -214,99 +287,32 @@ const ProjectDetails = () => {
         }
     };
 
-    const renderComments = (commentsList) => {
-        return commentsList.map((comment) => (
-            <div key={comment.id} className="border rounded p-3 mb-3 bg-gray-50 relative">
-                <div className="flex justify-between items-center mb-1">
-                    <span className="font-semibold text-blue-700">{comment.user}</span>
-                    <div className="flex items-center space-x-2">
-                        <span className="text-xs text-gray-500">{new Date(comment.created_at).toLocaleString()}</span>
-                        <button
-                            onClick={() => openReportModal('comment', comment.id)}
-                            title="Report Comment"
-                            className="text-red-500 hover:text-red-700 focus:outline-none"
-                            aria-label="Report Comment"
-                        >
-                            ⚑
-                        </button>
-                    </div>
-                </div>
-                <p className="mb-2">{comment.text}</p>
-                {comment.reported_by && (
-                    <p className="text-sm text-red-600 mb-1">Reported by: {comment.reported_by}</p>
-                )}
-                <button
-                    className="text-sm text-blue-500 hover:underline mb-2"
-                    onClick={() => setReplyToCommentId(comment.id === replyToCommentId ? null : comment.id)}
-                >
-                    {comment.id === replyToCommentId ? 'Cancel Reply' : 'Reply'}
-                </button>
-                {comment.id === replyToCommentId && (
-                    <div className="mb-2">
-                        <textarea
-                            className="w-full border border-gray-300 rounded p-2 mb-1"
-                            rows="3"
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="Write your reply..."
-                        />
-                        <button
-                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                            onClick={() => postComment(comment.id)}
-                        >
-                            Submit Reply
-                        </button>
-                    </div>
-                )}
-                {comment.replies && comment.replies.length > 0 && (
-                    <div className="ml-6 mt-3 border-l-2 border-gray-300 pl-4">
-                        {renderComments(comment.replies)}
-                    </div>
-                )}
-            </div>
-        ));
-    };
+    // const handleShare = () => {
+    //     setShowShareDropdown(!showShareDropdown);
+    // };
 
-    const handleRatingSubmit = async () => {
-        try {
-            await axios.post(`http://localhost:8000/api/projects/ratings/`, {
-                project: project.id,
-                value: userRating,
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                }
-            });
-            Alert.success('Rating submitted!', 'Thank you for your feedback.');
-            await fetchProjectDetails();
-            setUserRating(0);
-        } catch (err) {
-            Alert.error('Error!', err.response.data.detail);
-        }
-    };
-
-    const handleCancelProject = async () => {
-        const result = await Alert.confirm(
-            'Are you sure?',
-            'Do you really want to cancel this project?',
-            'Yes, cancel it!'
-        );
-
-        if (result.isConfirmed) {
-            try {
-                await axios.post(`http://127.0.0.1:8000/api/projects/projects/${id}/cancel/`, {}, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                    }
-                });
-                Alert.success('Cancelled!', 'Your project has been cancelled.');
-                navigate('/home');
-            } catch (err) {
-                Alert.error('Error!', err.response.data.detail);
-            }
-        }
-    };
-
+    const shareLinks = project ? [
+        {
+            platform: 'Facebook',
+            icon: <FaFacebook size={20} />,
+            url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${window.location.origin}/projects/${id}`)}`,
+        },
+        {
+            platform: 'WhatsApp',
+            icon: <FaWhatsapp size={20} />,
+            url: `https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out this campaign: ${project.title} ${window.location.origin}/projects/${id}`)}`,
+        },
+        {
+            platform: 'Twitter',
+            icon: <FaTwitter size={20} />,
+            url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this campaign: ${project.title}`)}&url=${encodeURIComponent(`${window.location.origin}/projects/${id}`)}`,
+        },
+        {
+            platform: 'LinkedIn',
+            icon: <FaLinkedin size={20} />,
+            url: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(`${window.location.origin}/projects/${id}`)}&title=${encodeURIComponent(project.title)}&summary=${encodeURIComponent(project.details.substring(0, 200))}`,
+        },
+    ] : [];
     // New function to open social media share windows and log share event
     const openShareWindow = async (platform, url) => {
         window.open(url, '_blank', 'width=600,height=400');
@@ -323,293 +329,511 @@ const ProjectDetails = () => {
             console.error('Error logging share event:', err);
         }
     };
-
-    if (loading) return <p className="text-center text-gray-500">Loading...</p>;
-    if (error) return <p className="text-center text-red-500">Error loading project: {error.message}</p>;
-
-    // Construct share URL using project slug
-    const shareUrl = project ? `${window.location.origin}/projects/${project.slug}` : '';
-
-    return (
-        <div className="min-h-screen bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center py-10">
-            <div className="container bg-white shadow-lg rounded-lg p-8 max-w-3xl">
-                <h1 className="text-3xl font-bold mb-4 text-center text-blue-600">{project.title}</h1>
-
-                {project.images && project.images.length > 1 ? (
-                    <div className="mb-4">
-                        <Slider {...sliderSettings}>
-                            {project.images.map((image, index) => (
-                                <div key={image.id}>
-                                    <img
-                                        src={`http://localhost:8000${image.url}`}
-                                        alt={`${project.title} image ${index + 1}`}
-                                        className="w-full h-64 object-cover rounded-md"
-                                    />
-                                </div>
-                            ))}
-                        </Slider>
+    const renderComments = (commentsList) => {
+        return commentsList.map((comment) => (
+            <div key={comment.id} className="border border-[#9ACBD0] rounded-lg p-4 mb-3 bg-[#F2EFE7] relative">
+                <div className="flex justify-between items-center mb-1">
+                    <span className="font-semibold text-[#006A71]">{comment.user}</span>
+                    <div className="flex items-center space-x-2">
+                        <span className="text-xs text-[#1e1e1e]">{new Date(comment.created_at).toLocaleString()}</span>
+                        <button
+                            onClick={() => openReportModal('comment', comment.id)}
+                            title="Report Comment"
+                            className="text-[#006A71] hover:text-[#48A6A7] focus:outline-none"
+                            aria-label="Report Comment"
+                        >
+                            <FaFlag size={14} />
+                        </button>
                     </div>
-                ) : project.images && project.images.length === 1 ? (
-                    <img
-                        src={`http://localhost:8000${project.images[0].url}`}
-                        alt={project.title}
-                        className="w-full h-64 object-cover rounded-md mb-4"
-                    />
-                ) : (
-                    <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500 rounded-md mb-4">
-                        No Images
+                </div>
+                <p className="mb-2 text-[#1e1e1e]">{comment.text}</p>
+                {comment.reported_by && (
+                    <p className="text-sm text-red-600 mb-1">Reported by: {comment.reported_by}</p>
+                )}
+                <button
+                    className="text-sm text-[#006A71] hover:text-[#48A6A7] mb-2 flex items-center"
+                    onClick={() => setReplyToCommentId(comment.id === replyToCommentId ? null : comment.id)}
+                >
+                    <FaComment className="mr-1" size={12} />
+                    {comment.id === replyToCommentId ? 'Cancel Reply' : 'Reply'}
+                </button>
+                {comment.id === replyToCommentId && (
+                    <div className="mb-2">
+                        <textarea
+                            className="w-full border border-[#9ACBD0] rounded-lg p-2 mb-1 focus:ring-2 focus:ring-[#006A71]"
+                            rows="3"
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Write your reply..."
+                        />
+                        <button
+                            className="bg-[#48A6A7] text-white px-3 py-1 rounded-lg hover:bg-[#006A71] transition duration-200"
+                            onClick={() => postComment(comment.id)}
+                        >
+                            Submit Reply
+                        </button>
                     </div>
                 )}
+                {comment.replies && comment.replies.length > 0 && (
+                    <div className="ml-6 mt-3 border-l-2 border-[#9ACBD0] pl-4">
+                        {renderComments(comment.replies)}
+                    </div>
+                )}
+            </div>
+        ));
+    };
 
-                <DescriptionSection details={project.details} />
+    const handleCancelProject = async () => {
+        const result = await Alert.confirm(
+            'Are you sure?',
+            'Do you really want to cancel this Campaign?',
+            'Yes, cancel it!'
+        );
 
-                <p className="text-gray-600 mb-2"><strong>Category:</strong> {project.category.name}</p>
-                <p className="text-gray-600 mb-2"><strong>Total Target:</strong> ${project.total_target}</p>
-                <p className="text-gray-600 mb-2"><strong>Start:</strong> {new Date(project.start_time).toLocaleDateString()} - <strong>End:</strong> {new Date(project.end_time).toLocaleDateString()}</p>
-                <p className="text-gray-600 mb-4"><strong>Average Rating:</strong> {averageRating || 'No ratings yet'}</p>
+        if (result.isConfirmed) {
+            try {
+                await axios.post(`http://127.0.0.1:8000/api/projects/projects/${id}/cancel/`, {}, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                    },
+                });
+                Alert.success('Cancelled!', 'Your Campaign has been cancelled.');
+                navigate('/home');
+            } catch (err) {
+                Alert.error('Error!', err.response?.data?.detail || 'Failed to cancel campaign.');
+            }
+        }
+    };
 
-                {/* Social Media Share Buttons */}
-                <div className="mb-6 flex space-x-4 justify-center">
-                    <button
-                        onClick={() => openShareWindow('facebook', `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
-                        aria-label="Share on Facebook"
-                    >
-                        Facebook
-                    </button>
-                    <button
-                        onClick={() => openShareWindow('twitter', `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(project.title)}`)}
-                        className="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-500 transition duration-200"
-                        aria-label="Share on Twitter"
-                    >
-                        Twitter
-                    </button>
-                    <button
-                        onClick={() => openShareWindow('linkedin', `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`)}
-                        className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition duration-200"
-                        aria-label="Share on LinkedIn"
-                    >
-                        LinkedIn
-                    </button>
-                    <button
-                        onClick={() => openShareWindow('whatsapp', `https://api.whatsapp.com/send?text=${encodeURIComponent(project.title + ' ' + shareUrl)}`)}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200"
-                        aria-label="Share on WhatsApp"
-                    >
-                        WhatsApp
-                    </button>
+    if (loading) return (
+        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
+            <div className="text-[#006A71]">
+                <FaSpinner className="animate-spin text-4xl" />
+            </div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
+            <div className="flex items-center text-red-500">
+                <FaExclamationCircle className="mr-2" />
+                <p>Error loading project: {error.message}</p>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="min-h-screen bg-[#F2EFE7] flex items-center justify-center py-10 px-4">
+            <div className="w-full max-w-5xl bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="w-full bg-[#006A71] p-6 flex flex-col justify-center items-center text-center">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-2">{project.title}</h1>
+                    <p className="text-[#ffffff] text-sm sm:text-base">Created by {project.owner}</p>
                 </div>
 
-                <div className="mb-4">
-                    <label className="block mb-2">Rate this project:</label>
-                    <div className="flex">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <span
-                                key={star}
-                                className={`cursor-pointer text-2xl ${userRating >= star ? 'text-yellow-500' : 'text-gray-400'}`}
-                                onClick={() => setUserRating(star)}
-                            >
-                                ★
+                <div className="p-6 sm:p-8">
+                    {project.images && project.images.length > 1 ? (
+                        <div className="mb-6">
+                            <Slider {...sliderSettings}>
+                                {project.images.map((image, index) => (
+                                    <div key={image.id}>
+                                        <img
+                                            src={`http://localhost:8000${image.url}`}
+                                            alt={`${project.title} image ${index + 1}`}
+                                            className="w-full h-80 object-cover rounded-lg"
+                                        />
+                                    </div>
+                                ))}
+                            </Slider>
+                        </div>
+                    ) : project.images && project.images.length === 1 ? (
+                        <img
+                            src={`http://localhost:8000${project.images[0].url}`}
+                            alt={project.title}
+                            className="w-full h-80 object-cover rounded-lg mb-6"
+                        />
+                    ) : (
+                        <div className="w-full h-64 bg-[#9ACBD0] flex items-center justify-center text-[#1e1e1e] rounded-lg mb-6">
+                            No Images Available
+                        </div>
+                    )}
+
+                    <DescriptionSection details={project.details} />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="bg-[#F2EFE7] p-4 rounded-lg border border-[#9ACBD0]">
+                            <h3 className="text-lg font-semibold text-[#006A71] mb-3">Campaign Details</h3>
+                            <div className="space-y-2">
+                                <p className="text-[#1e1e1e]"><span className="font-medium">Category:</span> {project.category.name}</p>
+                                <p className="text-[#1e1e1e]"><span className="font-medium">Target:</span> ${project.total_target}</p>
+                                <p className="text-[#1e1e1e]"><span className="font-medium">Start Date:</span> {new Date(project.start_time).toLocaleDateString()}</p>
+                                <p className="text-[#1e1e1e]"><span className="font-medium">End Date:</span> {new Date(project.end_time).toLocaleDateString()}</p>
+                                <p className="text-[#1e1e1e]"><span className="font-medium">Status:</span> {project.is_active ? 'Active' : 'Inactive'}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-[#F2EFE7] p-4 rounded-lg border border-[#9ACBD0]">
+                            <h3 className="text-lg font-semibold text-[#006A71] mb-3">Funding Progress</h3>
+                            <div className="mb-4">
+                                <div className="w-full bg-[#9ACBD0] rounded-full h-4">
+                                    <div
+                                        className="bg-[#006A71] h-4 rounded-full"
+                                        style={{ width: `${project.progress_percentage}%` }}
+                                    ></div>
+                                </div>
+                                <p className="text-right mt-1 text-[#1e1e1e]">{project.progress_percentage}% funded</p>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="bg-[#48A6A7] p-2 rounded-lg text-center text-white">
+                                    <p className="text-sm">Raised</p>
+                                    <p className="font-bold">${project.total_donations}</p>
+                                </div>
+                                <div className="bg-[#9ACBD0] p-2 rounded-lg text-center text-[#1e1e1e]">
+                                    <p className="text-sm">Remaining</p>
+                                    <p className="font-bold">${project.remaining_amount}</p>
+                                </div>
+                                <div className="bg-[#006A71] p-2 rounded-lg text-center text-white">
+                                    <p className="text-sm">Target</p>
+                                    <p className="font-bold">${project.total_target}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-6">
+                        {project.tags.map(tag => (
+                            <span key={tag.id} className="bg-[#9ACBD0] text-[#1e1e1e] text-sm font-semibold px-3 py-1 rounded-full">
+                                {tag.name}
                             </span>
                         ))}
                     </div>
-                    <button
-                        onClick={handleRatingSubmit}
-                        className={`mt-2 w-full p-2 rounded ${!userRating ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-                        disabled={!userRating}
-                    >
-                        Submit Rating
-                    </button>
-                </div>
 
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="bg-blue-50 p-4 rounded-lg text-center">
-                        <h3 className="text-xl font-bold text-blue-600">${project.total_donations}</h3>
-                        <p className="text-gray-600">Raised of ${project.total_target}</p>
-                    </div>
-                    <div className="bg-purple-50 p-4 rounded-lg text-center">
-                        <h3 className="text-xl font-bold text-purple-600">${project.remaining_amount}</h3>
-                        <p className="text-gray-600">Remaining</p>
-                    </div>
-                    <div className="bg-pink-50 p-4 rounded-lg text-center">
-                        <h3 className="text-xl font-bold text-pink-600">{project.progress_percentage}%</h3>
-                        <p className="text-gray-600">Funded</p>
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                    <strong className="text-gray-600">Tags:</strong>
-                    {project.tags.map(tag => (
-                        <span key={tag.id} className="bg-blue-100 text-blue-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">
-                            {tag.name}
-                        </span>
-                    ))}
-                </div>
-
-                <div className="mb-6">
-                    <h2 className="text-xl font-bold mb-4 text-gray-800">Similar Projects</h2>
-                    {similarLoading && <p>Loading similar projects...</p>}
-                    {similarError && <p className="text-red-500">{similarError}</p>}
-                    {!similarLoading && similarProjects.length === 0 && <p>No similar projects found.</p>}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {similarProjects.map(similar => {
-                            const imageUrl = similar.images && similar.images.length > 0 ? `http://localhost:8000${similar.images[0].url}` : null;
-                            return (
-                                <Link
-                                    key={similar.id}
-                                    to={`/projects/${similar.id}`}
-                                    className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition duration-200"
-                                >
-                                    {imageUrl ? (
-                                        <img
-                                            src={imageUrl}
-                                            alt={similar.title}
-                                            className="w-full h-40 object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-40 bg-gray-200 flex items-center justify-center text-gray-500">
-                                            No Image
-                                        </div>
-                                    )}
-                                    <div className="p-4">
-                                        <h3 className="text-lg font-semibold text-blue-600">{similar.title}</h3>
-                                        <p className="text-gray-600 text-sm truncate">{similar.details}</p>
-                                    </div>
-                                </Link>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div className="mb-6">
-                    <h2 className="text-xl font-bold mb-4 text-gray-800">Recent Donations</h2>
-                    {project.donations.length > 0 ? (
-                        <div className="space-y-3">
-                            {project.donations.map(donation => (
-                                <div key={donation.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <div className="flex items-center">
-                                        {donation.user['profile_picture'] && (
-                                            <img
-                                                src={donation.user['profile_picture']}
-                                                alt={donation.user}
-                                                className="w-8 h-8 rounded-full mr-3"
-                                            />
-                                        )}
-                                        <span className="text-gray-700">{donation.user}</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="font-bold text-green-600">${donation.amount}</span>
-                                        <p className="text-xs text-gray-500">
-                                            {new Date(donation.date).toLocaleDateString()}
-                                        </p>
-                                    </div>
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-[#006A71]">Rate this Campaign</h2>
+                            <div className="flex items-center space-x-2 bg-[#F2EFE7] px-4 py-2 rounded-full border border-[#9ACBD0]">
+                                <span className="text-[#006A71] font-semibold">Average Rating:</span>
+                                <div className="flex items-center">
+                                    <span className="text-amber-500 text-xl mr-1">★</span>
+                                    <span className="text-[#1e1e1e] font-bold">{averageRating ? averageRating.toFixed(1) : '0.0'}</span>
+                                    {!averageRating && <span className="text-gray-500 text-sm ml-1">(No ratings yet)</span>}
                                 </div>
-                            ))}
+                            </div>
                         </div>
-                    ) : (
-                        <p className="text-gray-500">No donations yet. Be the first to support this project!</p>
-                    )}
-                </div>
-
-                <div className="flex justify-between">
-                    <button
-                        onClick={handleCancelProject}
-                        className="bg-red-500 text-white p-3 rounded-md hover:bg-red-600 transition duration-200"
-                    >
-                        Cancel Project
-                    </button>
-                    <button
-                        onClick={() => navigate(`/projects/${id}/update`)}
-                        className="bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 transition duration-200"
-                    >
-                        Update Project
-                    </button>
-                    <button
-                        onClick={() => navigate(`/projects/${id}/donate`)}
-                        className={`${project.total_donations >= project.total_target ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white p-3 rounded-md transition duration-200`}
-                        disabled={project.total_donations >= project.total_target}
-                    >
-                        {project.total_donations >= project.total_target ? 'Target Reached' : 'Donate'}
-                    </button>
-
-                    <button
-                        onClick={() => openReportModal('project', project.id)}
-                        className="bg-yellow-500 text-white p-3 rounded-md hover:bg-yellow-600 transition duration-200"
-                    >
-                        Report Project
-                    </button>
-                </div>
-
-                <div className="mt-8">
-                    <h2 className="text-2xl font-bold mb-4 text-gray-800">Comments</h2>
-
-                    {commentsLoading && <p>Loading comments...</p>}
-                    {commentsError && <p className="text-red-500">{commentsError}</p>}
-
-                    <div className="mb-4">
-                        <textarea
-                            className="w-full border border-gray-300 rounded p-2 mb-2"
-                            rows="4"
-                            placeholder="Write a comment..."
-                            value={newCommentText}
-                            onChange={(e) => setNewCommentText(e.target.value)}
-                        />
-                        <button
-                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                            onClick={() => postComment(null)}
-                        >
-                            Post Comment
-                        </button>
+                        {ratingLoading ? (
+                            <div className="flex justify-center">
+                                <FaSpinner className="animate-spin text-[#006A71] text-2xl" />
+                            </div>
+                        ) : (
+                            <div className="flex items-center space-x-2 mb-3">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <label
+                                        key={star}
+                                        htmlFor={`rating-star-${star}`}
+                                        className="cursor-pointer"
+                                    >
+                                        <input
+                                            type="radio"
+                                            id={`rating-star-${star}`}
+                                            name="rating"
+                                            value={star}
+                                            className="hidden"
+                                            checked={star === (previousRating || userRating)}
+                                            onChange={() => {
+                                                setUserRating(star);
+                                                if (previousRating !== null) {
+                                                    setPreviousRating(star);
+                                                    handleRatingSubmit(star);
+                                                }
+                                            }}
+                                        />
+                                        <span
+                                            className={`text-3xl ${star <= (previousRating || userRating)
+                                                ? 'text-amber-500'
+                                                : 'text-gray-300'
+                                                } hover:scale-110 transition-transform`}
+                                            aria-label={`Rate ${star} star`}
+                                        >
+                                            ★
+                                        </span>
+                                    </label>
+                                ))}
+                                {(previousRating || userRating) > 0 && (
+                                    <span className="text-[#006A71] text-lg font-semibold">
+                                        {previousRating || userRating}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                        {previousRating === null && !ratingLoading && (
+                            <button
+                                onClick={() => handleRatingSubmit(userRating)}
+                                className={`w-full p-2 rounded-lg ${!userRating ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#48A6A7] hover:bg-[#006A71] text-white'
+                                    } transition duration-200`}
+                                disabled={!userRating}
+                            >
+                                Submit Rating
+                            </button>
+                        )}
                     </div>
 
-                    <div>
-                        {comments.length === 0 && !commentsLoading && <p>No comments yet. Be the first to comment!</p>}
-                        {renderComments(comments)}
+                    <div className="mb-8">
+                        <h2 className="text-xl font-bold text-[#006A71] mb-4">Recent Donations</h2>
+                        {project.donations.length > 0 ? (
+                            <div className="space-y-3">
+                                {project.donations.slice(0, 5).map(donation => (
+                                    <div key={donation.id} className="flex items-center justify-between p-3 bg-[#F2EFE7] rounded-lg border border-[#9ACBD0]">
+                                        <div className="flex items-center">
+                                            {donation.user_avatar && (
+                                                <img
+                                                    src={donation.user_avatar}
+                                                    alt={donation.user}
+                                                    className="w-10 h-10 rounded-full mr-3 object-cover"
+                                                />
+                                            )}
+                                            <div>
+                                                <p className="font-medium text-[#1e1e1e]">{donation.user}</p>
+                                                <p className="text-xs text-[#1e1e1e]">
+                                                    {new Date(donation.date).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className="font-bold text-[#006A71]">${donation.amount}</span>
+                                    </div>
+                                ))}
+                                {project.donations.length > 5 && (
+                                    <button
+                                        className="text-[#006A71] hover:text-[#48A6A7] text-sm"
+                                        onClick={() => navigate(`/projects/${id}/donations`)}
+                                    >
+                                        View all {project.donations.length} donations →
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="text-center py-4 bg-[#F2EFE7] rounded-lg border border-[#9ACBD0]">
+                                <p className="text-[#1e1e1e]">No donations yet. Be the first to support this Campaign!</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-4 mb-8 relative">
+                        <button
+                            onClick={() => navigate(`/projects/${id}/donate`)}
+                            className={`flex items-center px-6 py-3 rounded-lg ${project.total_donations >= project.total_target
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-[#48A6A7] hover:bg-[#006A71] text-white'
+                                } transition duration-200`}
+                            disabled={project.total_donations >= project.total_target}
+                        >
+                            <FaDonate className="mr-2" />
+                            {project.total_donations >= project.total_target ? 'Target Reached' : 'Donate Now'}
+                        </button>
+
+                        <button
+                            onClick={() => navigate(`/projects/${id}/update`)}
+                            className="flex items-center px-6 py-3 rounded-lg bg-[#9ACBD0] hover:bg-[#48A6A7] text-[#1e1e1e] transition duration-200"
+                        >
+                            <FaEdit className="mr-2" />
+                            Update Campaign
+                        </button>
+
+                        <button
+                            onClick={handleCancelProject}
+                            className="flex items-center px-6 py-3 rounded-lg bg-red-500 hover:bg-red-600 text-white transition duration-200"
+                        >
+                            <FaTimes className="mr-2" />
+                            Cancel Campaign
+                        </button>
+
+                        <button
+                            onClick={() => openReportModal('project', project.id)}
+                            className="flex items-center px-6 py-3 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition duration-200"
+                        >
+                            <FaFlag className="mr-2" />
+                            Report Campaign
+                        </button>
+
+                        <div ref={shareButtonRef} className="relative">
+                            <button
+                                onClick={handleShare}
+                                className="flex items-center px-6 py-3 rounded-lg bg-[#006A71] hover:bg-[#48A6A7] text-white transition duration-200"
+                            >
+                                <FaShareAlt className="mr-2" />
+                                Share
+                            </button>
+                            <AnimatePresence>
+                                {showShareDropdown && (
+                                    <motion.div
+                                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[#9ACBD0] z-50"
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <div className="py-2">
+                                            {shareLinks.map(({ platform, icon, url }) => (
+                                                <button
+                                                    key={platform}
+                                                    onClick={() => {
+                                                        openShareWindow(platform, url);
+                                                        setShowShareDropdown(false);
+                                                    }}
+                                                    className="flex w-full text-left items-center px-4 py-2 text-[#006A71] hover:bg-[#F2EFE7] transition duration-200"
+                                                    aria-label={`Share on ${platform}`}
+                                                >
+                                                    <span className="mr-2">{icon}</span>
+                                                    {platform}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                    </div>
+
+
+
+                    <div className="border-t border-[#9ACBD0] pt-6">
+                        <h2 className="text-xl font-bold text-[#006A71] mb-4 flex items-center">
+                            <FaComment className="mr-2" />
+                            Comments ({comments.length})
+                        </h2>
+
+                        {commentsLoading && (
+                            <div className="flex justify-center">
+                                <FaSpinner className="animate-spin text-[#006A71] text-2xl" />
+                            </div>
+                        )}
+                        {commentsError && <p className="text-red-500">{commentsError}</p>}
+
+                        <div className="mb-6">
+                            <textarea
+                                className="w-full border border-[#9ACBD0] rounded-lg p-3 focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e]"
+                                rows="4"
+                                placeholder="Share your thoughts about this Campaign..."
+                                value={newCommentText}
+                                onChange={(e) => setNewCommentText(e.target.value)}
+                            />
+                            <div className="flex justify-end mt-2">
+                                <button
+                                    className="bg-[#48A6A7] text-white px-4 py-2 rounded-lg hover:bg-[#006A71] transition duration-200"
+                                    onClick={() => postComment(null)}
+                                >
+                                    Post Comment
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            {comments.length === 0 && !commentsLoading && (
+                                <div className="text-center py-6 bg-[#F2EFE7] rounded-lg border border-[#9ACBD0]">
+                                    <p className="text-[#1e1e1e]">No comments yet. Be the first to comment!</p>
+                                </div>
+                            )}
+                            {renderComments(comments)}
+                        </div>
                     </div>
                 </div>
 
                 {showReportModal && (
-                    <div className="fixed inset-0 bg-gray-800 bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50">
-                        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md border border-gray-300">
-                            <h2 className="text-xl font-bold mb-4 text-red-600">Report</h2>
+                    <div className="fixed inset-0 bg-gray-800 bg-opacity-40 backdrop-blur-md flex justify-center items-center z-50">
+                        <motion.div
+                            className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md border border-[#9ACBD0]"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <h2 className="text-xl font-bold mb-4 text-[#006A71] flex items-center">
+                                <FaFlag className="mr-2" />
+                                Report {reportType === 'project' ? 'Campaign' : 'Comment'}
+                            </h2>
 
-                            <p className="mb-2 font-semibold">Reporting: {reportType === 'project' ? 'Project' : 'Comment'}</p>
-                            <p className="mb-2 text-sm text-gray-700">
-                                This report will be sent to the {reportType === 'project' ? 'project creator' : 'admin'} for review.
+                            <p className="mb-4 text-[#1e1e1e]">
+                                Please explain why you're reporting this {reportType}. Your report will be reviewed by our team.
                             </p>
-                            <p className="mb-4 text-sm text-gray-600">Reported by: You</p>
 
                             <textarea
-                                className="w-full h-32 border border-gray-300 rounded p-2 mb-4 resize-none focus:outline-blue-500"
+                                className="w-full h-32 border border-[#9ACBD0] rounded-lg p-3 mb-4 focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e]"
                                 placeholder="Enter your reason for reporting..."
                                 value={reportReason}
                                 onChange={(e) => setReportReason(e.target.value)}
                             ></textarea>
 
-                            <div className="flex justify-end space-x-2">
+                            <div className="flex justify-end space-x-3">
                                 <button
-                                    className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded"
-                                    onClick={() => {
-                                        setShowReportModal(false);
-                                        setReportReason('');
-                                        setReportType('project');
-                                        setReportTargetId(null);
-                                    }}
+                                    className="px-4 py-2 rounded-lg border border-[#9ACBD0] text-[#1e1e1e] hover:bg-[#F2EFE7] transition duration-200"
+                                    onClick={() => setShowReportModal(false)}
                                 >
                                     Cancel
                                 </button>
-
                                 <button
-                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                                    className={`px-4 py-2 rounded-lg text-white ${!reportReason.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'
+                                        } transition duration-200`}
                                     onClick={submitReport}
                                     disabled={!reportReason.trim()}
                                 >
                                     Submit Report
                                 </button>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 )}
+
+                <div className="p-6 sm:p-8">
+                    <div className="mb-8">
+                        <h2 className="text-xl font-bold text-[#006A71] mb-4">Similar Campaigns</h2>
+                        {similarLoading && (
+                            <div className="flex justify-center">
+                                <FaSpinner className="animate-spin text-[#006A71] text-2xl" />
+                            </div>
+                        )}
+                        {similarError && <p className="text-red-500">{similarError}</p>}
+                        {!similarLoading && similarProjects.length === 0 && (
+                            <p className="text-[#1e1e1e]">No similar Campaigns found.</p>
+                        )}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {similarProjects.map(similar => {
+                                const imageUrl = similar.images && similar.images.length > 0
+                                    ? `http://localhost:8000${similar.images[0].url}`
+                                    : null;
+                                return (
+                                    <Link
+                                        key={similar.id}
+                                        to={`/projects/${similar.id}`}
+                                        className="border border-[#9ACBD0] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition duration-200"
+                                    >
+                                        {imageUrl ? (
+                                            <img
+                                                src={imageUrl}
+                                                alt={similar.title}
+                                                className="w-full h-40 object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-40 bg-[#9ACBD0] flex items-center justify-center text-[#1e1e1e]">
+                                                No Image
+                                            </div>
+                                        )}
+                                        <div className="p-4">
+                                            <h3 className="text-lg font-semibold text-[#006A71] mb-1">{similar.title}</h3>
+                                            <p className="text-sm text-[#1e1e1e] line-clamp-2">{similar.details}</p>
+                                            <div className="mt-2 flex justify-between items-center">
+                                                <span className="text-xs text-[#1e1e1e]">
+                                                    {similar.progress_percentage}% funded
+                                                </span>
+                                                <span className="text-xs font-medium text-[#006A71]">
+                                                    ${similar.total_donations} raised
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

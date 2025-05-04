@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { FaCheckCircle, FaExclamationCircle, FaSpinner, FaCamera } from 'react-icons/fa';
 import Alert from '../../alert/Alert';
 
 const ProjectUpdate = () => {
@@ -20,7 +21,6 @@ const ProjectUpdate = () => {
         total_target: '',
         start_time: '',
         end_time: '',
-        is_active: true
     });
 
     const [existingImages, setExistingImages] = useState([]);
@@ -50,7 +50,6 @@ const ProjectUpdate = () => {
                 total_target: project.total_target,
                 start_time: formatDateForInput(project.start_time),
                 end_time: formatDateForInput(project.end_time),
-                is_active: project.is_active
             });
 
             setExistingImages(project.images || []);
@@ -135,7 +134,7 @@ const ProjectUpdate = () => {
 
         selectedTags.forEach(tag => data.append('tags_ids', tag));
 
-        newImages.forEach((image, index) => {
+        newImages.forEach((image) => {
             data.append('images_files', image);
         });
 
@@ -149,7 +148,6 @@ const ProjectUpdate = () => {
             newImagePreviews.forEach(url => URL.revokeObjectURL(url));
             setNewImages([]);
             setNewImagePreviews([]);
-            // Refetch project details to update existingImages
             await fetchProjectDetails();
             Alert.success('Updated!', 'Project updated successfully');
             navigate(`/projects/${id}`);
@@ -160,221 +158,268 @@ const ProjectUpdate = () => {
         }
     };
 
-    if (loading) return <p className="text-center text-gray-500">Loading...</p>;
-    if (error) return <p className="text-center text-red-500">Error: {error.message}</p>;
+    if (loading) return (
+        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
+            <div className="text-[#006A71]">
+                <FaSpinner className="animate-spin text-4xl" />
+            </div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
+            <div className="flex items-center text-red-500">
+                <FaExclamationCircle className="mr-2" />
+                <p>Error: {error.message}</p>
+            </div>
+        </div>
+    );
 
     return (
-        <div className="bg-gray-100 min-h-screen py-10">
-            <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md">
-                <h1 className="text-2xl font-bold text-center text-blue-600 mb-6">Update Project</h1>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        placeholder="Title"
-                        className="w-full p-3 border rounded"
-                        required
-                    />
+        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7] p-4">
+            <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="w-full bg-[#006A71] p-6 flex flex-col justify-center items-center text-center">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-2">Update Project</h1>
+                    <p className="text-[#ffffff] text-sm sm:text-base">Edit your project details</p>
+                </div>
 
-                    <textarea
-                        name="details"
-                        value={formData.details}
-                        onChange={handleChange}
-                        placeholder="Details"
-                        rows="4"
-                        className="w-full p-3 border rounded"
-                        required
-                    />
-
-                    <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        className="w-full p-3 border rounded"
-                        required
-                    >
-                        <option value="">Select a category</option>
-                        {categories.map(category => (
-                            <option key={category.id} value={category.id}>{category.name}</option>
-                        ))}
-                    </select>
-
-                    <input
-                        type="number"
-                        name="total_target"
-                        value={formData.total_target}
-                        onChange={handleChange}
-                        placeholder="Total Target"
-                        className="w-full p-3 border rounded"
-                    />
-
-                    <input
-                        type="datetime-local"
-                        name="start_time"
-                        value={formData.start_time}
-                        onChange={handleChange}
-                        className="w-full p-3 border rounded"
-                    />
-
-                    <input
-                        type="datetime-local"
-                        name="end_time"
-                        value={formData.end_time}
-                        onChange={handleChange}
-                        className="w-full p-3 border rounded"
-                    />
-
-                    <div>
-                        <label className="block mb-2 font-medium">Existing Images</label>
-                        {existingImages.length > 0 ? (
-                            <div className="grid grid-cols-3 gap-4 mb-4">
-                                {existingImages.map((image, index) => (
-                                    <div key={image.id} className="relative">
-                                        <img
-                                            src={`http://localhost:8000${image.url}`}
-                                            alt={`Existing project image ${index + 1}`}
-                                            className="w-full h-32 object-cover rounded"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteExistingImage(image.id, index)}
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                                            aria-label="Delete image"
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-gray-500">No existing images.</p>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block mb-2 font-medium">Upload New Images</label>
-                        <input
-                            type="file"
-                            name="images"
-                            accept="image/*"
-                            multiple
-                            onChange={handleImageChange}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                        />
-                        {newImagePreviews.length > 0 && (
-                            <div className="grid grid-cols-3 gap-4 mt-4">
-                                {newImagePreviews.map((preview, index) => (
-                                    <div key={index} className="relative">
-                                        <img
-                                            src={preview}
-                                            alt={`New project image ${index + 1}`}
-                                            className="w-full h-32 object-cover rounded"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveNewImage(index)}
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                                            aria-label="Remove new image"
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-gray-700 font-semibold mb-2">Tags</label>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                            {selectedTags.map(tagName => (
-                                <span key={tagName} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
-                                    {tagName}
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTagRemove(tagName)}
-                                        className="ml-2 text-blue-600 hover:text-blue-800"
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            ))}
-                        </div>
-                        <div className="flex space-x-2">
+                <div className="p-6 sm:p-8">
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="relative">
                             <input
                                 type="text"
-                                value={newTagInput}
-                                onChange={(e) => setNewTagInput(e.target.value)}
-                                placeholder="Add new tag"
-                                className="w-full p-3 border border-gray-300 rounded-md"
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && newTagInput.trim()) {
-                                        e.preventDefault();
-                                        if (!selectedTags.includes(newTagInput.trim())) {
-                                            setSelectedTags([...selectedTags, newTagInput.trim()]);
-                                        }
-                                        setNewTagInput('');
-                                    }
-                                }}
+                                name="title"
+                                value={formData.title}
+                                onChange={handleChange}
+                                placeholder="Project Title"
+                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                required
+                                aria-label="Project Title"
                             />
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (newTagInput.trim() && !selectedTags.includes(newTagInput.trim())) {
-                                        setSelectedTags([...selectedTags, newTagInput.trim()]);
-                                        setNewTagInput('');
-                                    }
-                                }}
-                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                            >
-                                Add
-                            </button>
                         </div>
-                        <div className="mt-2">
-                            <label className="block text-gray-700 font-semibold mb-2">Select Existing Tags</label>
+
+                        <div className="relative">
+                            <textarea
+                                name="details"
+                                value={formData.details}
+                                onChange={handleChange}
+                                placeholder="Project Details"
+                                rows="4"
+                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                required
+                                aria-label="Project Details"
+                            />
+                        </div>
+
+                        <div className="relative">
                             <select
-                                value=""
-                                onChange={(e) => {
-                                    if (e.target.value && !selectedTags.includes(e.target.value)) {
-                                        setSelectedTags([...selectedTags, e.target.value]);
-                                    }
-                                    e.target.value = "";
-                                }}
-                                className="w-full p-3 border border-gray-300 rounded-md"
+                                name="category"
+                                value={formData.category}
+                                onChange={handleChange}
+                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                required
+                                aria-label="Project Category"
                             >
-                                <option value="">Add existing tag...</option>
-                                {tags.filter(tag => !selectedTags.includes(tag.name)).map(tag => (
-                                    <option key={tag.id} value={tag.name}>{tag.name}</option>
+                                <option value="">Select a category</option>
+                                {categories.map(category => (
+                                    <option key={category.id} value={category.id}>{category.name}</option>
                                 ))}
                             </select>
                         </div>
-                    </div>
 
-                    <label className="flex items-center space-x-2">
-                        <input
-                            type="checkbox"
-                            name="is_active"
-                            checked={formData.is_active}
-                            onChange={handleChange}
-                            className="h-4 w-4"
-                        />
-                        <span className="text-gray-700">Active</span>
-                    </label>
+                        <div className="relative">
+                            <input
+                                type="number"
+                                name="total_target"
+                                value={formData.total_target}
+                                onChange={handleChange}
+                                placeholder="Total Target"
+                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                required
+                                aria-label="Total Target"
+                            />
+                        </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition"
-                    >
-                        {loading ? 'Updating...' : 'Update Project'}
-                    </button>
-                </form>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="relative">
+                                <input
+                                    type="datetime-local"
+                                    name="start_time"
+                                    value={formData.start_time}
+                                    onChange={handleChange}
+                                    className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                    required
+                                    aria-label="Start Time"
+                                />
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type="datetime-local"
+                                    name="end_time"
+                                    value={formData.end_time}
+                                    onChange={handleChange}
+                                    className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                    required
+                                    aria-label="End Time"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block mb-2 text-[#1e1e1e] text-sm sm:text-base">Existing Images</label>
+                            {existingImages.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                                    {existingImages.map((image, index) => (
+                                        <div key={image.id} className="relative">
+                                            <img
+                                                src={`http://localhost:8000${image.url}`}
+                                                alt={`Existing project image ${index + 1}`}
+                                                className="w-full h-32 object-cover rounded-lg border border-[#9ACBD0]"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteExistingImage(image.id, index)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 text-xs"
+                                                aria-label="Delete image"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-[#1e1e1e]">No existing images.</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block mb-2 text-[#1e1e1e] text-sm sm:text-base">Upload New Images</label>
+                            <div className="flex items-center justify-center w-full">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <FaCamera className="text-[#48A6A7] w-8 h-8 mb-2" />
+                                        <p className="text-sm text-[#1e1e1e]">Click to upload images</p>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        onChange={handleImageChange}
+                                        accept="image/*"
+                                        multiple
+                                        aria-label="Project Images"
+                                    />
+                                </label>
+                            </div>
+                            {newImagePreviews.length > 0 && (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                                    {newImagePreviews.map((preview, index) => (
+                                        <div key={index} className="relative">
+                                            <img
+                                                src={preview}
+                                                alt={`New project image ${index + 1}`}
+                                                className="w-full h-32 object-cover rounded-lg border border-[#9ACBD0]"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveNewImage(index)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 text-xs"
+                                                aria-label="Remove new image"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-[#1e1e1e] mb-2 text-sm sm:text-base">Tags</label>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {selectedTags.map(tagName => (
+                                    <span
+                                        key={tagName}
+                                        className="bg-[#9ACBD0] text-[#1e1e1e] px-3 py-1 rounded-full text-sm flex items-center"
+                                    >
+                                        {tagName}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleTagRemove(tagName)}
+                                            className="ml-2 text-[#006A71] hover:text-[#1e1e1e]"
+                                            aria-label={`Remove ${tagName} tag`}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={newTagInput}
+                                    onChange={(e) => setNewTagInput(e.target.value)}
+                                    placeholder="Add new tag"
+                                    className="flex-1 p-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71]"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && newTagInput.trim()) {
+                                            e.preventDefault();
+                                            if (!selectedTags.includes(newTagInput.trim())) {
+                                                setSelectedTags([...selectedTags, newTagInput.trim()]);
+                                            }
+                                            setNewTagInput('');
+                                        }
+                                    }}
+                                    aria-label="Add new tag"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (newTagInput.trim() && !selectedTags.includes(newTagInput.trim())) {
+                                            setSelectedTags([...selectedTags, newTagInput.trim()]);
+                                            setNewTagInput('');
+                                        }
+                                    }}
+                                    className="bg-[#48A6A7] text-white px-4 py-2 rounded-lg hover:bg-[#006A71] transition duration-300"
+                                    aria-label="Add tag"
+                                >
+                                    Add
+                                </button>
+                            </div>
+                            <div className="mt-2">
+                                <select
+                                    value=""
+                                    onChange={(e) => {
+                                        if (e.target.value && !selectedTags.includes(e.target.value)) {
+                                            setSelectedTags([...selectedTags, e.target.value]);
+                                        }
+                                        e.target.value = "";
+                                    }}
+                                    className="w-full p-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71]"
+                                    aria-label="Select existing tags"
+                                >
+                                    <option value="">Add existing tag...</option>
+                                    {tags.filter(tag => !selectedTags.includes(tag.name)).map(tag => (
+                                        <option key={tag.id} value={tag.name}>{tag.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base flex items-center justify-center"
+                            aria-label="Update Project"
+                        >
+                            {loading ? <FaSpinner className="animate-spin mr-2" /> : 'Update Project'}
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );
 };
 
-                          
 export default ProjectUpdate;

@@ -79,15 +79,6 @@ export const authAPI = {
     }
   },
 
-  facebookRegister: async (data) => {
-    try {
-      const response = await api.post('/register/facebook/', data);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { error: 'Facebook registration failed' };
-    }
-  },
-
   activate: async (uidb64, token) => {
     try {
       const response = await api.get(`/activate/${uidb64}/${token}/`);
@@ -132,11 +123,7 @@ export const authAPI = {
       const response = await api.post('/login/facebook/', data);
       localStorage.setItem('accessToken', response.data.access);
       localStorage.setItem('refreshToken', response.data.refresh);
-      return {
-        access: response.data.access,
-        refresh: response.data.refresh,
-        profile_picture: response.data.profile_picture || null,
-      };
+      return response.data;
     } catch (error) {
       throw error.response?.data || { error: 'Facebook login failed' };
     }

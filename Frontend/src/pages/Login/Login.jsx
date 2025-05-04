@@ -3,11 +3,9 @@ import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 import { authAPI } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
-import styles from './Login.module.css';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useEffect } from 'react';
-import { FcGoogle } from 'react-icons/fc';
-import { FaFacebookF } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaFacebookF } from 'react-icons/fa';
 
 const checkEmailExists = async (email) => {
   try {
@@ -75,77 +73,59 @@ const Login = () => {
   }, []);
 
   return (
-    <div className={styles.authContainer}>
-      <div className={styles.authForm}>
-        <h2 className={styles.authTitle}>Login</h2>
-        <Formik
-          initialValues={{ email: '', password: '' }}
-          validationSchema={LoginSchema}
-          onSubmit={async (values, { setSubmitting }) => {
-            try {
-              const emailExists = await checkEmailExists(values.email);
-              if (!emailExists) {
-                toast.error("Account does not exist. Please register first.");
-                return;
-              }
+    <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7] p-4">
+      <div className="flex flex-col md:flex-row w-full max-w-4xl rounded-lg shadow-lg overflow-hidden">
+        {/* Left Side (Login Form) */}
+        <div className="w-full md:w-1/2 bg-white p-6 sm:p-8">
+          <h2 className="text-xl sm:text-4xl font-bold text-[#006A71] mb-6 text-center">Login to Athr</h2>
 
-              await authAPI.login(values);
-              toast.success('Login successful!');
-              navigate('/home');
-            } catch (error) {
-              toast.error(error.error || 'Login failed');
-            } finally {
-              setSubmitting(false);
-            }
-          }}
-        >
-          {({ isSubmitting }) => (
-            <Form>
-              <div className={styles.formGroup}>
-                <Field
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="email"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <Field
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  className={styles.formInput}
-                />
-                <ErrorMessage
-                  name="password"
-                  component="div"
-                  className={styles.errorMessage}
-                />
-                <div className={styles.forgotPassword}>
-                  <a href="/forgot-password" className={styles.authLink}>
-                    Forgot Password?
-                  </a>
-                </div>
-              </div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={styles.submitButton}
-              >
-                {isSubmitting ? 'Logging in...' : 'Continue with email'}
-              </button>
-            </Form>
-          )}
-        </Formik>
+          {/* Social Login Buttons */}
+          <div className="flex flex-col items-center gap-4 mb-6">
+          <button
+              type="button"
+              onClick={() => {
+                window.FB.login(
+                  response => {
+                    if (response.authResponse) {
+                      const accessToken = response.authResponse.accessToken;
 
-        <div className={styles.socialLogin}>
-          <div className={styles.divider}>Other sign in options</div>
-          <div className={styles.socialButtonsContainer}>
+                      window.FB.api('/me', { fields: ['email','picture'] }, async userInfo => {
+                        const email = userInfo.email;
+
+                        if (!email) {
+                          toast.error('Email not found in Facebook profile');
+                          return;
+                        }
+
+                        try {
+                          const emailExists = await checkEmailExists(email);
+                          if (!emailExists) {
+                            toast.error('Account does not exist. Please register first.');
+                            return;
+                          }
+
+                          await authAPI.facebookLogin({ access_token: accessToken });
+                          toast.success('Facebook login successful!');
+                          navigate('/home');
+                        } catch (error) {
+                          console.error('Facebook login error:', error);
+                          toast.error(error?.error || 'Facebook login failed');
+                        }
+                      });
+                    } else {
+                      toast.error('Facebook login cancelled');
+                    }
+                  },
+                  { scope: 'public_profile,email' }
+                );
+              }}
+              className="p-1 max-w-xs h-10 border border-[#48A6A7] rounded-lg hover:bg-[#48A6A7] hover:text-white transition duration-300 text-[#006A71] font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
+            >
+              <FaFacebookF className="w-5 h-5 text-[#006A71] hover:text-white" />
+              Continue with Facebook
+            </button>
+
+
             <GoogleOAuthProvider clientId="75773251008-89sei1vuligu58shbmup4f5ttqq097o5.apps.googleusercontent.com">
               <GoogleLogin
                 onSuccess={async (credentialResponse) => {
@@ -189,61 +169,111 @@ const Login = () => {
                 render={(renderProps) => (
                   <button
                     type="button"
-                    className={`${styles.socialButton} ${styles.googleButton}`}
+                    className=" p-2 max-w-xs h-10 border border-[#48A6A7] rounded-lg hover:bg-[#48A6A7] hover:text-white transition duration-300 text-[#006A71] font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
                     onClick={renderProps.onClick}
                     disabled={renderProps.disabled}
                   >
-                    <FcGoogle className={styles.googleIcon} /> 
+                    <svg
+                      className="w-5 h-5 text-[#006A71] hover:text-white"
+                      viewBox="0 0 24 24"
+                    >
+                      <text
+                        x="50%"
+                        y="65%"
+                        dominantBaseline="middle"
+                        textAnchor="middle"
+                        fill="currentColor"
+                        fontSize="16"
+                        fontWeight="bold"
+                        fontFamily="Arial, sans-serif"
+                      >
+                        G
+                      </text>
+                    </svg>
+                    Continue with Google
                   </button>
                 )}
               />
             </GoogleOAuthProvider>
-            <button
-              type="button"
-            onClick={() => {
-              window.FB.login(response => {
-                if (response.authResponse) {
-                  const accessToken = response.authResponse.accessToken;
-                  window.FB.api('/me', { fields: 'email' }, async userInfo => {
-                    const email = userInfo.email;
-
-                    if (!email) {
-                      toast.error('Email not found in Facebook profile');
-                      return;
-                    }
-
-                    const emailExists = await checkEmailExists(email);
-                    if (!emailExists) {
-                      toast.error("Account does not exist. Please register first.");
-                      return;
-                    }
-
-                    try {
-                      await authAPI.facebookLogin({ access_token: accessToken });
-                      toast.success('Facebook login successful!');
-                      navigate('/home');
-                    } catch (error) {
-                      toast.error(error.error || 'Facebook login failed');
-                    }
-                  });
-                } else {
-                  toast.error('Facebook login cancelled');
-                }
-              }, { scope: 'public_profile,email' });
-            }}
-              className={`${styles.socialButton} ${styles.facebookButton}`}
-            >
-              <FaFacebookF className={styles.facebookIcon} /> Sign in with Facebook
-            </button>
           </div>
+
+          <p className="text-center text-[#1e1e1e] mb-6 text-sm sm:text-base">or use your email account:</p>
+
+          {/* Login Form */}
+          <Formik
+            initialValues={{ email: '', password: '' }}
+            validationSchema={LoginSchema}
+            onSubmit={async (values, { setSubmitting }) => {
+              try {
+                const emailExists = await checkEmailExists(values.email);
+                if (!emailExists) {
+                  toast.error("Account does not exist. Please register first.");
+                  return;
+                }
+
+                await authAPI.login(values);
+                toast.success('Login successful!');
+                navigate('/home');
+              } catch (error) {
+                toast.error(error.error || 'Login failed');
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+          >
+            {({ isSubmitting }) => (
+              <Form className="space-y-4">
+                <div className="relative">
+                  <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <Field
+                    type="email"
+                    name="email"
+                    placeholder="Email Address"
+                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                  />
+                  <ErrorMessage name="email" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <div className="relative">
+                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <Field
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                  />
+                  <ErrorMessage name="password" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
+                </div>
+
+                <div className="text-right">
+                  <a href="/forgot-password" className="text-[#006A71] text-xs sm:text-sm hover:underline">
+                    Forgot your password?
+                  </a>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base"
+                >
+                  {isSubmitting ? 'Logging in...' : 'Login'}
+                </button>
+              </Form>
+            )}
+          </Formik>
         </div>
 
-        <p className={styles.authFooter}>
-          Don't have an account?{' '}
-          <a href="/register" className={styles.authLink}>
-            Register
-          </a>
-        </p>
+        {/* Right Side (Sign Up Prompt) */}
+        <div className="w-full md:w-1/2 bg-[#006A71] p-6 sm:p-8 flex flex-col justify-center items-center text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-4">New here?</h2>
+          <p className="text-[#ffffff] mb-6 text-sm sm:text-base">We'll get you signed up in no time.</p>
+          <button
+            onClick={() => navigate('/register')}
+            className="border-2 border-[#ffffff] text-[#ffffff] hover:bg-[#48A6A7] hover:border-[#48A6A7] font-semibold py-2 px-4 sm:px-6 rounded-lg transition duration-300 text-sm sm:text-base"
+          >
+            Sign up
+          </button>
+        </div>
       </div>
     </div>
   );
