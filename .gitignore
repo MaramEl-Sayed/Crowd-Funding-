@@ -1,0 +1,32 @@
+# Logs
+logs
+*.log
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.pyc
+__pycache__/
+
+
+# ignore .env files
+# Environment variables
+.env
+.env.*
+
+# Django settings and compiled files
+crowdfunding_backend/__pycache__/
+crowdfunding_backend/crowdfunding_backend/__pycache__/
+crowdfunding_backend/crowdfunding_backend/settings.pyc
+crowdfunding_backend/crowdfunding_backend/settings.py
+
+# Backend .env file
+Crowd-Funding-/crowdfunding_backend/.env
+
+.venv/
