@@ -160,13 +160,13 @@ const Categories = () => {
                 className={`bg-white rounded-lg p-4 flex flex-col items-center justify-center h-32 transition-opacity duration-500 ${showCategories ? 'opacity-100' : 'opacity-0'
                   }`}
               >
-                <div className="mb-2">
+                <div className="mb-2 inline-flex w-10 h-10">
                   <img
                     src={`${BASE_URL}${category.image}`}
                     alt={category.name}
-                    className="w-12 h-12 object-cover"
+                    className="w-full h-full object-cover rounded"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/48';
+                      e.target.src = 'https://via.placeholder.com/40';
                     }}
                   />
                 </div>
