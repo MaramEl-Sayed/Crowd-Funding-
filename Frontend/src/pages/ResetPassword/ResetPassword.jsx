@@ -19,7 +19,7 @@ const ResetPassword = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7] p-4">
+    <div className="flex items-center justify-center min-h-screen bg-[#eff6ff] p-4">
       <div className="w-full max-w-md rounded-lg shadow-lg bg-white p-6 sm:p-8">
         <h2 className="text-xl sm:text-2xl font-bold text-[#006A71] mb-6 text-center">Set New Password</h2>
 

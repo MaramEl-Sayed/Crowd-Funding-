@@ -9,7 +9,7 @@ const AuthPopup = ({ onConfirm, onCancel }) => {
     };
 
     return (
-        <div className="fixed inset-0  bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -38,7 +38,7 @@ const AuthPopup = ({ onConfirm, onCancel }) => {
                         onClick={onConfirm}
                         className="px-4 py-2 rounded-lg bg-[#006A71] hover:bg-[#04828c] text-white transition duration-200 flex items-center"
                     >
-                        Register Now <FaArrowRight className="ml-2" />
+                        Register Now <FaArrowRight className="ml-2 relative top-[3px]" />
                     </button>
                 </div>
             </motion.div>

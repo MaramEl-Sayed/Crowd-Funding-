@@ -203,9 +203,9 @@ const CreateCampaign = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7] p-4">
+        <div className="flex items-center justify-center min-h-screen bg-[#eff6ff] p-4">
             <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="w-full bg-[#006A71] p-6 flex flex-col justify-center items-center text-center">
+                <div className="w-full bg-[#2563eb] p-6 flex flex-col justify-center items-center text-center">
                     <h1 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-2">Create New Campaign</h1>
                     <p className="text-[#ffffff] text-sm sm:text-base">Bring your creative ideas to life</p>
                 </div>
@@ -232,7 +232,7 @@ const CreateCampaign = () => {
                                 value={formData.title}
                                 onChange={handleChange}
                                 placeholder="Campaign Title"
-                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                 required
                                 aria-label="Campaign Title"
                             />
@@ -245,7 +245,7 @@ const CreateCampaign = () => {
                                 onChange={handleChange}
                                 placeholder="Campaign Details"
                                 rows="4"
-                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                 required
                                 aria-label="Campaign Details"
                             />
@@ -256,7 +256,7 @@ const CreateCampaign = () => {
                                 name="category_id"
                                 value={formData.category_id}
                                 onChange={handleChange}
-                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                 required
                                 aria-label="Campaign Category"
                             >
@@ -276,7 +276,7 @@ const CreateCampaign = () => {
                                 value={formData.total_target}
                                 onChange={handleChange}
                                 placeholder="Total Target"
-                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                 required
                                 aria-label="Total Target"
                             />
@@ -289,7 +289,7 @@ const CreateCampaign = () => {
                                     name="start_time"
                                     value={formData.start_time}
                                     onChange={handleChange}
-                                    className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                    className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                     required
                                     aria-label="Start Time"
                                 />
@@ -300,27 +300,26 @@ const CreateCampaign = () => {
                                     name="end_time"
                                     value={formData.end_time}
                                     onChange={handleChange}
-                                    className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                    className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                     required
                                     aria-label="End Time"
                                 />
                             </div>
                         </div>
-
                         {/* Tags Section */}
                         <div className="mb-4">
-                            <label className="block text-[#1e1e1e] mb-2 text-sm sm:text-base">Tags</label>
+                            <label className="block text-text-dark mb-2 text-sm sm:text-base">Tags</label>
                             <div className="flex flex-wrap gap-2 mb-2">
                                 {selectedTags.map(tagName => (
                                     <span
                                         key={tagName}
-                                        className="bg-[#9ACBD0] text-[#1e1e1e] px-3 py-1 rounded-full text-sm flex items-center"
+                                        className="bg-accent text-text-dark px-3 py-1 rounded-full text-sm flex items-center"
                                     >
                                         {tagName}
                                         <button
                                             type="button"
                                             onClick={() => handleTagRemove(tagName)}
-                                            className="ml-2 text-[#006A71] hover:text-[#1e1e1e]"
+                                            className="ml-2 text-primary hover:text-text-dark"
                                             aria-label={`Remove ${tagName} tag`}
                                         >
                                             ×
@@ -334,7 +333,7 @@ const CreateCampaign = () => {
                                     value={newTagInput}
                                     onChange={(e) => setNewTagInput(e.target.value)}
                                     placeholder="Add new tag"
-                                    className="flex-1 p-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71]"
+                                    className="flex-1 p-2 border border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && newTagInput.trim()) {
                                             e.preventDefault();
@@ -354,7 +353,7 @@ const CreateCampaign = () => {
                                             setNewTagInput('');
                                         }
                                     }}
-                                    className="bg-[#48A6A7] text-white px-4 py-2 rounded-lg hover:bg-[#006A71] transition duration-300"
+                                    className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition duration-300"
                                     aria-label="Add tag"
                                 >
                                     Add
@@ -369,7 +368,7 @@ const CreateCampaign = () => {
                                         }
                                         e.target.value = "";
                                     }}
-                                    className="w-full p-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71]"
+                                    className="w-full p-2 border border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                                     aria-label="Select existing tags"
                                 >
                                     <option value="">Add existing tag...</option>
@@ -385,12 +384,12 @@ const CreateCampaign = () => {
                         </div>
 
                         <div className="relative">
-                            <label className="block mb-2 text-[#1e1e1e] text-sm sm:text-base">Campaign Images</label>
+                            <label className="block mb-2 text-text-dark text-sm sm:text-base">Campaign Images</label>
                             <div className="flex items-center justify-center w-full">
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-accent border-dashed rounded-lg cursor-pointer hover:bg-backgroundStart">
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <FaCamera className="text-[#48A6A7] w-8 h-8 mb-2" />
-                                        <p className="text-sm text-[#1e1e1e]">Click to upload campaign images</p>
+                                        <FaCamera className="text-accent w-8 h-8 mb-2" />
+                                        <p className="text-sm text-text-dark">Click to upload campaign images</p>
                                     </div>
                                     <input
                                         type="file"
@@ -409,7 +408,7 @@ const CreateCampaign = () => {
                                             <img
                                                 src={preview}
                                                 alt={`Campaign image ${index + 1}`}
-                                                className="w-full h-32 object-cover rounded-lg border border-[#9ACBD0]"
+                                                className="w-full h-32 object-cover rounded-lg border border-accent"
                                             />
                                             <button
                                                 type="button"
@@ -426,20 +425,20 @@ const CreateCampaign = () => {
                         </div>
 
                         {/* User Verification Section */}
-                        <div className="border-t border-b border-[#9ACBD0] py-6 my-6">
-                            <h2 className="text-xl font-semibold mb-4 text-[#006A71]">User Verification</h2>
+                        <div className="border-t border-b border-[#A7C7D9] py-6 my-6">
+                            <h2 className="text-xl font-semibold mb-4 text-[#3B82F6]">User Verification</h2>
 
                             {/* User Photo */}
                             <div className="mb-6">
-                                <label className="block mb-2 text-[#1e1e1e]">Your Photo</label>
+                                <label className="block mb-2 text-[#2D3748]">Your Photo</label>
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#A7C7D9] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
                                         {userPhotoPreview ? (
                                             <img src={userPhotoPreview} alt="User preview" className="w-full h-full object-cover rounded-lg" />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center p-4">
                                                 <FaCamera className="text-[#48A6A7] w-6 h-6 mb-2" />
-                                                <p className="text-xs text-center text-[#1e1e1e]">Upload your photo</p>
+                                                <p className="text-xs text-center text-[#2D3748]">Upload your photo</p>
                                             </div>
                                         )}
                                         <input
@@ -463,15 +462,15 @@ const CreateCampaign = () => {
 
                             {/* ID Front */}
                             <div className="mb-6">
-                                <label className="block mb-2 text-[#1e1e1e]">ID Front Side</label>
+                                <label className="block mb-2 text-[#2D3748]">ID Front Side</label>
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#A7C7D9] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
                                         {idFrontPreview ? (
                                             <img src={idFrontPreview} alt="ID front preview" className="w-full h-full object-cover rounded-lg" />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center p-4">
                                                 <FaIdCard className="text-[#48A6A7] w-6 h-6 mb-2" />
-                                                <p className="text-xs text-center text-[#1e1e1e]">Upload ID front</p>
+                                                <p className="text-xs text-center text-[#2D3748]">Upload ID front</p>
                                             </div>
                                         )}
                                         <input
@@ -495,15 +494,15 @@ const CreateCampaign = () => {
 
                             {/* ID Back */}
                             <div className="mb-2">
-                                <label className="block mb-2 text-[#1e1e1e]">ID Back Side</label>
+                                <label className="block mb-2 text-[#2D3748]">ID Back Side</label>
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#A7C7D9] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
                                         {idBackPreview ? (
                                             <img src={idBackPreview} alt="ID back preview" className="w-full h-full object-cover rounded-lg" />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center p-4">
                                                 <FaIdCard className="text-[#48A6A7] w-6 h-6 mb-2" />
-                                                <p className="text-xs text-center text-[#1e1e1e]">Upload ID back</p>
+                                                <p className="text-xs text-center text-[#2D3748]">Upload ID back</p>
                                             </div>
                                         )}
                                         <input
@@ -528,12 +527,12 @@ const CreateCampaign = () => {
 
                         {/* Supporting Documents */}
                         <div className="mb-6">
-                            <label className="block mb-2 text-[#1e1e1e]">Supporting Documents</label>
+                            <label className="block mb-2 text-[#2D3748]">Supporting Documents</label>
                             <div className="flex flex-col space-y-4">
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#A7C7D9] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
                                     <div className="flex flex-col items-center justify-center p-4">
                                         <FaFileUpload className="text-[#48A6A7] w-8 h-8 mb-2" />
-                                        <p className="text-sm text-[#1e1e1e]">Upload supporting documents</p>
+                                        <p className="text-sm text-[#2D3748]">Upload supporting documents</p>
                                         <p className="text-xs text-gray-500">(PDF, JPG, PNG up to 5MB each)</p>
                                     </div>
                                     <input
@@ -548,7 +547,7 @@ const CreateCampaign = () => {
                                 {supportingFilePreviews.length > 0 && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                                         {supportingFilePreviews.map((file, index) => (
-                                            <div key={index} className="relative border border-[#9ACBD0] rounded-lg p-2">
+                                            <div key={index} className="relative border border-[#A7C7D9] rounded-lg p-2">
                                                 {file.type.startsWith('image/') ? (
                                                     <div className="flex flex-col h-full">
                                                         <img
@@ -560,7 +559,7 @@ const CreateCampaign = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-col items-center justify-center h-full">
-                                                        <div className="bg-[#F2EFE7] rounded-full p-4 mb-2">
+                                                        <div className="bg-[#E1ECF5] rounded-full p-4 mb-2">
                                                             <FaFileUpload className="text-[#48A6A7] w-6 h-6" />
                                                         </div>
                                                         <p className="text-xs text-center truncate w-full">{file.name}</p>
@@ -584,16 +583,16 @@ const CreateCampaign = () => {
                         </div>
 
                         {/* Instructions */}
-                        <div className="bg-[#F2EFE7] p-4 rounded-lg">
-                            <h3 className="font-semibold text-[#006A71] mb-2">Important Instructions</h3>
+                        <div className="bg-[#E1ECF5] p-4 rounded-lg">
+                            <h3 className="font-semibold text-[#3B82F6] mb-2">Important Instructions</h3>
                             <div className="bg-white p-3 rounded">
-                                <pre className="text-sm text-[#1e1e1e] whitespace-pre-wrap font-sans">{instructions}</pre>
+                                <pre className="text-sm text-[#2D3748] whitespace-pre-wrap font-sans">{instructions}</pre>
                             </div>
                         </div>
 
                         <button
                             type="submit"
-                            className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base flex items-center justify-center"
+                            className="w-full bg-[#2563eb] hover:bg-[#3b82f6] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base flex items-center justify-center"
                             disabled={loading}
                             aria-label="Create Campaign"
                         >
@@ -604,6 +603,7 @@ const CreateCampaign = () => {
                                 </>
                             ) : 'Create Campaign'}
                         </button>
+
                     </form>
                 </div>
             </div>

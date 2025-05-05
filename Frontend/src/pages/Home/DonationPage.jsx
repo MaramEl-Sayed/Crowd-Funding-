@@ -74,7 +74,7 @@ const DonationPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F2EFE7] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-[#eff6ff] flex items-center justify-center p-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -82,7 +82,7 @@ const DonationPage = () => {
                 className="w-full max-w-md"
             >
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div className="bg-[#006A71] p-6 text-center">
+                    <div className="bg-[#2563eb] p-6 text-center">
                         <motion.div
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -90,38 +90,37 @@ const DonationPage = () => {
                         >
                             <button
                                 onClick={() => navigate(-1)}
-                                className="text-white p-2 rounded-full hover:bg-[#04828c] transition duration-200"
+                                className="text-white p-2 rounded-full hover:bg-[#3b82f6] transition duration-200"
                             >
                                 <FaArrowLeft size={20} />
                             </button>
                         </motion.div>
                         <FaDonate className="text-4xl text-white mx-auto mb-3" />
-                        <h1 className="text-2xl font-bold text-white">Support This Campain
-                        </h1>
+                        <h1 className="text-2xl font-bold text-white">Support This Campaign</h1>
                     </div>
 
                     <div className="p-6 sm:p-8">
                         {paymentSuccess && (
-                            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
+                            <div className="mb-4 p-4 bg-[#bfdbfe] text-[#374151] rounded-lg">
                                 Thank you for your donation! Your support makes a difference.
                             </div>
                         )}
 
                         <form onSubmit={handleDonation} className="space-y-6">
                             <div className="relative">
-                                <label className="block text-[#1e1e1e] font-medium mb-2">Donation Amount ($)</label>
+                                <label className="block text-[#374151] font-medium mb-2">Donation Amount ($)</label>
                                 <input
                                     type="number"
                                     name="amount"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
-                                    className="w-full pl-4 pr-12 py-3 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e]"
+                                    className="w-full pl-4 pr-12 py-3 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151]"
                                     placeholder="Enter amount"
                                     min="1"
                                     step="0.01"
                                     required
                                 />
-                                <span className="absolute right-4 top-10 text-[#1e1e1e]">USD</span>
+                                <span className="absolute right-4 top-10 text-[#374151]">EGY</span>
                             </div>
 
                             <div className="grid grid-cols-3 gap-2 mb-4">
@@ -133,8 +132,8 @@ const DonationPage = () => {
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         className={`py-2 rounded-lg border ${amount === value.toString()
-                                            ? 'bg-[#006A71] text-white border-[#006A71]'
-                                            : 'bg-white text-[#006A71] border-[#9ACBD0] hover:bg-[#F2EFE7]'}`}
+                                            ? 'bg-[#2563eb] text-white border-[#2563eb]'
+                                            : 'bg-white text-[#2563eb] border-[#bfdbfe] hover:bg-[#eff6ff]'}`}
                                     >
                                         ${value}
                                     </motion.button>
@@ -143,7 +142,7 @@ const DonationPage = () => {
 
                             <motion.button
                                 type="submit"
-                                className="w-full bg-[#006A71] hover:bg-[#04828c] text-white font-semibold py-3 rounded-lg transition duration-200 flex items-center justify-center"
+                                className="w-full bg-[#2563eb] hover:bg-[#3b82f6] text-white font-semibold py-3 rounded-lg transition duration-200 flex items-center justify-center"
                                 disabled={loading}
                                 whileHover={!loading ? { scale: 1.02 } : {}}
                                 whileTap={!loading ? { scale: 0.98 } : {}}
@@ -162,8 +161,8 @@ const DonationPage = () => {
                             </motion.button>
                         </form>
 
-                        <div className="mt-6 text-center text-sm text-[#1e1e1e]">
-                            <p>Your donation will help bring this Campain to life.</p>
+                        <div className="mt-6 text-center text-sm text-[#374151]">
+                            <p>Your donation will help bring this campaign to life.</p>
                             <p className="mt-1">Thank you for your support!</p>
                         </div>
                     </div>

@@ -7,13 +7,13 @@ import {
 import { motion } from 'framer-motion';
 
 const COLORS = {
-    primary: '#006A71',
-    secondary: '#48A6A7',
-    accent: '#9ACBD0',
-    background: '#F2EFE7',
-    textDark: '#1e1e1e',
-    textLight: '#ffffff',
-};
+    primary: "#2563eb",     // blue-600
+    secondary: "#3b82f6",   // blue-500
+    accent: "#bfdbfe",      // blue-200
+    background: "#eff6ff",  // blue-100
+    textDark: "#374151",    // gray-700
+    textLight: "#ffffff"    // white
+  };
 
 const BASE_URL = 'http://localhost:8000';
 
@@ -59,8 +59,8 @@ const CategoryCampaigns = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
-                <FaSpinner className="animate-spin text-[#006A71] text-4xl" />
+            <div className="flex items-center justify-center min-h-screen bg-[#eff6ff]">
+                <FaSpinner className="animate-spin text-[#2563eb] text-4xl" />
             </div>
         );
     }
@@ -71,7 +71,7 @@ const CategoryCampaigns = () => {
                 <p style={{ color: COLORS.textDark }}>{error}</p>
                 <Link
                     to="/categories"
-                    className="ml-4 text-[#006A71] hover:underline"
+                    className="ml-4 text-[#2563eb] hover:underline"
                 >
                     Back to categories
                 </Link>
@@ -85,7 +85,7 @@ const CategoryCampaigns = () => {
                 <div className="mb-8">
                     <Link
                         to="/categories"
-                        className="flex items-center text-[#006A71] hover:underline"
+                        className="flex items-center text-[#2563eb] hover:underline"
                     >
                         <FaArrowLeft className="mr-2" />
                         Back to all categories

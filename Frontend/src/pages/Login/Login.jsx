@@ -73,131 +73,11 @@ const Login = () => {
   }, []);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7] p-4">
+    <div className="flex items-center justify-center min-h-screen bg-[#eff6ff ] p-4">
       <div className="flex flex-col md:flex-row w-full max-w-4xl rounded-lg shadow-lg overflow-hidden">
         {/* Left Side (Login Form) */}
         <div className="w-full md:w-1/2 bg-white p-6 sm:p-8">
-          <h2 className="text-xl sm:text-4xl font-bold text-[#006A71] mb-6 text-center">Login to Athr</h2>
-
-          {/* Social Login Buttons */}
-          <div className="flex flex-col items-center gap-4 mb-6">
-          <button
-              type="button"
-              onClick={() => {
-                window.FB.login(
-                  response => {
-                    if (response.authResponse) {
-                      const accessToken = response.authResponse.accessToken;
-
-                      window.FB.api('/me', { fields: ['email','picture'] }, async userInfo => {
-                        const email = userInfo.email;
-
-                        if (!email) {
-                          toast.error('Email not found in Facebook profile');
-                          return;
-                        }
-
-                        try {
-                          const emailExists = await checkEmailExists(email);
-                          if (!emailExists) {
-                            toast.error('Account does not exist. Please register first.');
-                            return;
-                          }
-
-                          await authAPI.facebookLogin({ access_token: accessToken });
-                          toast.success('Facebook login successful!');
-                          navigate('/home');
-                        } catch (error) {
-                          console.error('Facebook login error:', error);
-                          toast.error(error?.error || 'Facebook login failed');
-                        }
-                      });
-                    } else {
-                      toast.error('Facebook login cancelled');
-                    }
-                  },
-                  { scope: 'public_profile,email' }
-                );
-              }}
-              className="p-1 max-w-xs h-10 border border-[#48A6A7] rounded-lg hover:bg-[#48A6A7] hover:text-white transition duration-300 text-[#006A71] font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
-            >
-              <FaFacebookF className="w-5 h-5 text-[#006A71] hover:text-white" />
-              Continue with Facebook
-            </button>
-
-
-            <GoogleOAuthProvider clientId="75773251008-89sei1vuligu58shbmup4f5ttqq097o5.apps.googleusercontent.com">
-              <GoogleLogin
-                onSuccess={async (credentialResponse) => {
-                  try {
-                    if (!credentialResponse?.credential) {
-                      throw new Error('No credential received from Google');
-                    }
-
-                    const decoded = decodeJwt(credentialResponse.credential);
-                    const email = decoded?.email;
-                    const profilePicture = decoded?.picture || null;
-
-                    if (!email) {
-                      throw new Error('Email not found in Google profile');
-                    }
-
-                    const emailExists = await checkEmailExists(email);
-                    if (!emailExists) {
-                      toast.error("Account does not exist. Please register first.");
-                      return;
-                    }
-
-                    const response = await authAPI.googleLogin({
-                      access_token: credentialResponse.credential,
-                      token_type: 'id_token',
-                      profile_picture: profilePicture
-                    });
-
-                    toast.success('Google login successful!');
-                    navigate('/home');
-                  } catch (error) {
-                    console.error('Google login error:', error);
-                    toast.error(error.message || error.error || 'Google login failed');
-                  }
-                }}
-                onError={(error) => {
-                  console.error('Google login error:', error);
-                  toast.error('Google login failed');
-                }}
-                useOneTap={false}
-                render={(renderProps) => (
-                  <button
-                    type="button"
-                    className=" p-2 max-w-xs h-10 border border-[#48A6A7] rounded-lg hover:bg-[#48A6A7] hover:text-white transition duration-300 text-[#006A71] font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
-                    onClick={renderProps.onClick}
-                    disabled={renderProps.disabled}
-                  >
-                    <svg
-                      className="w-5 h-5 text-[#006A71] hover:text-white"
-                      viewBox="0 0 24 24"
-                    >
-                      <text
-                        x="50%"
-                        y="65%"
-                        dominantBaseline="middle"
-                        textAnchor="middle"
-                        fill="currentColor"
-                        fontSize="16"
-                        fontWeight="bold"
-                        fontFamily="Arial, sans-serif"
-                      >
-                        G
-                      </text>
-                    </svg>
-                    Continue with Google
-                  </button>
-                )}
-              />
-            </GoogleOAuthProvider>
-          </div>
-
-          <p className="text-center text-[#1e1e1e] mb-6 text-sm sm:text-base">or use your email account:</p>
+          <h2 className="text-xl sm:text-4xl font-bold text-[#2563eb] mb-6 text-center">Login to Athr</h2>
 
           {/* Login Form */}
           <Formik
@@ -224,29 +104,29 @@ const Login = () => {
             {({ isSubmitting }) => (
               <Form className="space-y-4">
                 <div className="relative">
-                  <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#3b82f6] w-4 h-4 sm:w-5 sm:h-5" />
                   <Field
                     type="email"
                     name="email"
                     placeholder="Email Address"
-                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                    className="w-full pl-10 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#1e1e1e] text-sm sm:text-base"
                   />
                   <ErrorMessage name="email" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
                 </div>
 
                 <div className="relative">
-                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#48A6A7] w-4 h-4 sm:w-5 sm:h-5" />
+                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#3b82f6] w-4 h-4 sm:w-5 sm:h-5" />
                   <Field
                     type="password"
                     name="password"
                     placeholder="Password"
-                    className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                    className="w-full pl-10 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#1e1e1e] text-sm sm:text-base"
                   />
                   <ErrorMessage name="password" component="div" className="text-red-500 text-xs sm:text-sm mt-1" />
                 </div>
 
                 <div className="text-right">
-                  <a href="/forgot-password" className="text-[#006A71] text-xs sm:text-sm hover:underline">
+                  <a href="/forgot-password" className="text-[#2563eb] text-xs sm:text-sm hover:underline">
                     Forgot your password?
                   </a>
                 </div>
@@ -254,22 +134,147 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base"
+                  className="w-full bg-[#2563eb] hover:bg-[#3b82f6] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base"
                 >
                   {isSubmitting ? 'Logging in...' : 'Login'}
                 </button>
+
+                {/* Social Login Section */}
+                <div className="mt-4">
+                  <p className="text-center text-[#1e1e1e] mb-4 text-sm sm:text-base">or use social media account</p>
+                  <div className="flex flex-col items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.FB.login(
+                          response => {
+                            if (response.authResponse) {
+                              const accessToken = response.authResponse.accessToken;
+
+                              window.FB.api('/me', { fields: ['email','picture'] }, async userInfo => {
+                                const email = userInfo.email;
+
+                                if (!email) {
+                                  toast.error('Email not found in Facebook profile');
+                                  return;
+                                }
+
+                                try {
+                                  const emailExists = await checkEmailExists(email);
+                                  if (!emailExists) {
+                                    toast.error('Account does not exist. Please register first.');
+                                    return;
+                                  }
+
+                                  await authAPI.facebookLogin({ access_token: accessToken });
+                                  toast.success('Facebook login successful!');
+                                  navigate('/home');
+                                } catch (error) {
+                                  console.error('Facebook login error:', error);
+                                  toast.error(error?.error || 'Facebook login failed');
+                                }
+                              });
+                            } else {
+                              toast.error('Facebook login cancelled');
+                            }
+                          },
+                          { scope: 'public_profile,email' }
+                        );
+                      }}
+                      className=" p-1.5 h-10 bg-white border border-[#bfdbfe] rounded-lg hover:bg-[#bfdbfe] transition duration-300 text-[#2563eb] font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
+                    >
+                      <FaFacebookF className="w-5 h-5 text-[#2563eb]" />
+                      Continue with Facebook
+                    </button>
+
+                    <GoogleOAuthProvider clientId="75773251008-89sei1vuligu58shbmup4f5ttqq097o5.apps.googleusercontent.com">
+                      <GoogleLogin
+                        onSuccess={async (credentialResponse) => {
+                          try {
+                            if (!credentialResponse?.credential) {
+                              throw new Error('No credential received from Google');
+                            }
+
+                            const decoded = decodeJwt(credentialResponse.credential);
+                            const email = decoded?.email;
+                            const profilePicture = decoded?.picture || null;
+
+                            if (!email) {
+                              throw new Error('Email not found in Google profile');
+                            }
+
+                            const emailExists = await checkEmailExists(email);
+                            if (!emailExists) {
+                              toast.error("Account does not exist. Please register first.");
+                              return;
+                            }
+
+                            const response = await authAPI.googleLogin({
+                              access_token: credentialResponse.credential,
+                              token_type: 'id_token',
+                              profile_picture: profilePicture
+                            });
+
+                            toast.success('Google login successful!');
+                            navigate('/home');
+                          } catch (error) {
+                            console.error('Google login error:', error);
+                            toast.error(error.message || error.error || 'Google login failed');
+                          }
+                        }}
+                        onError={(error) => {
+                          console.error('Google login error:', error);
+                          toast.error('Google login failed');
+                        }}
+                        useOneTap={false}
+                        render={(renderProps) => (
+                          <button
+                            type="button"
+                            className="w-full h-10 bg-white border border-[#bfdbfe] rounded-lg hover:bg-[#bfdbfe] transition duration-300 text-[#2563eb] font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
+                            onClick={renderProps.onClick}
+                            disabled={renderProps.disabled}
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                fill="#4285F4"
+                              />
+                              <path
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1.02.68-2.31 1.08-3.71 1.08-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C4.01 20.52 7.77 23 12 23z"
+                                fill="#34A853"
+                              />
+                              <path
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                                fill="#FBBC05"
+                              />
+                              <path
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.77 1 4.01 3.48 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                fill="#EA4335"
+                              />
+                            </svg>
+                            Continue with Google
+                          </button>
+                        )}
+                      />
+                    </GoogleOAuthProvider>
+                  </div>
+                </div>
               </Form>
             )}
           </Formik>
         </div>
 
         {/* Right Side (Sign Up Prompt) */}
-        <div className="w-full md:w-1/2 bg-[#006A71] p-6 sm:p-8 flex flex-col justify-center items-center text-center">
+        <div className="w-full md:w-1/2 bg-[#2563eb] p-6 sm:p-8 flex flex-col justify-center items-center text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-4">New here?</h2>
           <p className="text-[#ffffff] mb-6 text-sm sm:text-base">We'll get you signed up in no time.</p>
           <button
             onClick={() => navigate('/register')}
-            className="border-2 border-[#ffffff] text-[#ffffff] hover:bg-[#48A6A7] hover:border-[#48A6A7] font-semibold py-2 px-4 sm:px-6 rounded-lg transition duration-300 text-sm sm:text-base"
+            className="border-2 border-[#ffffff] text-[#ffffff] hover:bg-[#3b82f6] hover:border-[#3b82f6] font-semibold py-2 px-4 sm:px-6 rounded-lg transition duration-300 text-sm sm:text-base"
           >
             Sign up
           </button>

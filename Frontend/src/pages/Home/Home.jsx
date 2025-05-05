@@ -29,15 +29,6 @@ const Home = () => {
     const navigate = useNavigate();
     const observer = useRef();
 
-    const colors = {
-        primary: "#006A71",
-        secondary: "#48A6A7",
-        accent: "#9ACBD0",
-        background: "#F2EFE7",
-        textDark: "#1e1e1e",
-        textLight: "#ffffff"
-    };
-
     const sliderSettings = {
         dots: true,
         infinite: true,
@@ -55,7 +46,7 @@ const Home = () => {
             </div>
         ),
         customPaging: i => (
-            <div className="w-3 h-3 mt-3 rounded-full bg-gray-300 hover:bg-primary transition-colors"></div>
+            <div className="w-3 h-3 mt-3 rounded-full bg-gray-300 hover:bg-blue-600 transition-colors"></div>
         )
     };
 
@@ -111,7 +102,11 @@ const Home = () => {
 
     const handleDonateNow = (projectId) => {
         const token = localStorage.getItem('accessToken');
-        token ? navigate(`/projects/${projectId}/donate`) : setShowAuthPopup(true);
+        if (!token) {
+            setShowAuthPopup(true);
+        } else {
+            navigate(`/projects/${projectId}/donate`);
+        }
     };
 
     const handleAuthConfirm = () => {
@@ -175,7 +170,7 @@ const Home = () => {
                     d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
             </svg>
-            <h3 className="text-xl font-medium mb-2" style={{ color: colors.textDark }}>
+            <h3 className="text-xl font-medium mb-2 text-blue-600">
                 No {sectionName} campaigns available
             </h3>
             <p className="text-gray-600">
@@ -208,8 +203,7 @@ const Home = () => {
                     <div className="md:w-1/2 p-6 flex flex-col justify-between">
                         <div>
                             <div className="flex justify-between items-start mb-2">
-                                <span className="text-xs font-semibold px-2 py-1 rounded-full"
-                                    style={{ backgroundColor: colors.accent, color: colors.textDark }}>
+                                <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-200 text-blue-800">
                                     {project.category?.name || "Uncategorized"}
                                 </span>
                                 <span className={`text-xs font-semibold px-2 py-1 rounded-full ${project.status === "active"
@@ -220,7 +214,7 @@ const Home = () => {
                                 </span>
                             </div>
 
-                            <h3 className="text-xl font-bold mb-2" style={{ color: colors.primary }}>
+                            <h3 className="text-xl font-bold mb-2 text-blue-600">
                                 <Link to={`/projects/${project.id}`} className="hover:underline">
                                     {project.title || "Untitled Campaigns"}
                                 </Link>
@@ -238,7 +232,7 @@ const Home = () => {
                         <div>
                             <div className="mb-2">
                                 <div className="flex justify-between text-xs mb-1">
-                                    <span style={{ color: colors.primary }}>
+                                    <span className="text-blue-600">
                                         {project.progress_percentage?.toFixed(0) || 0}% funded
                                     </span>
                                     <span>
@@ -247,9 +241,8 @@ const Home = () => {
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
                                     <div
-                                        className="h-2 rounded-full"
+                                        className="h-2 rounded-full bg-blue-600"
                                         style={{
-                                            backgroundColor: colors.primary,
                                             width: `${project.progress_percentage || 0}%`
                                         }}
                                     ></div>
@@ -263,14 +256,12 @@ const Home = () => {
                             )}
 
                             <div className="flex justify-between items-center">
-                                <p className="text-sm font-semibold" style={{ color: colors.primary }}>
+                                <p className="text-sm font-semibold text-blue-600">
                                     {`$${parseFloat(project.total_donations || 0).toLocaleString()}`} raised
                                 </p>
                                 <motion.button
                                     onClick={() => handleDonateNow(project.id)}
-                                    className="px-6 py-2 rounded-full text-white font-medium"
-                                    style={{ backgroundColor: colors.primary }}
-                                    whileHover={{ backgroundColor: colors.secondary }}
+                                    className="px-6 py-2 rounded-full text-white font-medium bg-blue-600 hover:bg-blue-700"
                                     whileTap={{ scale: 0.95 }}
                                 >
                                     Donate Now
@@ -284,7 +275,7 @@ const Home = () => {
     );
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 py-8" style={{ backgroundColor: colors.background }}>
+        <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gradient-to-br from-blue-50 to-white">
             {showAuthPopup && (
                 <AuthPopup
                     onConfirm={handleAuthConfirm}
@@ -293,7 +284,6 @@ const Home = () => {
             )}
 
             <HeroSection
-                colors={colors}
                 searchQuery={searchQuery}
                 handleSearchInputChange={handleSearchInputChange}
                 searchResults={searchResults}
@@ -313,7 +303,7 @@ const Home = () => {
                         <SectionHeader title="Top Rated Campaigns" link="/campaigns" />
                         {loading.topRated ? (
                             <div className="flex justify-center py-12">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                             </div>
                         ) : projects.topRated.length > 0 ? (
                             <Slider {...sliderSettings} className="mb-8">
@@ -332,7 +322,7 @@ const Home = () => {
                         <SectionHeader title="Recently Added Campaigns" link="/campaigns" />
                         {loading.latest ? (
                             <div className="flex justify-center py-12">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                             </div>
                         ) : projects.latest.length > 0 ? (
                             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -353,7 +343,7 @@ const Home = () => {
                         <SectionHeader title="Featured Campaigns" link="/campaigns" />
                         {loading.featured ? (
                             <div className="flex justify-center py-12">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                             </div>
                         ) : projects.featured.length > 0 ? (
                             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

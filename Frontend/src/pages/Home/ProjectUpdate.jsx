@@ -159,15 +159,15 @@ const ProjectUpdate = () => {
     };
 
     if (loading) return (
-        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
-            <div className="text-[#006A71]">
+        <div className="flex items-center justify-center min-h-screen bg-[#eff6ff]">
+            <div className="text-[#2563eb]">
                 <FaSpinner className="animate-spin text-4xl" />
             </div>
         </div>
     );
 
     if (error) return (
-        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
+        <div className="flex items-center justify-center min-h-screen bg-[#eff6ff]">
             <div className="flex items-center text-red-500">
                 <FaExclamationCircle className="mr-2" />
                 <p>Error: {error.message}</p>
@@ -176,9 +176,9 @@ const ProjectUpdate = () => {
     );
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7] p-4">
+        <div className="flex items-center justify-center min-h-screen bg-[#eff6ff] p-4">
             <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="w-full bg-[#006A71] p-6 flex flex-col justify-center items-center text-center">
+                <div className="w-full bg-[#2563eb] p-6 flex flex-col justify-center items-center text-center">
                     <h1 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-2">Update Campaign</h1>
                     <p className="text-[#ffffff] text-sm sm:text-base">Edit your Campaign details</p>
                 </div>
@@ -192,7 +192,7 @@ const ProjectUpdate = () => {
                                 value={formData.title}
                                 onChange={handleChange}
                                 placeholder="Campaign Title"
-                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                 required
                                 aria-label="Campaign Title"
                             />
@@ -205,7 +205,7 @@ const ProjectUpdate = () => {
                                 onChange={handleChange}
                                 placeholder="Campaign Details"
                                 rows="4"
-                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                 required
                                 aria-label="Campaign Details"
                             />
@@ -216,7 +216,7 @@ const ProjectUpdate = () => {
                                 name="category"
                                 value={formData.category}
                                 onChange={handleChange}
-                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                 required
                                 aria-label="Campaign Category"
                             >
@@ -236,7 +236,7 @@ const ProjectUpdate = () => {
                                 value={formData.total_target}
                                 onChange={handleChange}
                                 placeholder="Total Target"
-                                className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                 required
                                 aria-label="Total Target"
                             />
@@ -249,7 +249,7 @@ const ProjectUpdate = () => {
                                     name="start_time"
                                     value={formData.start_time}
                                     onChange={handleChange}
-                                    className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                    className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                     required
                                     aria-label="Start Time"
                                 />
@@ -260,7 +260,7 @@ const ProjectUpdate = () => {
                                     name="end_time"
                                     value={formData.end_time}
                                     onChange={handleChange}
-                                    className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
+                                    className="w-full pl-4 pr-4 py-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#374151] text-sm sm:text-base"
                                     required
                                     aria-label="End Time"
                                 />
@@ -268,7 +268,7 @@ const ProjectUpdate = () => {
                         </div>
 
                         <div>
-                            <label className="block mb-2 text-[#1e1e1e] text-sm sm:text-base">Existing Images</label>
+                            <label className="block mb-2 text-[#374151] text-sm sm:text-base">Existing Images</label>
                             {existingImages.length > 0 ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
                                     {existingImages.map((image, index) => (
@@ -276,7 +276,7 @@ const ProjectUpdate = () => {
                                             <img
                                                 src={`http://localhost:8000${image.url}`}
                                                 alt={`Existing Campaign image ${index + 1}`}
-                                                className="w-full h-32 object-cover rounded-lg border border-[#9ACBD0]"
+                                                className="w-full h-32 object-cover rounded-lg border border-[#bfdbfe]"
                                             />
                                             <button
                                                 type="button"
@@ -290,17 +290,17 @@ const ProjectUpdate = () => {
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-[#1e1e1e]">No existing images.</p>
+                                <p className="text-[#374151]">No existing images.</p>
                             )}
                         </div>
 
                         <div>
-                            <label className="block mb-2 text-[#1e1e1e] text-sm sm:text-base">Upload New Images</label>
+                            <label className="block mb-2 text-[#374151] text-sm sm:text-base">Upload New Images</label>
                             <div className="flex items-center justify-center w-full">
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#bfdbfe] border-dashed rounded-lg cursor-pointer hover:bg-[#eff6ff]">
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                         <FaCamera className="text-[#48A6A7] w-8 h-8 mb-2" />
-                                        <p className="text-sm text-[#1e1e1e]">Click to upload images</p>
+                                        <p className="text-sm text-[#374151]">Click to upload images</p>
                                     </div>
                                     <input
                                         type="file"
@@ -319,7 +319,7 @@ const ProjectUpdate = () => {
                                             <img
                                                 src={preview}
                                                 alt={`New Campaign image ${index + 1}`}
-                                                className="w-full h-32 object-cover rounded-lg border border-[#9ACBD0]"
+                                                className="w-full h-32 object-cover rounded-lg border border-[#bfdbfe]"
                                             />
                                             <button
                                                 type="button"
@@ -336,18 +336,18 @@ const ProjectUpdate = () => {
                         </div>
 
                         <div className="mb-4">
-                            <label className="block text-[#1e1e1e] mb-2 text-sm sm:text-base">Tags</label>
+                            <label className="block text-[#374151] mb-2 text-sm sm:text-base">Tags</label>
                             <div className="flex flex-wrap gap-2 mb-2">
                                 {selectedTags.map(tagName => (
                                     <span
                                         key={tagName}
-                                        className="bg-[#9ACBD0] text-[#1e1e1e] px-3 py-1 rounded-full text-sm flex items-center"
+                                        className="bg-[#bfdbfe] text-[#374151] px-3 py-1 rounded-full text-sm flex items-center"
                                     >
                                         {tagName}
                                         <button
                                             type="button"
                                             onClick={() => handleTagRemove(tagName)}
-                                            className="ml-2 text-[#006A71] hover:text-[#1e1e1e]"
+                                            className="ml-2 text-[#2563eb] hover:text-[#374151]"
                                             aria-label={`Remove ${tagName} tag`}
                                         >
                                             ×
@@ -361,7 +361,7 @@ const ProjectUpdate = () => {
                                     value={newTagInput}
                                     onChange={(e) => setNewTagInput(e.target.value)}
                                     placeholder="Add new tag"
-                                    className="flex-1 p-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71]"
+                                    className="flex-1 p-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && newTagInput.trim()) {
                                             e.preventDefault();
@@ -381,7 +381,7 @@ const ProjectUpdate = () => {
                                             setNewTagInput('');
                                         }
                                     }}
-                                    className="bg-[#48A6A7] text-white px-4 py-2 rounded-lg hover:bg-[#006A71] transition duration-300"
+                                    className="bg-[#2563eb] hover:bg-[#3b82f6] text-white px-4 py-2 rounded-lg transition duration-300"
                                     aria-label="Add tag"
                                 >
                                     Add
@@ -396,7 +396,7 @@ const ProjectUpdate = () => {
                                         }
                                         e.target.value = "";
                                     }}
-                                    className="w-full p-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71]"
+                                    className="w-full p-2 border border-[#bfdbfe] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
                                     aria-label="Select existing tags"
                                 >
                                     <option value="">Add existing tag...</option>
@@ -410,7 +410,7 @@ const ProjectUpdate = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base flex items-center justify-center"
+                            className="w-full bg-[#2563eb] hover:bg-[#3b82f6] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base flex items-center justify-center"
                             aria-label="Update Campaign"
                         >
                             {loading ? <FaSpinner className="animate-spin mr-2" /> : 'Update Campaign'}

@@ -6,11 +6,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#006A71",
-        secondary: "#48A6A7",
-        accent: "#9ACBD0",
-        background: "#F2EFE7",
-        "text-dark": "#1e1e1e",
+        primary: "#2563eb",       // blue-600
+        secondary: "#3b82f6",     // blue-500
+        accent: "#bfdbfe",        // blue-200
+        backgroundStart: "#eff6ff", // blue-50
+        backgroundEnd: "#eff6ff",   // white
+        "text-dark": "#374151",    // gray-700
         "text-light": "#ffffff"
       }
     },

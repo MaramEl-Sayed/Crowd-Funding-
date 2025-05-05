@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 
 const SectionHeader = ({ title, link }) => {
     const colors = {
-        primary: "#006A71",
-        secondary: "#48A6A7",
-        accent: "#9ACBD0",
-        background: "#F2EFE7",
-        textDark: "#1e1e1e",
+        primary: "#2563eb",
+        secondary: "#3b82f6",
+        accent: "#bfdbfe",
+        background: "#eff6ff",
+        textDark: "#374151",
         textLight: "#ffffff"
     };
 

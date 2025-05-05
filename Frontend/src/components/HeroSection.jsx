@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import ProjectCard from './ProjectCard';
 
 const HeroSection = ({
-    colors,
     searchQuery,
     handleSearchInputChange,
     searchResults,
@@ -43,23 +42,21 @@ const HeroSection = ({
     return (
         <>
             <motion.section
-                className="mb-12 text-center py-12 px-4 rounded-xl relative overflow-hidden"
-                style={{ backgroundColor: colors.accent }}
+                className="mb-12 text-center py-12 px-4 rounded-xl relative overflow-hidden bg-accent"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
             >
                 {/* Background subtle animation */}
                 <motion.div
-                    className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-[#9ACBD0] via-[#48A6A7] to-[#006A71] opacity-10"
+                    className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-accent via-secondary to-primary opacity-10"
                     animate={{ x: [0, 50, 0] }}
                     transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                     style={{ filter: 'blur(40px)' }}
                 />
 
                 <motion.h1
-                    className="relative text-3xl md:text-4xl font-bold mb-4"
-                    style={{ color: colors.textDark }}
+                    className="relative text-3xl md:text-4xl font-bold mb-4 text-text-dark"
                     initial={{ y: -20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.5 }}
@@ -67,8 +64,7 @@ const HeroSection = ({
                     Support Causes That Matter
                 </motion.h1>
                 <motion.p
-                    className="relative text-lg max-w-2xl mx-auto mb-6"
-                    style={{ color: colors.textDark }}
+                    className="relative text-lg max-w-2xl mx-auto mb-6 text-text-dark"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.5 }}
@@ -87,8 +83,7 @@ const HeroSection = ({
                         value={searchQuery}
                         onChange={handleSearchInputChange}
                         placeholder="Search for Campaigns..."
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                        style={{ backgroundColor: colors.background }}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
                     />
                     {isLoading && (
                         <div className="absolute right-3 top-3.5">
@@ -111,7 +106,7 @@ const HeroSection = ({
                     transition={{ duration: 0.5 }}
                 >
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold" style={{ color: colors.primary }}>
+                        <h2 className="text-2xl font-bold text-primary">
                             {searchResults.length} Search Results
                         </h2>
                         <button
@@ -163,7 +158,7 @@ const HeroSection = ({
                             d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                     </svg>
-                    <h3 className="text-xl font-medium mb-2" style={{ color: colors.textDark }}>
+                    <h3 className="text-xl font-medium mb-2 text-text-dark">
                         No Campaigns found
                     </h3>
                     <p className="text-gray-600 mb-4">
@@ -171,8 +166,7 @@ const HeroSection = ({
                     </p>
                     <button
                         onClick={onClearSearch}
-                        className="px-4 py-2 rounded-full text-sm font-medium"
-                        style={{ backgroundColor: colors.primary, color: colors.textLight }}
+                        className="px-4 py-2 rounded-full text-sm font-medium bg-primary text-text-light"
                     >
                         Clear search
                     </button>

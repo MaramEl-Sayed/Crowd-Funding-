@@ -3,11 +3,12 @@ import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Slider from "react-slick";
 import Alert from '../../alert/Alert';
-import { FaExclamationCircle, FaSpinner, FaFlag, FaComment, FaDonate, FaEdit, FaTimes, FaShareAlt, FaFacebook, FaWhatsapp, FaTwitter, FaLinkedin } from 'react-icons/fa';
+import { FaExclamationCircle, FaSpinner, FaFlag, FaComment, FaDonate, FaEdit, FaTimes, FaShareAlt, FaFacebook, FaWhatsapp, FaTwitter, FaLinkedin, FaArrowRight } from 'react-icons/fa';
+import { motion, AnimatePresence } from "framer-motion";
+import AuthPopup from '../../components/AuthPopup';
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { motion, AnimatePresence } from "framer-motion";
 
 const DescriptionSection = memo(({ details }) => {
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -32,7 +33,7 @@ const DescriptionSection = memo(({ details }) => {
             <AnimatePresence initial={false} mode="wait">
                 <motion.div
                     key={isDescriptionExpanded ? 'expanded' : 'collapsed'}
-                    className="text-[#1e1e1e] mb-2 whitespace-pre-wrap break-words p-4 border border-[#9ACBD0] rounded-lg bg-[#F2EFE7] transition-all duration-300"
+                    className="text-[#374151] mb-2 whitespace-pre-wrap break-words p-4 border border-[#bfdbfe] rounded-lg bg-[#eff6ff] transition-all duration-300"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
@@ -46,7 +47,7 @@ const DescriptionSection = memo(({ details }) => {
             {shouldTruncateDescription && (
                 <motion.button
                     onClick={toggleDescription}
-                    className="mt-1 px-3 py-1 rounded-md bg-[#48A6A7] text-white text-sm hover:bg-[#006A71] transition duration-200 shadow-md"
+                    className="mt-1 px-3 py-1 rounded-md bg-[#2563eb] hover:bg-[#3b82f6] text-white text-sm transition duration-200 shadow-md"
                     whileTap={{ scale: 0.95 }}
                     whileHover={{ scale: 1.05 }}
                 >
@@ -73,6 +74,7 @@ const ProjectDetails = () => {
     const [reportTargetId, setReportTargetId] = useState(null);
     const [reportedBy, setReportedBy] = useState(null);
     const [showShareDropdown, setShowShareDropdown] = useState(false);
+    const [showAuthPopup, setShowAuthPopup] = useState(false);
 
     const [comments, setComments] = useState([]);
     const [newCommentText, setNewCommentText] = useState('');
@@ -85,7 +87,6 @@ const ProjectDetails = () => {
     const [similarLoading, setSimilarLoading] = useState(false);
     const [similarError, setSimilarError] = useState(null);
     const shareButtonRef = useRef(null);
-
 
     const sliderSettings = {
         dots: true,
@@ -120,11 +121,9 @@ const ProjectDetails = () => {
                     'Content-Type': 'application/json',
                 },
             });
-            // Update the states with the new rating value from the response
             setPreviousRating(response.data.value);
             setUserRating(response.data.value);
             Alert.success('Rating submitted!', 'Thank you for your feedback.');
-            // Refresh project details to update average rating
             await fetchProjectDetails();
         } catch (err) {
             console.error('Rating submission error:', err.response?.data);
@@ -150,8 +149,6 @@ const ProjectDetails = () => {
                 setUserRating(response.data.value);
             }
         } catch (err) {
-            // If user is not authenticated or rating doesn't exist, reset the states
-            console.log('rrrr', err)
             if (err.response?.status === 404 || err.response?.status === 401) {
                 setPreviousRating(null);
                 setUserRating(0);
@@ -200,13 +197,10 @@ const ProjectDetails = () => {
         }
     }, [id]);
 
-
-    // Toggle dropdown
     const handleShare = () => {
         setShowShareDropdown(prev => !prev);
     };
 
-    // Close dropdown if clicked outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (shareButtonRef.current && !shareButtonRef.current.contains(event.target)) {
@@ -218,9 +212,6 @@ const ProjectDetails = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
-
-
 
     const postComment = async (parentId = null) => {
         if ((parentId === null && !newCommentText.trim()) || (parentId !== null && !replyText.trim())) {
@@ -251,6 +242,11 @@ const ProjectDetails = () => {
     };
 
     const openReportModal = (type, targetId) => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            setShowAuthPopup(true);
+            return;
+        }
         setReportType(type);
         setReportTargetId(targetId);
         setReportReason('');
@@ -288,9 +284,21 @@ const ProjectDetails = () => {
         }
     };
 
-    // const handleShare = () => {
-    //     setShowShareDropdown(!showShareDropdown);
-    // };
+    const openShareWindow = async (platform, url) => {
+        window.open(url, '_blank', 'width=600,height=400');
+        try {
+            await axios.post('http://localhost:8000/api/projects/shares/', {
+                project: project.id,
+                platform: platform,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            });
+        } catch (err) {
+            console.error('Error logging share event:', err);
+        }
+    };
 
     const shareLinks = project ? [
         {
@@ -314,45 +322,29 @@ const ProjectDetails = () => {
             url: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(`${window.location.origin}/projects/${id}`)}&title=${encodeURIComponent(project.title)}&summary=${encodeURIComponent(project.details.substring(0, 200))}`,
         },
     ] : [];
-    // New function to open social media share windows and log share event
-    const openShareWindow = async (platform, url) => {
-        window.open(url, '_blank', 'width=600,height=400');
-        try {
-            await axios.post('http://localhost:8000/api/projects/shares/', {
-                project: project.id,
-                platform: platform,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-                },
-            });
-        } catch (err) {
-            console.error('Error logging share event:', err);
-        }
-    };
     const renderComments = (commentsList) => {
         return commentsList.map((comment) => (
-            <div key={comment.id} className="border border-[#9ACBD0] rounded-lg p-4 mb-3 bg-[#F2EFE7] relative">
+            <div key={comment.id} className="border border-[#bfdbfe] rounded-lg p-4 mb-3 bg-[#eff6ff] relative">
                 <div className="flex justify-between items-center mb-1">
-                    <span className="font-semibold text-[#006A71]">{comment.user}</span>
+                    <span className="font-semibold text-[#2563eb]">{comment.user}</span>
                     <div className="flex items-center space-x-2">
-                        <span className="text-xs text-[#1e1e1e]">{new Date(comment.created_at).toLocaleString()}</span>
+                        <span className="text-xs text-[#374151]">{new Date(comment.created_at).toLocaleString()}</span>
                         <button
                             onClick={() => openReportModal('comment', comment.id)}
                             title="Report Comment"
-                            className="text-[#006A71] hover:text-[#48A6A7] focus:outline-none"
+                            className="text-[#2563eb] hover:bg-[#3b82f6]  focus:outline-none"
                             aria-label="Report Comment"
                         >
                             <FaFlag size={14} />
                         </button>
                     </div>
                 </div>
-                <p className="mb-2 text-[#1e1e1e]">{comment.text}</p>
+                <p className="mb-2 text-[#374151]">{comment.text}</p>
                 {comment.reported_by && (
                     <p className="text-sm text-red-600 mb-1">Reported by: {comment.reported_by}</p>
                 )}
                 <button
-                    className="text-sm text-[#006A71] hover:text-[#48A6A7] mb-2 flex items-center"
+                    className="text-sm text-[#2563eb] hover:bg-[#3b82f6]  mb-2 flex items-center"
                     onClick={() => setReplyToCommentId(comment.id === replyToCommentId ? null : comment.id)}
                 >
                     <FaComment className="mr-1" size={12} />
@@ -361,14 +353,14 @@ const ProjectDetails = () => {
                 {comment.id === replyToCommentId && (
                     <div className="mb-2">
                         <textarea
-                            className="w-full border border-[#9ACBD0] rounded-lg p-2 mb-1 focus:ring-2 focus:ring-[#006A71]"
+                            className="w-full border border-[#bfdbfe] rounded-lg p-2 mb-1 focus:ring-2 focus:ring-[#2563eb]"
                             rows="3"
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
                             placeholder="Write your reply..."
                         />
                         <button
-                            className="bg-[#48A6A7] text-white px-3 py-1 rounded-lg hover:bg-[#006A71] transition duration-200"
+                            className="hover:bg-[#3b82f6] text-white px-3 py-1 rounded-lg bg-[#2563eb] transition duration-200"
                             onClick={() => postComment(comment.id)}
                         >
                             Submit Reply
@@ -376,7 +368,7 @@ const ProjectDetails = () => {
                     </div>
                 )}
                 {comment.replies && comment.replies.length > 0 && (
-                    <div className="ml-6 mt-3 border-l-2 border-[#9ACBD0] pl-4">
+                    <div className="ml-6 mt-3 border-l-2 border-[#bfdbfe] pl-4">
                         {renderComments(comment.replies)}
                     </div>
                 )}
@@ -384,17 +376,16 @@ const ProjectDetails = () => {
         ));
     };
 
-
     if (loading) return (
-        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
-            <div className="text-[#006A71]">
+        <div className="flex items-center justify-center min-h-screen bg-[#eff6ff]">
+            <div className="text-[#2563eb]">
                 <FaSpinner className="animate-spin text-4xl" />
             </div>
         </div>
     );
 
     if (error) return (
-        <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
+        <div className="flex items-center justify-center min-h-screen bg-[#eff6ff]">
             <div className="flex items-center text-red-500">
                 <FaExclamationCircle className="mr-2" />
                 <p>Error loading project: {error.message}</p>
@@ -402,10 +393,22 @@ const ProjectDetails = () => {
         </div>
     );
 
+    const isAuthenticated = !!localStorage.getItem('accessToken');
+
+    const handleAuthAction = (action) => {
+        if (!isAuthenticated) {
+            setShowAuthPopup(true);
+        } else {
+            action();
+        }
+    };
+
+    const handleDonate = () => navigate(`/projects/${id}/donate`);
+
     return (
-        <div className="min-h-screen bg-[#F2EFE7] flex items-center justify-center py-10 px-4">
+        <div className="min-h-screen bg-[#eff6ff] flex items-center justify-center py-10 px-4">
             <div className="w-full max-w-5xl bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="w-full bg-[#006A71] p-6 flex flex-col justify-center items-center text-center">
+                <div className="w-full bg-[#2563eb] p-6 flex flex-col justify-center items-center text-center">
                     <h1 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-2">{project.title}</h1>
                     <p className="text-[#ffffff] text-sm sm:text-base">Created by {project.owner}</p>
                 </div>
@@ -432,7 +435,7 @@ const ProjectDetails = () => {
                             className="w-full h-80 object-cover rounded-lg mb-6"
                         />
                     ) : (
-                        <div className="w-full h-64 bg-[#9ACBD0] flex items-center justify-center text-[#1e1e1e] rounded-lg mb-6">
+                        <div className="w-full h-64 bg-[#bfdbfe] flex items-center justify-center text-[#374151] rounded-lg mb-6">
                             No Images Available
                         </div>
                     )}
@@ -440,38 +443,38 @@ const ProjectDetails = () => {
                     <DescriptionSection details={project.details} />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div className="bg-[#F2EFE7] p-4 rounded-lg border border-[#9ACBD0]">
-                            <h3 className="text-lg font-semibold text-[#006A71] mb-3">Campaign Details</h3>
+                        <div className="bg-[#eff6ff] p-4 rounded-lg border border-[#bfdbfe]">
+                            <h3 className="text-lg font-semibold text-[#2563eb] mb-3">Campaign Details</h3>
                             <div className="space-y-2">
-                                <p className="text-[#1e1e1e]"><span className="font-medium">Category:</span> {project.category.name}</p>
-                                <p className="text-[#1e1e1e]"><span className="font-medium">Target:</span> ${project.total_target}</p>
-                                <p className="text-[#1e1e1e]"><span className="font-medium">Start Date:</span> {new Date(project.start_time).toLocaleDateString()}</p>
-                                <p className="text-[#1e1e1e]"><span className="font-medium">End Date:</span> {new Date(project.end_time).toLocaleDateString()}</p>
-                                <p className="text-[#1e1e1e]"><span className="font-medium">Status:</span> {project.status}</p>
+                                <p className="text-[#374151]"><span className="font-medium">Category:</span> {project.category.name}</p>
+                                <p className="text-[#374151]"><span className="font-medium">Target:</span> ${project.total_target}</p>
+                                <p className="text-[#374151]"><span className="font-medium">Start Date:</span> {new Date(project.start_time).toLocaleDateString()}</p>
+                                <p className="text-[#374151]"><span className="font-medium">End Date:</span> {new Date(project.end_time).toLocaleDateString()}</p>
+                                <p className="text-[#374151]"><span className="font-medium">Status:</span> {project.status}</p>
                             </div>
                         </div>
 
-                        <div className="bg-[#F2EFE7] p-4 rounded-lg border border-[#9ACBD0]">
-                            <h3 className="text-lg font-semibold text-[#006A71] mb-3">Funding Progress</h3>
+                        <div className="bg-[#eff6ff] p-4 rounded-lg border border-[#bfdbfe]">
+                            <h3 className="text-lg font-semibold text-[#2563eb] mb-3">Funding Progress</h3>
                             <div className="mb-4">
-                                <div className="w-full bg-[#9ACBD0] rounded-full h-4">
+                                <div className="w-full bg-[#bfdbfe] rounded-full h-4">
                                     <div
-                                        className="bg-[#006A71] h-4 rounded-full"
+                                        className="bg-[#2563eb] h-4 rounded-full"
                                         style={{ width: `${project.progress_percentage}%` }}
                                     ></div>
                                 </div>
-                                <p className="text-right mt-1 text-[#1e1e1e]">{project.progress_percentage}% funded</p>
+                                <p className="text-right mt-1 text-[#374151]">{project.progress_percentage}% funded</p>
                             </div>
                             <div className="grid grid-cols-3 gap-2">
-                                <div className="bg-[#48A6A7] p-2 rounded-lg text-center text-white">
+                                <div className="bg-[#2563eb] p-2 rounded-lg text-center text-white">
                                     <p className="text-sm">Raised</p>
                                     <p className="font-bold">${project.total_donations}</p>
                                 </div>
-                                <div className="bg-[#9ACBD0] p-2 rounded-lg text-center text-[#1e1e1e]">
+                                <div className="bg-[#bfdbfe] p-2 rounded-lg text-center text-[#374151]">
                                     <p className="text-sm">Remaining</p>
                                     <p className="font-bold">${project.remaining_amount}</p>
                                 </div>
-                                <div className="bg-[#006A71] p-2 rounded-lg text-center text-white">
+                                <div className="bg-[#2563eb] p-2 rounded-lg text-center text-white">
                                     <p className="text-sm">Target</p>
                                     <p className="font-bold">${project.total_target}</p>
                                 </div>
@@ -481,7 +484,7 @@ const ProjectDetails = () => {
 
                     <div className="flex flex-wrap gap-2 mb-6">
                         {project.tags.map(tag => (
-                            <span key={tag.id} className="bg-[#9ACBD0] text-[#1e1e1e] text-sm font-semibold px-3 py-1 rounded-full">
+                            <span key={tag.id} className="bg-[#bfdbfe] text-[#374151] text-sm font-semibold px-3 py-1 rounded-full">
                                 {tag.name}
                             </span>
                         ))}
@@ -489,19 +492,19 @@ const ProjectDetails = () => {
 
                     <div className="mb-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-[#006A71]">Rate this Campaign</h2>
-                            <div className="flex items-center space-x-2 bg-[#F2EFE7] px-4 py-2 rounded-full border border-[#9ACBD0]">
-                                <span className="text-[#006A71] font-semibold">Average Rating:</span>
+                            <h2 className="text-xl font-bold text-[#2563eb]">Rate this Campaign</h2>
+                            <div className="flex items-center space-x-2 bg-[#eff6ff] px-4 py-2 rounded-full border border-[#bfdbfe]">
+                                <span className="text-[#2563eb] font-semibold">Average Rating:</span>
                                 <div className="flex items-center">
                                     <span className="text-amber-500 text-xl mr-1">★</span>
-                                    <span className="text-[#1e1e1e] font-bold">{averageRating ? averageRating.toFixed(1) : '0.0'}</span>
+                                    <span className="text-[#374151] font-bold">{averageRating ? averageRating.toFixed(1) : '0.0'}</span>
                                     {!averageRating && <span className="text-gray-500 text-sm ml-1">(No ratings yet)</span>}
                                 </div>
                             </div>
                         </div>
                         {ratingLoading ? (
                             <div className="flex justify-center">
-                                <FaSpinner className="animate-spin text-[#006A71] text-2xl" />
+                                <FaSpinner className="animate-spin text-[#2563eb] text-2xl" />
                             </div>
                         ) : (
                             <div className="flex items-center space-x-2 mb-3">
@@ -538,7 +541,7 @@ const ProjectDetails = () => {
                                     </label>
                                 ))}
                                 {(previousRating || userRating) > 0 && (
-                                    <span className="text-[#006A71] text-lg font-semibold">
+                                    <span className="text-[#2563eb] text-lg font-semibold">
                                         {previousRating || userRating}
                                     </span>
                                 )}
@@ -546,8 +549,8 @@ const ProjectDetails = () => {
                         )}
                         {previousRating === null && !ratingLoading && (
                             <button
-                                onClick={() => handleRatingSubmit(userRating)}
-                                className={`w-full p-2 rounded-lg ${!userRating ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#48A6A7] hover:bg-[#006A71] text-white'
+                                onClick={() => handleAuthAction(() => handleRatingSubmit(userRating))}
+                                className={`w-full p-2 rounded-lg ${!userRating ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2563eb] hover:bg-[#3b82f6] text-white'
                                     } transition duration-200`}
                                 disabled={!userRating}
                             >
@@ -557,11 +560,11 @@ const ProjectDetails = () => {
                     </div>
 
                     <div className="mb-8">
-                        <h2 className="text-xl font-bold text-[#006A71] mb-4">Recent Donations</h2>
+                        <h2 className="text-xl font-bold text-[#2563eb] mb-4">Recent Donations</h2>
                         {project.donations.length > 0 ? (
                             <div className="space-y-3">
                                 {project.donations.slice(0, 5).map(donation => (
-                                    <div key={donation.id} className="flex items-center justify-between p-3 bg-[#F2EFE7] rounded-lg border border-[#9ACBD0]">
+                                    <div key={donation.id} className="flex items-center justify-between p-3 bg-[#eff6ff] rounded-lg border border-[#bfdbfe]">
                                         <div className="flex items-center">
                                             {donation.user_avatar && (
                                                 <img
@@ -571,18 +574,18 @@ const ProjectDetails = () => {
                                                 />
                                             )}
                                             <div>
-                                                <p className="font-medium text-[#1e1e1e]">{donation.user}</p>
-                                                <p className="text-xs text-[#1e1e1e]">
+                                                <p className="font-medium text-[#374151]">{donation.user}</p>
+                                                <p className="text-xs text-[#374151]">
                                                     {new Date(donation.date).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="font-bold text-[#006A71]">${donation.amount}</span>
+                                        <span className="font-bold text-[#2563eb]">${donation.amount}</span>
                                     </div>
                                 ))}
                                 {project.donations.length > 5 && (
                                     <button
-                                        className="text-[#006A71] hover:text-[#48A6A7] text-sm"
+                                        className="bg-[#2563eb] hover:bg-[#3b82f6] text-sm"
                                         onClick={() => navigate(`/projects/${id}/donations`)}
                                     >
                                         View all {project.donations.length} donations →
@@ -590,18 +593,18 @@ const ProjectDetails = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="text-center py-4 bg-[#F2EFE7] rounded-lg border border-[#9ACBD0]">
-                                <p className="text-[#1e1e1e]">No donations yet. Be the first to support this Campaign!</p>
+                            <div className="text-center py-4 bg-[#eff6ff] rounded-lg border border-[#bfdbfe]">
+                                <p className="text-[#374151]">No donations yet. Be the first to support this Campaign!</p>
                             </div>
                         )}
                     </div>
 
                     <div className="flex flex-wrap justify-center gap-4 mb-8 relative">
                         <button
-                            onClick={() => navigate(`/projects/${id}/donate`)}
+                            onClick={() => handleAuthAction(handleDonate)}
                             className={`flex items-center px-6 py-3 rounded-lg ${project.total_donations >= project.total_target
                                 ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-[#48A6A7] hover:bg-[#006A71] text-white'
+                                : 'bg-[#2563eb] hover:bg-[#3b82f6] text-white'
                                 } transition duration-200`}
                             disabled={project.total_donations >= project.total_target}
                         >
@@ -609,9 +612,8 @@ const ProjectDetails = () => {
                             {project.total_donations >= project.total_target ? 'Target Reached' : 'Donate Now'}
                         </button>
 
-
                         <button
-                            onClick={() => openReportModal('project', project.id)}
+                            onClick={() => handleAuthAction(() => openReportModal('project', project.id))}
                             className="flex items-center px-6 py-3 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition duration-200"
                         >
                             <FaFlag className="mr-2" />
@@ -620,8 +622,8 @@ const ProjectDetails = () => {
 
                         <div ref={shareButtonRef} className="relative">
                             <button
-                                onClick={handleShare}
-                                className="flex items-center px-6 py-3 rounded-lg bg-[#006A71] hover:bg-[#48A6A7] text-white transition duration-200"
+                                onClick={() => handleAuthAction(handleShare)}
+                                className="flex items-center px-6 py-3 rounded-lg bg-[#2563eb] hover:bg-[#3b82f6] text-white transition duration-200"
                             >
                                 <FaShareAlt className="mr-2" />
                                 Share
@@ -629,7 +631,7 @@ const ProjectDetails = () => {
                             <AnimatePresence>
                                 {showShareDropdown && (
                                     <motion.div
-                                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[#9ACBD0] z-50"
+                                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-[#bfdbfe] z-50"
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
@@ -643,7 +645,7 @@ const ProjectDetails = () => {
                                                         openShareWindow(platform, url);
                                                         setShowShareDropdown(false);
                                                     }}
-                                                    className="flex w-full text-left items-center px-4 py-2 text-[#006A71] hover:bg-[#F2EFE7] transition duration-200"
+                                                    className="flex w-full text-left items-center px-4 py-2 text-[#2563eb] hover:bg-[#eff6ff] transition duration-200"
                                                     aria-label={`Share on ${platform}`}
                                                 >
                                                     <span className="mr-2">{icon}</span>
@@ -655,27 +657,24 @@ const ProjectDetails = () => {
                                 )}
                             </AnimatePresence>
                         </div>
-
                     </div>
 
-
-
-                    <div className="border-t border-[#9ACBD0] pt-6">
-                        <h2 className="text-xl font-bold text-[#006A71] mb-4 flex items-center">
+                    <div className="border-t border-[#bfdbfe] pt-6">
+                        <h2 className="text-xl font-bold text-[#2563eb] mb-4 flex items-center">
                             <FaComment className="mr-2" />
                             Comments ({comments.length})
                         </h2>
 
                         {commentsLoading && (
                             <div className="flex justify-center">
-                                <FaSpinner className="animate-spin text-[#006A71] text-2xl" />
+                                <FaSpinner className="animate-spin text-[#2563eb] text-2xl" />
                             </div>
                         )}
                         {commentsError && <p className="text-red-500">{commentsError}</p>}
 
                         <div className="mb-6">
                             <textarea
-                                className="w-full border border-[#9ACBD0] rounded-lg p-3 focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e]"
+                                className="w-full border border-[#bfdbfe] rounded-lg p-3 focus:ring-2 focus:ring-[#2563eb] text-[#374151]"
                                 rows="4"
                                 placeholder="Share your thoughts about this Campaign..."
                                 value={newCommentText}
@@ -683,8 +682,8 @@ const ProjectDetails = () => {
                             />
                             <div className="flex justify-end mt-2">
                                 <button
-                                    className="bg-[#48A6A7] text-white px-4 py-2 rounded-lg hover:bg-[#006A71] transition duration-200"
-                                    onClick={() => postComment(null)}
+                                    className="bg-[#2563eb] hover:bg-[#3b82f6] text-white px-4 py-2 rounded-lg  transition duration-200"
+                                    onClick={() => handleAuthAction(postComment)}
                                 >
                                     Post Comment
                                 </button>
@@ -693,8 +692,8 @@ const ProjectDetails = () => {
 
                         <div className="space-y-4">
                             {comments.length === 0 && !commentsLoading && (
-                                <div className="text-center py-6 bg-[#F2EFE7] rounded-lg border border-[#9ACBD0]">
-                                    <p className="text-[#1e1e1e]">No comments yet. Be the first to comment!</p>
+                                <div className="text-center py-6 bg-[#eff6ff] rounded-lg border border-[#bfdbfe]">
+                                    <p className="text-[#374151]">No comments yet. Be the first to comment!</p>
                                 </div>
                             )}
                             {renderComments(comments)}
@@ -705,23 +704,23 @@ const ProjectDetails = () => {
                 {showReportModal && (
                     <div className="fixed inset-0 bg-gray-800 bg-opacity-40 backdrop-blur-md flex justify-center items-center z-50">
                         <motion.div
-                            className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md border border-[#9ACBD0]"
+                            className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md border border-[#bfdbfe]"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.2 }}
                         >
-                            <h2 className="text-xl font-bold mb-4 text-[#006A71] flex items-center">
+                            <h2 className="text-xl font-bold mb-4 text-[#2563eb] flex items-center">
                                 <FaFlag className="mr-2" />
                                 Report {reportType === 'project' ? 'Campaign' : 'Comment'}
                             </h2>
 
-                            <p className="mb-4 text-[#1e1e1e]">
+                            <p className="mb-4 text-[#374151]">
                                 Please explain why you're reporting this {reportType}. Your report will be reviewed by our team.
                             </p>
 
                             <textarea
-                                className="w-full h-32 border border-[#9ACBD0] rounded-lg p-3 mb-4 focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e]"
+                                className="w-full h-32 border border-[#bfdbfe] rounded-lg p-3 mb-4 focus:ring-2 focus:ring-[#2563eb] text-[#374151]"
                                 placeholder="Enter your reason for reporting..."
                                 value={reportReason}
                                 onChange={(e) => setReportReason(e.target.value)}
@@ -729,7 +728,7 @@ const ProjectDetails = () => {
 
                             <div className="flex justify-end space-x-3">
                                 <button
-                                    className="px-4 py-2 rounded-lg border border-[#9ACBD0] text-[#1e1e1e] hover:bg-[#F2EFE7] transition duration-200"
+                                    className="px-4 py-2 rounded-lg border border-[#bfdbfe] text-[#374151] hover:bg-[#eff6ff] transition duration-200"
                                     onClick={() => setShowReportModal(false)}
                                 >
                                     Cancel
@@ -747,17 +746,19 @@ const ProjectDetails = () => {
                     </div>
                 )}
 
+                {showAuthPopup && <AuthPopup onConfirm={() => navigate('/register')} onCancel={() => setShowAuthPopup(false)} />}
+
                 <div className="p-6 sm:p-8">
                     <div className="mb-8">
-                        <h2 className="text-xl font-bold text-[#006A71] mb-4">Similar Campaigns</h2>
+                        <h2 className="text-xl font-bold text-[#2563eb] mb-4">Similar Campaigns</h2>
                         {similarLoading && (
                             <div className="flex justify-center">
-                                <FaSpinner className="animate-spin text-[#006A71] text-2xl" />
+                                <FaSpinner className="animate-spin text-[#2563eb] text-2xl" />
                             </div>
                         )}
                         {similarError && <p className="text-red-500">{similarError}</p>}
                         {!similarLoading && similarProjects.length === 0 && (
-                            <p className="text-[#1e1e1e]">No similar Campaigns found.</p>
+                            <p className="text-[#374151]">No similar Campaigns found.</p>
                         )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {similarProjects.map(similar => {
@@ -768,7 +769,7 @@ const ProjectDetails = () => {
                                     <Link
                                         key={similar.id}
                                         to={`/projects/${similar.id}`}
-                                        className="border border-[#9ACBD0] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition duration-200"
+                                        className="border border-[#bfdbfe] rounded-lg overflow-hidden shadow-sm hover:shadow-md transition duration-200"
                                     >
                                         {imageUrl ? (
                                             <img
@@ -777,18 +778,18 @@ const ProjectDetails = () => {
                                                 className="w-full h-40 object-cover"
                                             />
                                         ) : (
-                                            <div className="w-full h-40 bg-[#9ACBD0] flex items-center justify-center text-[#1e1e1e]">
+                                            <div className="w-full h-40 bg-[#bfdbfe] flex items-center justify-center text-[#374151]">
                                                 No Image
                                             </div>
                                         )}
                                         <div className="p-4">
-                                            <h3 className="text-lg font-semibold text-[#006A71] mb-1">{similar.title}</h3>
-                                            <p className="text-sm text-[#1e1e1e] line-clamp-2">{similar.details}</p>
+                                            <h3 className="text-lg font-semibold text-[#2563eb] mb-1">{similar.title}</h3>
+                                            <p className="text-sm text-[#374151] line-clamp-2">{similar.details}</p>
                                             <div className="mt-2 flex justify-between items-center">
-                                                <span className="text-xs text-[#1e1e1e]">
+                                                <span className="text-xs text-[#374151]">
                                                     {similar.progress_percentage}% funded
                                                 </span>
-                                                <span className="text-xs font-medium text-[#006A71]">
+                                                <span className="text-xs font-medium text-[#2563eb]">
                                                     ${similar.total_donations} raised
                                                 </span>
                                             </div>

@@ -1,22 +1,21 @@
 @import "tailwindcss";
 
 body {
-    background-color: #F2EFE7;
+    background-color: #eff6ff;
 }
 
 .primary {
     /* background-color: #006A71; */
-    color: #006A71;
+    color: #2563eb;
 }
 
 .secondary {
-    background-color: #48A6A7;
+    background-color: #3b82f6;
 }
 
 .accent {
-    background-color: "#9ACBD0";
+    background-color: #bfdbfe;
 }
 
 .background {
-    background-color: "#F2EFE7"
-}
+    background-color: #eff6ff}
