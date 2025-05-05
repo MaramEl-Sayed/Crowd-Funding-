@@ -22,9 +22,8 @@ import FinishedProjects from './pages/Home/FinishedProjects';
 function App() {
   return (
     <BrowserRouter>
-      <div className={styles.appContainer}>
         <Navbar />
-        <main className={styles.mainContent}>
+        <main >
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -47,7 +46,6 @@ function App() {
         </main>
         <Footer />
         <ToastContainer position="bottom-right" />
-      </div>
     </BrowserRouter>
   );
 }
