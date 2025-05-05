@@ -33,7 +33,7 @@ function App() {
             <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
             <Route path="/activate/:uidb64/:token" element={<Activate />} />
             <Route path="/campaigns" element={<Projects />} />
-            <Route path="/finished" element={<FinishedProjects />} />
+            <Route path="/finished-campaigns" element={<FinishedProjects />} />
             <Route path="/projects/:id" element={<ProjectDetails />} />
             <Route path="/create-campaign" element={<CreateProject />} />
             <Route path="/projects/:id/update" element={<ProjectUpdate />} />

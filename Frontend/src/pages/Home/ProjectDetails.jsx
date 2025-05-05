@@ -151,6 +151,7 @@ const ProjectDetails = () => {
             }
         } catch (err) {
             // If user is not authenticated or rating doesn't exist, reset the states
+            console.log('rrrr', err)
             if (err.response?.status === 404 || err.response?.status === 401) {
                 setPreviousRating(null);
                 setUserRating(0);
@@ -199,13 +200,13 @@ const ProjectDetails = () => {
         }
     }, [id]);
 
- 
+
     // Toggle dropdown
     const handleShare = () => {
         setShowShareDropdown(prev => !prev);
     };
 
-   // Close dropdown if clicked outside
+    // Close dropdown if clicked outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (shareButtonRef.current && !shareButtonRef.current.contains(event.target)) {
@@ -219,7 +220,7 @@ const ProjectDetails = () => {
     }, []);
 
 
-  
+
 
     const postComment = async (parentId = null) => {
         if ((parentId === null && !newCommentText.trim()) || (parentId !== null && !replyText.trim())) {
@@ -467,7 +468,7 @@ const ProjectDetails = () => {
                                 <p className="text-[#1e1e1e]"><span className="font-medium">Target:</span> ${project.total_target}</p>
                                 <p className="text-[#1e1e1e]"><span className="font-medium">Start Date:</span> {new Date(project.start_time).toLocaleDateString()}</p>
                                 <p className="text-[#1e1e1e]"><span className="font-medium">End Date:</span> {new Date(project.end_time).toLocaleDateString()}</p>
-                                <p className="text-[#1e1e1e]"><span className="font-medium">Status:</span> {project.is_active ? 'Active' : 'Inactive'}</p>
+                                <p className="text-[#1e1e1e]"><span className="font-medium">Status:</span> {project.status}</p>
                             </div>
                         </div>
 

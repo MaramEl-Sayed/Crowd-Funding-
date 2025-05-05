@@ -176,10 +176,10 @@ const Home = () => {
                 />
             </svg>
             <h3 className="text-xl font-medium mb-2" style={{ color: colors.textDark }}>
-                No {sectionName} Campaigns available
+                No {sectionName} campaigns available
             </h3>
             <p className="text-gray-600">
-                Check back later for new {sectionName.toLowerCase()} Campaigns
+                Check back later for new {sectionName.toLowerCase()} campaigns
             </p>
         </div>
     );

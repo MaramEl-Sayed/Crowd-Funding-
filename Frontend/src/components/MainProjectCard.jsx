@@ -3,7 +3,6 @@ import DescriptionSection from "./DescriptionSection";
 import { FaStar, FaFolder } from 'react-icons/fa';
 import { motion } from "framer-motion";
 
-// Animation variants
 const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -57,10 +56,7 @@ const MainProjectCard = ({ project }) => {
             <Link to={`/projects/${project.id}`} className="block hover:opacity-90">
                 <motion.div
                     className="relative h-48 bg-[#9ACBD0] overflow-hidden"
-                    whileHover={{
-                        scale: 1.05,
-                        transition: { duration: 0.3 }
-                    }}
+
                 >
                     {project.images && project.images.length > 0 ? (
                         <motion.img
@@ -68,7 +64,10 @@ const MainProjectCard = ({ project }) => {
                             alt={project.title}
                             className="w-full h-full object-cover"
                             initial={{ opacity: 0.9 }}
-                            whileHover={{ opacity: 1 }}
+                            whileHover={{
+                                opacity: 1, scale: 1.05,
+                                transition: { duration: 0.3 }
+                            }}
                             transition={{ duration: 0.3 }}
                         />
                     ) : (

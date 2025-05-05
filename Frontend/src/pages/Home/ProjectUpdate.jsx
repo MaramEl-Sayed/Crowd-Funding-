@@ -46,7 +46,7 @@ const ProjectUpdate = () => {
             setFormData({
                 title: project.title,
                 details: project.details,
-                category: project.category,
+                category: typeof project.category === 'object' ? project.category.id : project.category,
                 total_target: project.total_target,
                 start_time: formatDateForInput(project.start_time),
                 end_time: formatDateForInput(project.end_time),
@@ -222,7 +222,9 @@ const ProjectUpdate = () => {
                             >
                                 <option value="">Select a category</option>
                                 {categories.map(category => (
-                                    <option key={category.id} value={category.id}>{category.name}</option>
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -404,8 +406,6 @@ const ProjectUpdate = () => {
                                 </select>
                             </div>
                         </div>
-
-
 
                         <button
                             type="submit"

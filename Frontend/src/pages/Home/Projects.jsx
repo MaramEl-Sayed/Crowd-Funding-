@@ -3,10 +3,8 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaPlus, FaSearch, FaFolder, FaSpinner } from 'react-icons/fa';
 import MainProjectCard from '../../components/MainProjectCard';
-
-
-
-
+import AuthPopup from '../../components/AuthPopup';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -16,8 +14,10 @@ const Projects = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const navigate = useNavigate();
+  const [showPopup, setShowPopup] = useState(false);
 
+  const navigate = useNavigate();
+  const token = localStorage.getItem('accessToken');
   useEffect(() => {
     const fetchProjectsAndCategories = async () => {
       try {
@@ -81,14 +81,40 @@ const Projects = () => {
     </div>
   );
 
+
+  const handleStartCampaign = () => {
+    if (token) {
+      navigate("/create-campaign");
+    } else {
+      setShowPopup(true);
+    }
+  };
+  const handleConfirm = () => {
+    setShowPopup(false);
+    navigate("/register");
+  };
+
+  const handleCancel = () => {
+    setShowPopup(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#F2EFE7] py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+
+          <AnimatePresence>
+            {showPopup && (
+              <AuthPopup
+                onConfirm={handleConfirm}
+                onCancel={handleCancel}
+              />
+            )}
+          </AnimatePresence>
           <h1 className="text-3xl font-bold text-[#006A71]">Explore Campaigns</h1>
 
           <button
-            onClick={() => navigate('/create-campaign')}
+            onClick={handleStartCampaign}
             className="flex items-center gap-2 bg-[#006A71] hover:bg-[#04828c] text-white px-6 py-3 rounded-lg transition duration-200 shadow-md"
           >
             <FaPlus />

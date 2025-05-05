@@ -1,14 +1,36 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaHeart, FaLock, FaShieldAlt } from 'react-icons/fa';
 import { MdEmail, MdPhone, MdLocationOn } from 'react-icons/md';
 
 const Footer = () => {
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get('http://localhost:8000/api/projects/categories/');
+                setCategories(response.data);
+            } catch (err) {
+                setError('Failed to load categories');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCategories();
+    }, []);
+
     return (
         <footer className="bg-[#006A71] text-[#FFFFFF] mt-16">
             <div className="max-w-7xl mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
                     <div className="space-y-4">
-                        <h3 className="text-xl font-bold">Athr</h3>
+                        <h3 className="text-xl font-bold"><span className="text-[#00C897]">Athr</span></h3>
                         <p className="text-sm">
                             Empowering communities through collective giving. Join us in making a difference one donation at a time.
                         </p>
@@ -25,9 +47,9 @@ const Footer = () => {
                         <h3 className="text-lg font-semibold">Quick Links</h3>
                         <ul className="space-y-2">
                             <li><a href="/home" className="hover:text-[#00C897] transition">Home</a></li>
-                            <li><a href="/search" className="hover:text-[#00C897] transition">Browse Campaigns</a></li>
-                            <li><a href="/donate" className="hover:text-[#00C897] transition">Donate</a></li>
-                            <li><a href="/fundraise" className="hover:text-[#00C897] transition">Start a Campaign</a></li>
+                            <li><a href="/campaigns" className="hover:text-[#00C897] transition">Browse Campaigns</a></li>
+                            <li><a href="/campaigns" className="hover:text-[#00C897] transition">Donate</a></li>
+                            <li><a href="/create-campaign" className="hover:text-[#00C897] transition">Start a Campaign</a></li>
                             <li><a href="/about" className="hover:text-[#00C897] transition">About Us</a></li>
                         </ul>
                     </div>
@@ -35,13 +57,19 @@ const Footer = () => {
                     {/* Campaign Categories */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold">Campaign Categories</h3>
-                        <ul className="space-y-2">
-                            <li><a href="/category/health" className="hover:text-[#00C897] transition">Health & Medical</a></li>
-                            <li><a href="/category/education" className="hover:text-[#00C897] transition">Education</a></li>
-                            <li><a href="/category/emergency" className="hover:text-[#00C897] transition">Emergency Relief</a></li>
-                            <li><a href="/category/animals" className="hover:text-[#00C897] transition">Animals</a></li>
-                            <li><a href="/category/community" className="hover:text-[#00C897] transition">Community</a></li>
-                        </ul>
+                        {loading && <p>Loading categories...</p>}
+                        {error && <p>{error}</p>}
+                        {!loading && !error && (
+                            <ul className="space-y-2">
+                                {categories.map((category) => (
+                                    <li key={category.id}>
+                                        <a href={`/categories/${category.id}`} className="hover:text-[#00C897] transition">
+                                            {category.name}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
 
                     {/* Contact & Security */}
