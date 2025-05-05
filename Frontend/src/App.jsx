@@ -9,7 +9,6 @@ import ResetPassword from './pages/ResetPassword/ResetPassword';
 import Home from './pages/Home/Home';
 import Activate from './pages/Activate/Activate';
 import Profile from './pages/Profile/Profile';
-import styles from './App.module.css';
 import ProjectDetails from './pages/Home/ProjectDetails';
 import CreateProject from './pages/Home/CreateProject';
 import ProjectUpdate from './pages/Home/ProjectUpdate';
