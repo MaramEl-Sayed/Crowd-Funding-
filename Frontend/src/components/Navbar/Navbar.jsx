@@ -95,14 +95,14 @@ const Navbar = () => {
         </div>
 
         {/* Center Logo */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:transform-none lg:mx-auto">
+        <div className="absolute right-4 lg:static lg:ml-auto">
         <NavLink
   to="/home"
   className="flex items-center space-x-2 text-xl sm:text-2xl font-bold tracking-wide text-[#2563eb]"
 >
 
             <img
-              src="Preview (2).png"
+              src="logo.png"
               alt="Athr_Logo"
               className="h-6 w-6 sm:h-8 sm:w-8 object-contain rounded-full"
             />
