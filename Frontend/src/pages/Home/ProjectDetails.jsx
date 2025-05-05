@@ -384,27 +384,6 @@ const ProjectDetails = () => {
         ));
     };
 
-    const handleCancelProject = async () => {
-        const result = await Alert.confirm(
-            'Are you sure?',
-            'Do you really want to cancel this Campaign?',
-            'Yes, cancel it!'
-        );
-
-        if (result.isConfirmed) {
-            try {
-                await axios.post(`http://127.0.0.1:8000/api/projects/projects/${id}/cancel/`, {}, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-                    },
-                });
-                Alert.success('Cancelled!', 'Your Campaign has been cancelled.');
-                navigate('/home');
-            } catch (err) {
-                Alert.error('Error!', err.response?.data?.detail || 'Failed to cancel campaign.');
-            }
-        }
-    };
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7]">
@@ -630,21 +609,6 @@ const ProjectDetails = () => {
                             {project.total_donations >= project.total_target ? 'Target Reached' : 'Donate Now'}
                         </button>
 
-                        <button
-                            onClick={() => navigate(`/projects/${id}/update`)}
-                            className="flex items-center px-6 py-3 rounded-lg bg-[#9ACBD0] hover:bg-[#48A6A7] text-[#1e1e1e] transition duration-200"
-                        >
-                            <FaEdit className="mr-2" />
-                            Update Campaign
-                        </button>
-
-                        <button
-                            onClick={handleCancelProject}
-                            className="flex items-center px-6 py-3 rounded-lg bg-red-500 hover:bg-red-600 text-white transition duration-200"
-                        >
-                            <FaTimes className="mr-2" />
-                            Cancel Campaign
-                        </button>
 
                         <button
                             onClick={() => openReportModal('project', project.id)}

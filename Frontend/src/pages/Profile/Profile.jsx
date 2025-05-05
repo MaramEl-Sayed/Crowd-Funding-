@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../../api/auth';
+import Alert from '../../alert/Alert';
 import { FaLock, FaBars, FaUser, FaCog, FaSignOutAlt, FaTimes, FaPencilAlt, FaChevronDown } from 'react-icons/fa';
 
 const Profile = () => {
@@ -623,13 +624,93 @@ const Profile = () => {
                           <p className="text-[#1e1e1e] text-xs sm:text-sm">Raised: ${project.total_donations}</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => openDeleteProjectModal(project)}
-                        className="bg-[#d32f2f] hover:bg-[#b71c1c] text-[#ffffff] text-xs sm:text-sm font-semibold px-3 py-1 rounded-lg transition duration-300 flex items-center gap-1 self-start sm:self-center"
-                      >
-                        <span>Delete</span>
-                        <span>🗑️</span>
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => navigate(`/projects/${project.id}/update`)}
+                          className="bg-[#9ACBD0] hover:bg-[#48A6A7] text-[#1e1e1e] text-xs sm:text-sm font-semibold px-3 py-1 rounded-lg transition duration-300 flex items-center gap-1 self-start sm:self-center"
+                        >
+                          <span>Update</span>
+                          <span>✏️</span>
+                        </button>
+                        <button
+                          onClick={async () => {
+                            const result = await Alert.confirm(
+                              'Are you sure?',
+                              'Do you really want to cancel this Campaign?',
+                              'Yes, cancel it!'
+                            );
+                            if (result.isConfirmed) {
+                              try {
+                                const token = localStorage.getItem('accessToken');
+                                if (!token) throw new Error('No access token found');
+                                const response = await fetch(`http://127.0.0.1:8000/api/projects/projects/${project.id}/cancel/`, {
+                                  method: 'POST',
+                                  headers: {
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                });
+                                if (!response.ok) throw new Error('Failed to cancel campaign');
+                                Alert.success('Cancelled!', 'Your Campaign has been cancelled.');
+                                // Refresh projects list after cancellation
+                                const projectsResponse = await fetch('http://localhost:8000/api/projects/projects/', {
+                                  headers: {
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                });
+                                if (projectsResponse.ok) {
+                                  const projectsData = await projectsResponse.json();
+                                  setProjects(projectsData);
+                                }
+                              } catch (err) {
+                                Alert.error('Error!', err.message || 'Failed to cancel campaign.');
+                              }
+                            }
+                          }}
+                          className="bg-gray-500 hover:bg-gray-600 text-white text-xs sm:text-sm font-semibold px-3 py-1 rounded-lg transition duration-300 flex items-center gap-1 self-start sm:self-center"
+                        >
+                          <span>Cancel</span>
+                          <span>❌</span>
+                        </button>
+                        <button
+                          onClick={async () => {
+                            const result = await Alert.confirm(
+                              'Are you sure?',
+                              'Do you really want to delete this Campaign?',
+                              'Yes, delete it!'
+                            );
+                            if (result.isConfirmed) {
+                              try {
+                                const token = localStorage.getItem('accessToken');
+                                if (!token) throw new Error('No access token found');
+                                const response = await fetch(`http://localhost:8000/api/projects/projects/${project.id}/`, {
+                                  method: 'DELETE',
+                                  headers: {
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                });
+                                if (!response.ok) throw new Error('Failed to delete campaign');
+                                Alert.success('Deleted!', 'Your Campaign has been deleted.');
+                                // Refresh projects list after deletion
+                                const projectsResponse = await fetch('http://localhost:8000/api/projects/projects/', {
+                                  headers: {
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                });
+                                if (projectsResponse.ok) {
+                                  const projectsData = await projectsResponse.json();
+                                  setProjects(projectsData);
+                                }
+                              } catch (err) {
+                                Alert.error('Error!', err.message || 'Failed to delete campaign.');
+                              }
+                            }
+                          }}
+                          className="bg-[#d32f2f] hover:bg-[#b71c1c] text-[#ffffff] text-xs sm:text-sm font-semibold px-3 py-1 rounded-lg transition duration-300 flex items-center gap-1 self-start sm:self-center"
+                        >
+                          <span>Delete</span>
+                          <span>🗑️</span>
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
