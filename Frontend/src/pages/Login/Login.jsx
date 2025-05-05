@@ -184,7 +184,7 @@ const Login = () => {
                       className=" p-1.5 h-10 bg-white border border-[#bfdbfe] rounded-lg hover:bg-[#bfdbfe] transition duration-300 text-[#2563eb] font-semibold text-sm sm:text-base flex items-center justify-center gap-2"
                     >
                       <FaFacebookF className="w-5 h-5 text-[#2563eb]" />
-                      Continue with Facebook
+                      Sign in with Facebook
                     </button>
 
                     <GoogleOAuthProvider clientId="75773251008-89sei1vuligu58shbmup4f5ttqq097o5.apps.googleusercontent.com">

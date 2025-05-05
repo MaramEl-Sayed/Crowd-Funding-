@@ -2,11 +2,16 @@ import { FaExclamationCircle, FaArrowRight } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const AuthPopup = ({ onConfirm, onCancel }) => {
-    const COLORS = {
-        primary: '#006A71',
-        accent: '#9ACBD0',
-        textDark: '#1e1e1e',
-    };
+    const Colors = {
+        primary: "#2563eb",        // main buttons, links, key highlights
+        secondary: "#3b82f6",      // hover states, secondary buttons
+        accent: "#bfdbfe",         // subtle highlights, badges, or backgrounds
+        backgroundStart: "#eff6ff",// main page background
+        backgroundEnd: "#eff6ff",  // gradients, footers
+        "text-dark": "#374151",    // default body text
+        "text-light": "#ffffff"    // text on dark/primary backgrounds
+      };
+      
 
     return (
         <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
