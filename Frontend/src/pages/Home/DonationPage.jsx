@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Alert from '../../alert/Alert';
-import { FaDonate, FaSpinner, FaArrowLeft } from 'react-icons/fa';
+import { FaDonate, FaSpinner, FaArrowLeft,FaPoundSign } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const DonationPage = () => {
@@ -108,7 +108,7 @@ const DonationPage = () => {
 
                         <form onSubmit={handleDonation} className="space-y-6">
                             <div className="relative">
-                                <label className="block text-[#374151] font-medium mb-2">Donation Amount ($)</label>
+<label className="block text-[#374151] font-medium mb-2">Donation Amount <FaPoundSign className="inline mb-1" /></label>
                                 <input
                                     type="number"
                                     name="amount"
@@ -124,20 +124,21 @@ const DonationPage = () => {
                             </div>
 
                             <div className="grid grid-cols-3 gap-2 mb-4">
-                                {[10, 25, 50, 100, 250, 500].map((value) => (
-                                    <motion.button
-                                        key={value}
-                                        type="button"
-                                        onClick={() => setAmount(value.toString())}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className={`py-2 rounded-lg border ${amount === value.toString()
-                                            ? 'bg-[#2563eb] text-white border-[#2563eb]'
-                                            : 'bg-white text-[#2563eb] border-[#bfdbfe] hover:bg-[#eff6ff]'}`}
-                                    >
-                                        ${value}
-                                    </motion.button>
-                                ))}
+{[10, 25, 50, 100, 250, 500].map((value) => (
+    <motion.button
+        key={value}
+        type="button"
+        onClick={() => setAmount(value.toString())}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className={`py-2 rounded-lg border ${amount === value.toString()
+            ? 'bg-[#2563eb] text-white border-[#2563eb]'
+            : 'bg-white text-[#2563eb] border-[#bfdbfe] hover:bg-[#eff6ff]'}`}
+    >
+        <FaPoundSign className="inline mb-1 mr-1" />
+        {value}
+    </motion.button>
+))}
                             </div>
 
                             <motion.button

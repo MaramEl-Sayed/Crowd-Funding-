@@ -212,7 +212,7 @@ const Categories = () => {
                             alt={project.title}
                             className="w-full h-48 object-cover rounded-t-lg"
                           />
-                          <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-sm px-2 py-1 rounded">
+                          <div className="absolute bottom-2 left-2 bg-white bg-opacity-50 text-blue-500 text-sm px-2 py-1 rounded">
                             {project.owner}
                           </div>
                         </div>

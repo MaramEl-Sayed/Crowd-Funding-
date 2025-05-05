@@ -585,7 +585,7 @@ const ProjectDetails = () => {
                                 ))}
                                 {project.donations.length > 5 && (
                                     <button
-                                        className="bg-[#2563eb] hover:bg-[#3b82f6] text-sm"
+                                        className="text-[#2563eb] hover:bg-[#3b82f6] text-sm"
                                         onClick={() => navigate(`/projects/${id}/donations`)}
                                     >
                                         View all {project.donations.length} donations →
