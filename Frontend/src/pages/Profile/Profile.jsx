@@ -368,7 +368,7 @@ const Profile = () => {
               />
               <label
                 htmlFor="profilePictureSidebar"
-                className="absolute bottom-0 right-0 bg-[#2563eb] rounded-full p-1 cursor-pointer hover:bg-[#04828c] transition duration-300"
+                className="absolute bottom-0 right-0  bg-blue-600 hover:bg-blue-700 rounded-full p-1 cursor-pointer  transition duration-300"
               >
                 <FaPencilAlt className="w-3 h-3 text-[#ffffff]" />
               </label>
@@ -395,7 +395,7 @@ const Profile = () => {
           <ul className="space-y-2">
             <li>
               <button
-                className="flex items-center gap-3 w-full text-left p-2 hover:bg-[#04828c] rounded-lg"
+                className="flex items-center gap-3 w-full text-left p-2 hover:bg-[#3b82f6] rounded-lg"
               >
                 <FaUser className="w-5 h-5 text-[#3b82f6]" />
                 <span className="text-sm">My Profile</span>
@@ -404,7 +404,7 @@ const Profile = () => {
             <li>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 w-full text-left p-2 hover:bg-[#04828c] rounded-lg"
+                className="flex items-center gap-3 w-full text-left p-2 hover:bg-[#3b82f6] rounded-lg"
               >
                 <FaSignOutAlt className="w-5 h-5 text-[#3b82f6]" />
                 <span className="text-sm">Log Out</span>
@@ -432,7 +432,7 @@ const Profile = () => {
               />
               <label
                 htmlFor="profilePicture"
-                className="absolute bottom-0 right-0 bg-[#2563eb] rounded-full p-0.5 sm:p-1 cursor-pointer hover:bg-[#04828c] transition duration-300"
+                className="absolute bottom-0 right-0 bg-[#2563eb] rounded-full p-0.5 sm:p-1 cursor-pointer hover:bg-[#3b82f6] transition duration-300"
               >
                 <FaPencilAlt className="w-2 h-2 sm:w-3 sm:h-3 text-[#ffffff]" />
               </label>
@@ -517,7 +517,7 @@ const Profile = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-[#2563eb] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
+              className="w-full bg-[#2563eb] hover:bg-[#3b82f6] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
             >
               Save Changes
             </button>
@@ -557,7 +557,7 @@ const Profile = () => {
               {passwordError && <p className="text-[#ef4444] text-xs sm:text-sm">{passwordError}</p>}
               <button
                 type="submit"
-                className="w-full bg-[#2563eb] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
+                className="w-full bg-[#2563eb] hover:bg-[#3b82f6] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
               >
                 Change Password
               </button>
@@ -778,7 +778,7 @@ const Profile = () => {
             <div className="flex flex-col sm:flex-row gap-3 mt-6">
               <button
                 onClick={handleDelete}
-                className="w-full bg-[#2563eb] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
+                className="w-full bg-[#2563eb] hover:bg-[#3b82f6] text-[#ffffff] font-semibold py-2 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
               >
                 Confirm
               </button>
@@ -819,7 +819,7 @@ const Profile = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleDeleteProject}
-                className="w-full bg-[#2563eb] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
+                className="w-full bg-[#2563eb] hover:bg-[#3b82f6] text-[#ffffff] font-semibold py-2 rounded-lg transition duration-300 text-xs sm:text-sm lg:text-base"
               >
                 Confirm
               </button>

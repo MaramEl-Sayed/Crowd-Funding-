@@ -138,7 +138,6 @@ const Login = () => {
                 >
                   {isSubmitting ? 'Logging in...' : 'Login'}
                 </button>
-
                 {/* Social Login Section */}
                 <div className="mt-4">
                   <p className="text-center text-[#1e1e1e] mb-4 text-sm sm:text-base">or use social media account</p>
