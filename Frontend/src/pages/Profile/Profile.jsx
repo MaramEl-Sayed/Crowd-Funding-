@@ -97,21 +97,8 @@ const Profile = () => {
           : '/default-profile-pic.png';
         setProfilePicture(profilePicUrl);
 
-        const tempLoginAttempt = await fetch('http://localhost:8000/api/accounts/login/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: userData.email,
-            password: 'temp@Google'
-          }),
-        });
-        if (tempLoginAttempt.status === 401) {
-          setShowPasswordForm(false);
-        } else {
-          setShowPasswordForm(true);
-        }
+      
+        setShowPasswordForm(false);
       } catch (err) {
         setError('Failed to load user data');
         console.error(err);
@@ -379,7 +366,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-[#F2EFE7] flex flex-col lg:flex-row">
       {/* Sidebar */}
-      <div className={`fixed inset-0 lg:static lg:w-64 bg-[#006A71] text-[#ffffff] flex flex-col z-50 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <div className={`fixed inset-y-0 top-16 lg:static lg:w-64 bg-[#006A71] text-[#ffffff] flex flex-col z-10 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#48A6A7]">
           <div className="flex items-center gap-3">
