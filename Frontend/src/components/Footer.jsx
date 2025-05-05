@@ -8,7 +8,7 @@ const Footer = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
                     <div className="space-y-4">
-                        <h3 className="text-xl font-bold">Crowd<span className="text-[#00C897]">Funding</span></h3>
+                        <h3 className="text-xl font-bold">Athr</h3>
                         <p className="text-sm">
                             Empowering communities through collective giving. Join us in making a difference one donation at a time.
                         </p>
@@ -50,7 +50,7 @@ const Footer = () => {
                         <div className="space-y-2">
                             <div className="flex items-center space-x-2">
                                 <MdEmail className="text-[#00C897]" />
-                                <span>support@crowdfunding.com</span>
+                                <span>crowddunding449@gmail.com</span>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <MdPhone className="text-[#00C897]" />
@@ -93,7 +93,7 @@ const Footer = () => {
                     </div>
 
                     <div className="text-sm mt-4 md:mt-0">
-                        © {new Date().getFullYear()} CrowdFunding. All rights reserved.
+                        © {new Date().getFullYear()} Athr. All rights reserved.
                     </div>
                 </div>
             </div>

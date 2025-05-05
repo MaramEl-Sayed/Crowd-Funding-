@@ -179,8 +179,8 @@ const ProjectUpdate = () => {
         <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7] p-4">
             <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-hidden">
                 <div className="w-full bg-[#006A71] p-6 flex flex-col justify-center items-center text-center">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-2">Update Project</h1>
-                    <p className="text-[#ffffff] text-sm sm:text-base">Edit your project details</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-2">Update Campaign</h1>
+                    <p className="text-[#ffffff] text-sm sm:text-base">Edit your Campaign details</p>
                 </div>
 
                 <div className="p-6 sm:p-8">
@@ -191,10 +191,10 @@ const ProjectUpdate = () => {
                                 name="title"
                                 value={formData.title}
                                 onChange={handleChange}
-                                placeholder="Project Title"
+                                placeholder="Campaign Title"
                                 className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
                                 required
-                                aria-label="Project Title"
+                                aria-label="Campaign Title"
                             />
                         </div>
 
@@ -203,11 +203,11 @@ const ProjectUpdate = () => {
                                 name="details"
                                 value={formData.details}
                                 onChange={handleChange}
-                                placeholder="Project Details"
+                                placeholder="Campaign Details"
                                 rows="4"
                                 className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
                                 required
-                                aria-label="Project Details"
+                                aria-label="Campaign Details"
                             />
                         </div>
 
@@ -218,7 +218,7 @@ const ProjectUpdate = () => {
                                 onChange={handleChange}
                                 className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
                                 required
-                                aria-label="Project Category"
+                                aria-label="Campaign Category"
                             >
                                 <option value="">Select a category</option>
                                 {categories.map(category => (
@@ -273,7 +273,7 @@ const ProjectUpdate = () => {
                                         <div key={image.id} className="relative">
                                             <img
                                                 src={`http://localhost:8000${image.url}`}
-                                                alt={`Existing project image ${index + 1}`}
+                                                alt={`Existing Campaign image ${index + 1}`}
                                                 className="w-full h-32 object-cover rounded-lg border border-[#9ACBD0]"
                                             />
                                             <button
@@ -306,7 +306,7 @@ const ProjectUpdate = () => {
                                         onChange={handleImageChange}
                                         accept="image/*"
                                         multiple
-                                        aria-label="Project Images"
+                                        aria-label="Campaign Images"
                                     />
                                 </label>
                             </div>
@@ -316,7 +316,7 @@ const ProjectUpdate = () => {
                                         <div key={index} className="relative">
                                             <img
                                                 src={preview}
-                                                alt={`New project image ${index + 1}`}
+                                                alt={`New Campaign image ${index + 1}`}
                                                 className="w-full h-32 object-cover rounded-lg border border-[#9ACBD0]"
                                             />
                                             <button
@@ -411,9 +411,9 @@ const ProjectUpdate = () => {
                             type="submit"
                             disabled={loading}
                             className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base flex items-center justify-center"
-                            aria-label="Update Project"
+                            aria-label="Update Campaign"
                         >
-                            {loading ? <FaSpinner className="animate-spin mr-2" /> : 'Update Project'}
+                            {loading ? <FaSpinner className="animate-spin mr-2" /> : 'Update Campaign'}
                         </button>
                     </form>
                 </div>

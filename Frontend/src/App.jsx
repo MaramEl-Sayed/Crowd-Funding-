@@ -13,8 +13,8 @@ import styles from './App.module.css';
 import ProjectDetails from './pages/Home/ProjectDetails';
 import CreateProject from './pages/Home/CreateProject';
 import ProjectUpdate from './pages/Home/ProjectUpdate';
-import TopRatedSlider from './pages/Home/Home';
 import Projects from './pages/Home/Projects';
+import AboutUs from './pages/Home/About.jsx'; 
 import Footer from './components/Footer';
 import DonationPage from './pages/Home/DonationPage';
 import Categories from './pages/Categories/Categories.jsx'
@@ -43,6 +43,7 @@ function App() {
             <Route path="/" element={<Home />} /> {/* Changed from Login to Home */}
             <Route path="/categories" element={<Categories />} />
             <Route path="/categories/:id" element={<CategoryCampaigns />} />
+            <Route path="/about" element={<AboutUs />} />
           </Routes>
         </main>
         <Footer />

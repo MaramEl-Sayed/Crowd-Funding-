@@ -341,15 +341,15 @@ const Profile = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete project');
+        throw new Error(errorData.error || 'Failed to delete Campaign');
       }
 
       setProjects(projects.filter(project => project.id !== projectToDelete.id));
       setIsDeleteProjectModalOpen(false);
       setProjectToDelete(null);
-      alert('Project deleted successfully!');
+      alert('Campaign deleted successfully!');
     } catch (err) {
-      setError(err.message || 'Failed to delete project');
+      setError(err.message || 'Failed to delete Campaign');
       console.error(err);
     }
   };
@@ -600,9 +600,9 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Projects */}
+            {/* Campaigns */}
             <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-6">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#006A71] mb-4">Your Projects</h2>
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#006A71] mb-4">Your Campaigns</h2>
               {projects.length > 0 ? (
                 <ul className="space-y-3">
                   {projects.map(project => (
@@ -634,7 +634,7 @@ const Profile = () => {
                   ))}
                 </ul>
               ) : (
-                <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base">No projects yet.</p>
+                <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base">No Campaigns yet.</p>
               )}
             </div>
 
@@ -787,7 +787,7 @@ const Profile = () => {
         </div>
       )}
 
-      {/* Project Deletion Modal */}
+      {/* Campaign Deletion Modal */}
       {isDeleteProjectModalOpen && projectToDelete && (
         <div className="fixed inset-0 bg-[#F2EFE7] bg-opacity-80 flex items-center justify-center px-4 py-6 z-40">
           <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 w-full max-w-sm sm:max-w-md relative">
@@ -801,9 +801,9 @@ const Profile = () => {
             >
               <FaTimes className="w-5 h-5" />
             </button>
-            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[#006A71] mb-4">Confirm Project Deletion</h3>
+            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[#006A71] mb-4">Confirm campaign Deletion</h3>
             <p className="text-[#1e1e1e] text-xs sm:text-sm lg:text-base mb-4">
-              Are you sure you want to delete the project "{projectToDelete.title}"? This action cannot be undone.
+              Are you sure you want to delete the campaign "{projectToDelete.title}"? This action cannot be undone.
             </p>
             {error && <p className="text-[#ef4444] text-xs sm:text-sm mb-4">{error}</p>}
             <div className="flex flex-col sm:flex-row gap-3">

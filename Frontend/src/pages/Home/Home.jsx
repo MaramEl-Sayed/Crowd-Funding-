@@ -176,10 +176,10 @@ const Home = () => {
                 />
             </svg>
             <h3 className="text-xl font-medium mb-2" style={{ color: colors.textDark }}>
-                No {sectionName} projects available
+                No {sectionName} Campaigns available
             </h3>
             <p className="text-gray-600">
-                Check back later for new {sectionName.toLowerCase()} projects
+                Check back later for new {sectionName.toLowerCase()} Campaigns
             </p>
         </div>
     );
@@ -222,7 +222,7 @@ const Home = () => {
 
                             <h3 className="text-xl font-bold mb-2" style={{ color: colors.primary }}>
                                 <Link to={`/projects/${project.id}`} className="hover:underline">
-                                    {project.title || "Untitled Project"}
+                                    {project.title || "Untitled Campaigns"}
                                 </Link>
                             </h3>
 
@@ -303,14 +303,14 @@ const Home = () => {
 
             {searchResults.length === 0 && (
                 <>
-                    {/* Top Rated Projects Slider */}
+                    {/* Top Rated Campaigns Slider */}
                     <motion.section
                         className="mb-12"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <SectionHeader title="Top Rated Projects" link="/campaigns" />
+                        <SectionHeader title="Top Rated Campaigns" link="/campaigns" />
                         {loading.topRated ? (
                             <div className="flex justify-center py-12">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -322,14 +322,14 @@ const Home = () => {
                         ) : renderNoProjectsMessage("Top Rated")}
                     </motion.section>
 
-                    {/* Latest Projects */}
+                    {/* Latest Campaigns */}
                     <motion.section
                         className="mb-12"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
-                        <SectionHeader title="Recently Added" link="/campaigns" />
+                        <SectionHeader title="Recently Added Campaigns" link="/campaigns" />
                         {loading.latest ? (
                             <div className="flex justify-center py-12">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -343,14 +343,14 @@ const Home = () => {
                         ) : renderNoProjectsMessage("Latest")}
                     </motion.section>
 
-                    {/* Featured Projects */}
+                    {/* Featured Campaigns */}
                     <motion.section
                         className="mb-12"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5, delay: 0.3 }}
                     >
-                        <SectionHeader title="Featured Projects" link="/campaigns" />
+                        <SectionHeader title="Featured Campaigns" link="/campaigns" />
                         {loading.featured ? (
                             <div className="flex justify-center py-12">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

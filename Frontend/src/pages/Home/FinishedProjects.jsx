@@ -69,7 +69,7 @@ const FinishedProjects = () => {
         <div className="text-red-500 mb-4">
           <FaExclamationCircle className="text-4xl mx-auto" />
         </div>
-        <h2 className="text-xl font-bold text-[#1e1e1e] mb-2">Error loading projects</h2>
+        <h2 className="text-xl font-bold text-[#1e1e1e] mb-2">Error loading Campaigns</h2>
         <p className="text-[#1e1e1e] mb-4">{error.message}</p>
         <button
           onClick={() => window.location.reload()}
@@ -103,7 +103,7 @@ const FinishedProjects = () => {
             </div>
             <input
               type="text"
-              placeholder="Search projects..."
+              placeholder="Search Campaigns..."
               className="w-full pl-10 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -129,11 +129,11 @@ const FinishedProjects = () => {
             <div className="text-[#9ACBD0] mb-4">
               <FaSearch className="text-5xl mx-auto" />
             </div>
-            <h3 className="text-xl font-bold text-[#1e1e1e] mb-2">No projects found</h3>
+            <h3 className="text-xl font-bold text-[#1e1e1e] mb-2">No Campaigns found</h3>
             <p className="text-[#1e1e1e] mb-4">
               {searchTerm || selectedCategory
                 ? "Try adjusting your search or filter criteria"
-                : "There are currently no projects available"}
+                : "There are currently no Campaigns available"}
             </p>
             {searchTerm || selectedCategory ? (
               <button

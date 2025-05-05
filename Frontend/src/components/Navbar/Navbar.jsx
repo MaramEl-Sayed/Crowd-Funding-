@@ -57,7 +57,7 @@ const Navbar = () => {
             Categories
           </NavLink>
           <NavLink to="/finished" className="hover:text-[#006A71]">
-            Finished Campains
+            Finished Campaigns
           </NavLink>
         </div>
 
@@ -73,7 +73,7 @@ const Navbar = () => {
         {/* Right side - hidden on mobile */}
         <div className="hidden md:flex items-center space-x-4">
           <NavLink to="/about" className="hover:text-[#006A71]">
-            About
+            About US
           </NavLink>
           {user ? (
             <>
@@ -140,7 +140,7 @@ const Navbar = () => {
                 className="hover:text-[#006A71]"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Projects
+                Campaigns
               </NavLink>
               <NavLink
                 to="/about"
