@@ -42,33 +42,46 @@ const HeroSection = ({
 
     return (
         <>
-            <section
-                className="mb-12 text-center py-12 px-4 rounded-xl"
+            <motion.section
+                className="mb-12 text-center py-12 px-4 rounded-xl relative overflow-hidden"
                 style={{ backgroundColor: colors.accent }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
             >
-                <h1
-                    className="text-3xl md:text-4xl font-bold mb-4"
+                {/* Background subtle animation */}
+                <motion.div
+                    className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-[#9ACBD0] via-[#48A6A7] to-[#006A71] opacity-10"
+                    animate={{ x: [0, 50, 0] }}
+                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                    style={{ filter: 'blur(40px)' }}
+                />
+
+                <motion.h1
+                    className="relative text-3xl md:text-4xl font-bold mb-4"
                     style={{ color: colors.textDark }}
-                    initial={{ y: -20 }}
-                    animate={{ y: 0 }}
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.5 }}
                 >
                     Support Causes That Matter
-                </h1>
-                <p
-                    className="text-lg max-w-2xl mx-auto mb-6"
+                </motion.h1>
+                <motion.p
+                    className="relative text-lg max-w-2xl mx-auto mb-6"
                     style={{ color: colors.textDark }}
-                    initial={{ y: 20 }}
-                    animate={{ y: 0 }}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.5 }}
                 >
                     Discover and donate to campaigns making a difference in communities worldwide.
-                </p>
+                </motion.p>
 
-                <div className="max-w-xl mx-auto relative">
+                <motion.div
+                    className="max-w-xl mx-auto relative"
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                >
                     <input
                         type="text"
                         value={searchQuery}
@@ -82,8 +95,8 @@ const HeroSection = ({
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
                         </div>
                     )}
-                </div>
-            </section>
+                </motion.div>
+            </motion.section>
 
             {/* Search Results */}
             {isLoading ? (
