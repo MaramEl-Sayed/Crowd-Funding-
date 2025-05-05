@@ -50,8 +50,8 @@ const Navbar = () => {
           <NavLink to="/home" className="hover:text-[#006A71]">
             Home
           </NavLink>
-          <NavLink to="/campains" className="hover:text-[#006A71]">
-            Campains
+          <NavLink to="/campaigns" className="hover:text-[#006A71]">
+            Campaigns
           </NavLink>
           <NavLink to="/categories" className="hover:text-[#006A71]">
             Categories
@@ -136,7 +136,7 @@ const Navbar = () => {
                 Home
               </NavLink>
               <NavLink
-                to="/projects"
+                to="/campaigns"
                 className="hover:text-[#006A71]"
                 onClick={() => setIsMenuOpen(false)}
               >

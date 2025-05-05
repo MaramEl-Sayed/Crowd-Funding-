@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaCheckCircle, FaExclamationCircle, FaSpinner, FaCamera } from 'react-icons/fa';
+import { FaCheckCircle, FaExclamationCircle, FaSpinner, FaCamera, FaFileUpload, FaIdCard } from 'react-icons/fa';
 import Alert from '../../alert/Alert';
 
-const CreateProject = () => {
+const CreateCampaign = () => {
     const token = localStorage.getItem('accessToken');
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -25,6 +25,23 @@ const CreateProject = () => {
     const [newImages, setNewImages] = useState([]);
     const [newImagePreviews, setNewImagePreviews] = useState([]);
     const [categories, setCategories] = useState([]);
+
+    // New frontend-only state
+    const [userPhoto, setUserPhoto] = useState(null);
+    const [userPhotoPreview, setUserPhotoPreview] = useState('');
+    const [idFrontImage, setIdFrontImage] = useState(null);
+    const [idFrontPreview, setIdFrontPreview] = useState('');
+    const [idBackImage, setIdBackImage] = useState(null);
+    const [idBackPreview, setIdBackPreview] = useState('');
+    const [supportingFiles, setSupportingFiles] = useState([]);
+    const [supportingFilePreviews, setSupportingFilePreviews] = useState([]);
+    const [instructions] = useState([
+        '1. Ensure all information provided is accurate and truthful.',
+        '2. Campaigns will be reviewed within 24-48 hours.',
+        '3. Provide clear images and supporting documents.',
+        '4. False information may result in campaign rejection.',
+        '5. Contact support if you need assistance.'
+    ].join('\n'));
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -75,6 +92,51 @@ const CreateProject = () => {
         });
     };
 
+    const handleUserPhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setUserPhoto(file);
+            setUserPhotoPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleIdFrontChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setIdFrontImage(file);
+            setIdFrontPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleIdBackChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setIdBackImage(file);
+            setIdBackPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleSupportingFilesChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            setSupportingFiles(prev => [...prev, ...files]);
+            const previews = files.map(file => ({
+                url: URL.createObjectURL(file),
+                name: file.name,
+                type: file.type
+            }));
+            setSupportingFilePreviews(prev => [...prev, ...previews]);
+        }
+    };
+
+    const removeSupportingFile = (index) => {
+        setSupportingFiles(prev => prev.filter((_, i) => i !== index));
+        setSupportingFilePreviews(prev => {
+            URL.revokeObjectURL(prev[index].url);
+            return prev.filter((_, i) => i !== index);
+        });
+    };
+
     const handleTagRemove = useCallback((tagName) => {
         setSelectedTags(prevSelected => prevSelected.filter(t => t !== tagName));
     }, []);
@@ -86,9 +148,10 @@ const CreateProject = () => {
             return;
         }
         if (newImages.length === 0) {
-            setError('Please upload at least one image.');
+            setError('Please upload at least one campaign image.');
             return;
         }
+
         setLoading(true);
         const formDataToSend = new FormData();
         for (const key in formData) {
@@ -106,17 +169,34 @@ const CreateProject = () => {
                     'Authorization': `Bearer ${token}`,
                 },
             });
+
+            // Clean up object URLs
             newImagePreviews.forEach(url => URL.revokeObjectURL(url));
+            if (userPhotoPreview) URL.revokeObjectURL(userPhotoPreview);
+            if (idFrontPreview) URL.revokeObjectURL(idFrontPreview);
+            if (idBackPreview) URL.revokeObjectURL(idBackPreview);
+            supportingFilePreviews.forEach(file => URL.revokeObjectURL(file.url));
+
+            // Reset all states
             setNewImages([]);
             setNewImagePreviews([]);
+            setUserPhoto(null);
+            setUserPhotoPreview('');
+            setIdFrontImage(null);
+            setIdFrontPreview('');
+            setIdBackImage(null);
+            setIdBackPreview('');
+            setSupportingFiles([]);
+            setSupportingFilePreviews([]);
+
             setSuccess(true);
             setError(null);
             navigate('/home');
         } catch (err) {
-            setError(err.response?.data?.title?.[0] || 'Error creating project');
+            setError(err.response?.data?.title?.[0] || 'Error creating campaign');
             setSuccess(false);
             console.log(err);
-            Alert.error('Error!', err.response?.data?.title?.[0] || 'Error creating project.');
+            Alert.error('Error!', err.response?.data?.title?.[0] || 'Error creating campaign.');
         } finally {
             setLoading(false);
         }
@@ -126,7 +206,7 @@ const CreateProject = () => {
         <div className="flex items-center justify-center min-h-screen bg-[#F2EFE7] p-4">
             <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-hidden">
                 <div className="w-full bg-[#006A71] p-6 flex flex-col justify-center items-center text-center">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-2">Create New Project</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-[#ffffff] mb-2">Create New Campaign</h1>
                     <p className="text-[#ffffff] text-sm sm:text-base">Bring your creative ideas to life</p>
                 </div>
 
@@ -134,7 +214,7 @@ const CreateProject = () => {
                     {success && (
                         <div className="flex items-center justify-center mb-4 text-green-500">
                             <FaCheckCircle className="mr-2" />
-                            <p>Project created successfully!</p>
+                            <p>Campaign created successfully!</p>
                         </div>
                     )}
                     {error && (
@@ -151,10 +231,10 @@ const CreateProject = () => {
                                 name="title"
                                 value={formData.title}
                                 onChange={handleChange}
-                                placeholder="Project Title"
+                                placeholder="Campaign Title"
                                 className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
                                 required
-                                aria-label="Project Title"
+                                aria-label="Campaign Title"
                             />
                         </div>
 
@@ -163,11 +243,11 @@ const CreateProject = () => {
                                 name="details"
                                 value={formData.details}
                                 onChange={handleChange}
-                                placeholder="Project Details"
+                                placeholder="Campaign Details"
                                 rows="4"
                                 className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
                                 required
-                                aria-label="Project Details"
+                                aria-label="Campaign Details"
                             />
                         </div>
 
@@ -178,7 +258,7 @@ const CreateProject = () => {
                                 onChange={handleChange}
                                 className="w-full pl-4 pr-4 py-2 border border-[#9ACBD0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006A71] text-[#1e1e1e] text-sm sm:text-base"
                                 required
-                                aria-label="Project Category"
+                                aria-label="Campaign Category"
                             >
                                 <option value="">Select a category</option>
                                 {categories.map(category => (
@@ -227,47 +307,7 @@ const CreateProject = () => {
                             </div>
                         </div>
 
-                        <div className="relative">
-                            <label className="block mb-2 text-[#1e1e1e] text-sm sm:text-base">Images</label>
-                            <div className="flex items-center justify-center w-full">
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
-                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <FaCamera className="text-[#48A6A7] w-8 h-8 mb-2" />
-                                        <p className="text-sm text-[#1e1e1e]">Click to upload images</p>
-                                    </div>
-                                    <input
-                                        type="file"
-                                        className="hidden"
-                                        onChange={handleImageChange}
-                                        accept="image/*"
-                                        multiple
-                                        aria-label="Project Images"
-                                    />
-                                </label>
-                            </div>
-                            {newImagePreviews.length > 0 && (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-                                    {newImagePreviews.map((preview, index) => (
-                                        <div key={index} className="relative">
-                                            <img
-                                                src={preview}
-                                                alt={`New project image ${index + 1}`}
-                                                className="w-full h-32 object-cover rounded-lg border border-[#9ACBD0]"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveNewImage(index)}
-                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 text-xs"
-                                                aria-label="Remove new image"
-                                            >
-                                                ×
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
+                        {/* Tags Section */}
                         <div className="mb-4">
                             <label className="block text-[#1e1e1e] mb-2 text-sm sm:text-base">Tags</label>
                             <div className="flex flex-wrap gap-2 mb-2">
@@ -344,13 +384,225 @@ const CreateProject = () => {
                             </div>
                         </div>
 
+                        <div className="relative">
+                            <label className="block mb-2 text-[#1e1e1e] text-sm sm:text-base">Campaign Images</label>
+                            <div className="flex items-center justify-center w-full">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <FaCamera className="text-[#48A6A7] w-8 h-8 mb-2" />
+                                        <p className="text-sm text-[#1e1e1e]">Click to upload campaign images</p>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        onChange={handleImageChange}
+                                        accept="image/*"
+                                        multiple
+                                        aria-label="Campaign Images"
+                                    />
+                                </label>
+                            </div>
+                            {newImagePreviews.length > 0 && (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                                    {newImagePreviews.map((preview, index) => (
+                                        <div key={index} className="relative">
+                                            <img
+                                                src={preview}
+                                                alt={`Campaign image ${index + 1}`}
+                                                className="w-full h-32 object-cover rounded-lg border border-[#9ACBD0]"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveNewImage(index)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 text-xs"
+                                                aria-label="Remove campaign image"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* User Verification Section */}
+                        <div className="border-t border-b border-[#9ACBD0] py-6 my-6">
+                            <h2 className="text-xl font-semibold mb-4 text-[#006A71]">User Verification</h2>
+
+                            {/* User Photo */}
+                            <div className="mb-6">
+                                <label className="block mb-2 text-[#1e1e1e]">Your Photo</label>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                        {userPhotoPreview ? (
+                                            <img src={userPhotoPreview} alt="User preview" className="w-full h-full object-cover rounded-lg" />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center p-4">
+                                                <FaCamera className="text-[#48A6A7] w-6 h-6 mb-2" />
+                                                <p className="text-xs text-center text-[#1e1e1e]">Upload your photo</p>
+                                            </div>
+                                        )}
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            onChange={handleUserPhotoChange}
+                                            accept="image/*"
+                                        />
+                                    </label>
+                                    <div className="text-sm text-gray-600 flex-1">
+                                        <p className="font-medium">Profile Photo Requirements:</p>
+                                        <ul className="list-disc pl-5 mt-1 space-y-1">
+                                            <li>Clear, recent photo of your face</li>
+                                            <li>No filters or heavy editing</li>
+                                            <li>Well-lit with neutral background</li>
+                                            <li>Must match your ID photo</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ID Front */}
+                            <div className="mb-6">
+                                <label className="block mb-2 text-[#1e1e1e]">ID Front Side</label>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                        {idFrontPreview ? (
+                                            <img src={idFrontPreview} alt="ID front preview" className="w-full h-full object-cover rounded-lg" />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center p-4">
+                                                <FaIdCard className="text-[#48A6A7] w-6 h-6 mb-2" />
+                                                <p className="text-xs text-center text-[#1e1e1e]">Upload ID front</p>
+                                            </div>
+                                        )}
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            onChange={handleIdFrontChange}
+                                            accept="image/*"
+                                        />
+                                    </label>
+                                    <div className="text-sm text-gray-600 flex-1">
+                                        <p className="font-medium">ID Front Requirements:</p>
+                                        <ul className="list-disc pl-5 mt-1 space-y-1">
+                                            <li>Clear photo of the front of your government-issued ID</li>
+                                            <li>Must show full document with all corners visible</li>
+                                            <li>All text must be readable</li>
+                                            <li>Accepted IDs: Passport, Driver's License, National ID</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ID Back */}
+                            <div className="mb-2">
+                                <label className="block mb-2 text-[#1e1e1e]">ID Back Side</label>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                        {idBackPreview ? (
+                                            <img src={idBackPreview} alt="ID back preview" className="w-full h-full object-cover rounded-lg" />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center p-4">
+                                                <FaIdCard className="text-[#48A6A7] w-6 h-6 mb-2" />
+                                                <p className="text-xs text-center text-[#1e1e1e]">Upload ID back</p>
+                                            </div>
+                                        )}
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            onChange={handleIdBackChange}
+                                            accept="image/*"
+                                        />
+                                    </label>
+                                    <div className="text-sm text-gray-600 flex-1">
+                                        <p className="font-medium">ID Back Requirements:</p>
+                                        <ul className="list-disc pl-5 mt-1 space-y-1">
+                                            <li>Clear photo of the back of your ID</li>
+                                            <li>Must show any security features or additional information</li>
+                                            <li>All text must be readable</li>
+                                            <li>Ensure barcode/magnetic strip is visible if present</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Supporting Documents */}
+                        <div className="mb-6">
+                            <label className="block mb-2 text-[#1e1e1e]">Supporting Documents</label>
+                            <div className="flex flex-col space-y-4">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#9ACBD0] border-dashed rounded-lg cursor-pointer hover:bg-[#F2EFE7]">
+                                    <div className="flex flex-col items-center justify-center p-4">
+                                        <FaFileUpload className="text-[#48A6A7] w-8 h-8 mb-2" />
+                                        <p className="text-sm text-[#1e1e1e]">Upload supporting documents</p>
+                                        <p className="text-xs text-gray-500">(PDF, JPG, PNG up to 5MB each)</p>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        onChange={handleSupportingFilesChange}
+                                        multiple
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                    />
+                                </label>
+
+                                {supportingFilePreviews.length > 0 && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                                        {supportingFilePreviews.map((file, index) => (
+                                            <div key={index} className="relative border border-[#9ACBD0] rounded-lg p-2">
+                                                {file.type.startsWith('image/') ? (
+                                                    <div className="flex flex-col h-full">
+                                                        <img
+                                                            src={file.url}
+                                                            alt={`Supporting document ${index + 1}`}
+                                                            className="w-full h-32 object-contain"
+                                                        />
+                                                        <p className="text-xs text-center truncate mt-2">{file.name}</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center h-full">
+                                                        <div className="bg-[#F2EFE7] rounded-full p-4 mb-2">
+                                                            <FaFileUpload className="text-[#48A6A7] w-6 h-6" />
+                                                        </div>
+                                                        <p className="text-xs text-center truncate w-full">{file.name}</p>
+                                                    </div>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeSupportingFile(index)}
+                                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 text-xs"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Upload any documents that support your campaign (medical reports, bills, certificates, etc.)
+                            </p>
+                        </div>
+
+                        {/* Instructions */}
+                        <div className="bg-[#F2EFE7] p-4 rounded-lg">
+                            <h3 className="font-semibold text-[#006A71] mb-2">Important Instructions</h3>
+                            <div className="bg-white p-3 rounded">
+                                <pre className="text-sm text-[#1e1e1e] whitespace-pre-wrap font-sans">{instructions}</pre>
+                            </div>
+                        </div>
+
                         <button
                             type="submit"
                             className="w-full bg-[#006A71] hover:bg-[#04828c] text-[#ffffff] font-semibold py-2 sm:py-3 rounded-lg transition duration-300 text-sm sm:text-base flex items-center justify-center"
                             disabled={loading}
-                            aria-label="Create Project"
+                            aria-label="Create Campaign"
                         >
-                            {loading ? <FaSpinner className="animate-spin mr-2" /> : 'Create Project'}
+                            {loading ? (
+                                <>
+                                    <FaSpinner className="animate-spin mr-2" />
+                                    Creating Campaign...
+                                </>
+                            ) : 'Create Campaign'}
                         </button>
                     </form>
                 </div>
@@ -359,4 +611,4 @@ const CreateProject = () => {
     );
 };
 
-export default CreateProject;
+export default CreateCampaign;
