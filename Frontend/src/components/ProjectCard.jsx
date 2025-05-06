@@ -1,8 +1,7 @@
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-const ProjectCard = ({ project }) => {
-    const navigate = useNavigate();
+const ProjectCard = ({ project, handleDonateNow }) => {
 
     // Color palette
     const colors = {
@@ -28,9 +27,7 @@ const ProjectCard = ({ project }) => {
         return null;
     };
 
-    const handleDonateNow = (projectId) => {
-        navigate(`/projects/${projectId}/donate`);
-    };
+
 
     if (!project) {
         return (
@@ -123,7 +120,7 @@ const ProjectCard = ({ project }) => {
                 )}
 
                 <motion.button
-                    onClick={() => handleDonateNow(project.id)}
+                    onClick={() => handleDonateNow()}
                     className="w-full py-2 rounded-md text-white font-medium"
                     style={{ backgroundColor: colors.primary }}
                     whileHover={{

@@ -216,3 +216,12 @@ class Share(models.Model):
     def __str__(self):
         user_str = self.user.username if self.user else "Anonymous"
         return f"{user_str} shared {self.project.title} on {self.platform} at {self.shared_at}"
+
+
+class ProjectSupportingDocument(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='supporting_documents')
+    document = models.FileField(upload_to='supporting_documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Supporting document for {self.project.title} - {self.document.name}"

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Slider from "react-slick";
 import Alert from '../../alert/Alert';
-import { FaExclamationCircle, FaSpinner, FaFlag, FaComment, FaDonate, FaEdit, FaTimes, FaShareAlt, FaFacebook, FaWhatsapp, FaTwitter, FaLinkedin, FaArrowRight } from 'react-icons/fa';
+import { FaExclamationCircle, FaSpinner, FaFlag, FaComment, FaDonate, FaEdit, FaTimes, FaShareAlt, FaFacebook, FaWhatsapp, FaTwitter, FaLinkedin, FaPoundSign } from 'react-icons/fa';
 import { motion, AnimatePresence } from "framer-motion";
 import AuthPopup from '../../components/AuthPopup';
 
@@ -580,7 +580,7 @@ const ProjectDetails = () => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="font-bold text-[#2563eb]">${donation.amount}</span>
+                                        <span className="font-bold text-[#2563eb]"><FaPoundSign className="inline mb-1 mr-1" />{donation.amount}</span>
                                     </div>
                                 ))}
                                 {project.donations.length > 5 && (

@@ -327,7 +327,11 @@ const Home = () => {
                         ) : projects.latest.length > 0 ? (
                             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {projects.latest.map(project => (
-                                    <ProjectCard key={project.id} project={project} />
+                                    <ProjectCard
+                                        key={project.id}
+                                        project={project}
+                                        handleDonateNow={() => handleDonateNow(project.id)}
+                                    />
                                 ))}
                             </div>
                         ) : renderNoProjectsMessage("Latest")}
@@ -348,7 +352,11 @@ const Home = () => {
                         ) : projects.featured.length > 0 ? (
                             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {projects.featured.map(project => (
-                                    <ProjectCard key={project.id} project={project} />
+                                    <ProjectCard
+                                        key={project.id}
+                                        project={project}
+                                        handleDonateNow={() => handleDonateNow(project.id)}
+                                    />
                                 ))}
                             </div>
                         ) : renderNoProjectsMessage("Featured")}

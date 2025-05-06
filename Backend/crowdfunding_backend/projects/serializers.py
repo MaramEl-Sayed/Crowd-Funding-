@@ -1,21 +1,18 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category,Share
+from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category,Share, ProjectSupportingDocument
 
 User = get_user_model()
-
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ["id", "name"]
 
-
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ["id", "name", "image"]
-
 
 class DonationSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.username")
@@ -40,12 +37,15 @@ class DonationSerializer(serializers.ModelSerializer):
             return avatar_url
         return None
 
-
 class ProjectImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectImage
         fields = ['id', 'image', 'uploaded_at']
 
+class ProjectSupportingDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectSupportingDocument
+        fields = ['id', 'document', 'uploaded_at']
 
 class ProjectSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source="owner.username")
@@ -61,11 +61,13 @@ class ProjectSerializer(serializers.ModelSerializer):
     progress_percentage = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
     images_files = serializers.ListField(child=serializers.ImageField(), write_only=True, required=False)
+    supporting_documents = ProjectSupportingDocumentSerializer(many=True, read_only=True)
+    supporting_documents_files = serializers.ListField(child=serializers.FileField(), write_only=True, required=False)
 
     class Meta:
         model = Project
         fields = [
-            'id', 'title', 'details', 'category', 'category_id', 'total_target', 'start_time','end_time', 'slug', 'status','owner', 'tags', 'tags_ids','average_rating', 'total_donations', 'can_be_cancelled', 'donations','remaining_amount', 'progress_percentage', 'images', 'images_files'
+            'id', 'title', 'details', 'category', 'category_id', 'total_target', 'start_time','end_time', 'slug', 'status','owner', 'tags', 'tags_ids','average_rating', 'total_donations', 'can_be_cancelled', 'donations','remaining_amount', 'progress_percentage', 'images', 'images_files', 'supporting_documents', 'supporting_documents_files'
         ]
 
     def validate(self, data):
@@ -98,6 +100,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags_data = validated_data.pop('tags_ids', [])
         images_files = validated_data.pop('images_files', [])
+        supporting_documents_files = validated_data.pop('supporting_documents_files', [])
         category = validated_data.pop('category', None)
 
         project = Project.objects.create(**validated_data)
@@ -107,11 +110,14 @@ class ProjectSerializer(serializers.ModelSerializer):
         self._handle_tags(project, tags_data)
         for image_file in images_files:
             ProjectImage.objects.create(project=project, image=image_file)
+        for document_file in supporting_documents_files:
+            ProjectSupportingDocument.objects.create(project=project, document=document_file)
         return project
 
     def update(self, instance, validated_data):
         tags_data = validated_data.pop('tags_ids', None)
         images_files = validated_data.pop('images_files', [])
+        supporting_documents_files = validated_data.pop('supporting_documents_files', [])
         category = validated_data.pop('category', None)
 
         for attr, value in validated_data.items():
@@ -123,6 +129,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             self._handle_tags(instance, tags_data)
         for image_file in images_files:
             ProjectImage.objects.create(project=instance, image=image_file)
+        for document_file in supporting_documents_files:
+            ProjectSupportingDocument.objects.create(project=instance, document=document_file)
         return instance
 
     def _handle_tags(self, project, tags_data):
@@ -131,7 +139,6 @@ class ProjectSerializer(serializers.ModelSerializer):
             tag_obj, created = Tag.objects.get_or_create(name=tag_name)
             tag_objs.append(tag_obj)
         project.tags.set(tag_objs)
-
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
@@ -143,7 +150,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_replies(self, obj):
         return CommentSerializer(obj.replies.all(), many=True).data
-
 
 class ReportSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')

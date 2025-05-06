@@ -4,6 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaExclamationCircle, FaSpinner, FaCamera, FaFileUpload, FaIdCard } from 'react-icons/fa';
 import Alert from '../../alert/Alert';
 
+const COLORS = {
+    primary: "#2563eb",     // blue-600
+    secondary: "#3b82f6",   // blue-500
+    accent: "#bfdbfe",      // blue-200
+    background: "#eff6ff",  // blue-100
+    textDark: "#374151",    // gray-700
+    textLight: "#ffffff"    // white
+};
+
 const CreateCampaign = () => {
     const token = localStorage.getItem('accessToken');
     const navigate = useNavigate();
@@ -319,7 +328,7 @@ const CreateCampaign = () => {
                                         <button
                                             type="button"
                                             onClick={() => handleTagRemove(tagName)}
-                                            className="ml-2 text-primary hover:text-text-dark"
+                                            className="ml-2 text-[#2563eb] hover:text-text-dark"
                                             aria-label={`Remove ${tagName} tag`}
                                         >
                                             ×
@@ -333,7 +342,7 @@ const CreateCampaign = () => {
                                     value={newTagInput}
                                     onChange={(e) => setNewTagInput(e.target.value)}
                                     placeholder="Add new tag"
-                                    className="flex-1 p-2 border border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                    className="flex-1 p-2 border border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && newTagInput.trim()) {
                                             e.preventDefault();
@@ -353,7 +362,7 @@ const CreateCampaign = () => {
                                             setNewTagInput('');
                                         }
                                     }}
-                                    className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition duration-300"
+                                    className="bg-[#2563eb] text-white px-4 py-2 rounded-lg hover:bg-secondary transition duration-300"
                                     aria-label="Add tag"
                                 >
                                     Add
@@ -368,7 +377,7 @@ const CreateCampaign = () => {
                                         }
                                         e.target.value = "";
                                     }}
-                                    className="w-full p-2 border border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                    className="w-full p-2 border border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
                                     aria-label="Select existing tags"
                                 >
                                     <option value="">Add existing tag...</option>
@@ -425,25 +434,26 @@ const CreateCampaign = () => {
                         </div>
 
                         {/* User Verification Section */}
-                        <div className="border-t border-b border-[#A7C7D9] py-6 my-6">
+                        <div className="border-t border-b border-[#bfdbfe] py-6 my-6">
                             <h2 className="text-xl font-semibold mb-4 text-[#3B82F6]">User Verification</h2>
 
                             {/* User Photo */}
                             <div className="mb-6">
                                 <label className="block mb-2 text-[#2D3748]">Your Photo</label>
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#A7C7D9] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
+                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#bfdbfe] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
                                         {userPhotoPreview ? (
                                             <img src={userPhotoPreview} alt="User preview" className="w-full h-full object-cover rounded-lg" />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center p-4">
-                                                <FaCamera className="text-[#48A6A7] w-6 h-6 mb-2" />
+                                                <FaCamera className="text-[#3B82F6] w-6 h-6 mb-2" />
                                                 <p className="text-xs text-center text-[#2D3748]">Upload your photo</p>
                                             </div>
                                         )}
                                         <input
                                             type="file"
                                             className="hidden"
+                                            required
                                             onChange={handleUserPhotoChange}
                                             accept="image/*"
                                         />
@@ -464,18 +474,19 @@ const CreateCampaign = () => {
                             <div className="mb-6">
                                 <label className="block mb-2 text-[#2D3748]">ID Front Side</label>
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#A7C7D9] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
+                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#bfdbfe] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
                                         {idFrontPreview ? (
                                             <img src={idFrontPreview} alt="ID front preview" className="w-full h-full object-cover rounded-lg" />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center p-4">
-                                                <FaIdCard className="text-[#48A6A7] w-6 h-6 mb-2" />
+                                                <FaIdCard className="text-[#3B82F6] w-6 h-6 mb-2" />
                                                 <p className="text-xs text-center text-[#2D3748]">Upload ID front</p>
                                             </div>
                                         )}
                                         <input
                                             type="file"
                                             className="hidden"
+                                            required
                                             onChange={handleIdFrontChange}
                                             accept="image/*"
                                         />
@@ -496,18 +507,19 @@ const CreateCampaign = () => {
                             <div className="mb-2">
                                 <label className="block mb-2 text-[#2D3748]">ID Back Side</label>
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#A7C7D9] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
+                                    <label className="flex-shrink-0 flex flex-col items-center justify-center w-32 h-32 border-2 border-[#bfdbfe] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
                                         {idBackPreview ? (
                                             <img src={idBackPreview} alt="ID back preview" className="w-full h-full object-cover rounded-lg" />
                                         ) : (
                                             <div className="flex flex-col items-center justify-center p-4">
-                                                <FaIdCard className="text-[#48A6A7] w-6 h-6 mb-2" />
+                                                <FaIdCard className="text-[#3B82F6] w-6 h-6 mb-2" />
                                                 <p className="text-xs text-center text-[#2D3748]">Upload ID back</p>
                                             </div>
                                         )}
                                         <input
                                             type="file"
                                             className="hidden"
+                                            required
                                             onChange={handleIdBackChange}
                                             accept="image/*"
                                         />
@@ -529,15 +541,16 @@ const CreateCampaign = () => {
                         <div className="mb-6">
                             <label className="block mb-2 text-[#2D3748]">Supporting Documents</label>
                             <div className="flex flex-col space-y-4">
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#A7C7D9] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#bfdbfe] border-dashed rounded-lg cursor-pointer hover:bg-[#E1ECF5]">
                                     <div className="flex flex-col items-center justify-center p-4">
-                                        <FaFileUpload className="text-[#48A6A7] w-8 h-8 mb-2" />
+                                        <FaFileUpload className="text-[#3B82F6] w-8 h-8 mb-2" />
                                         <p className="text-sm text-[#2D3748]">Upload supporting documents</p>
                                         <p className="text-xs text-gray-500">(PDF, JPG, PNG up to 5MB each)</p>
                                     </div>
                                     <input
                                         type="file"
                                         className="hidden"
+                                        required
                                         onChange={handleSupportingFilesChange}
                                         multiple
                                         accept=".pdf,.jpg,.jpeg,.png"
@@ -547,7 +560,7 @@ const CreateCampaign = () => {
                                 {supportingFilePreviews.length > 0 && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                                         {supportingFilePreviews.map((file, index) => (
-                                            <div key={index} className="relative border border-[#A7C7D9] rounded-lg p-2">
+                                            <div key={index} className="relative border border-[#bfdbfe] rounded-lg p-2">
                                                 {file.type.startsWith('image/') ? (
                                                     <div className="flex flex-col h-full">
                                                         <img
@@ -560,7 +573,7 @@ const CreateCampaign = () => {
                                                 ) : (
                                                     <div className="flex flex-col items-center justify-center h-full">
                                                         <div className="bg-[#E1ECF5] rounded-full p-4 mb-2">
-                                                            <FaFileUpload className="text-[#48A6A7] w-6 h-6" />
+                                                            <FaFileUpload className="text-[#3B82F6] w-6 h-6" />
                                                         </div>
                                                         <p className="text-xs text-center truncate w-full">{file.name}</p>
                                                     </div>

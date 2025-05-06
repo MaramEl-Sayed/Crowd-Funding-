@@ -210,6 +210,8 @@ REST_FRAMEWORK = {
     ],
 }
 
+
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Email settings
@@ -236,7 +238,7 @@ ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
 
 # Frontend URL for email links
-FRONTEND_URL = "http://localhost:3000"  # Added for activation and password reset links
+FRONTEND_URL = "https://6313-102-189-207-6.ngrok-free.app"  # Added for activation and password reset links
 
 # Admins for email notifications
 ADMINS = [('Admin', 'crowdfunding449@gmail.com')]
@@ -244,18 +246,18 @@ ADMINS = [('Admin', 'crowdfunding449@gmail.com')]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",  # React frontend URL
-    "https://ccc1-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
-    "https://d487-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
+    "https://3ca3-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
+    "https://6313-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
 ]
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "d487-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
-    "ccc1-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
+    "6313-102-189-207-6.ngrok-free.app", # Ngrok URL for testing frontend
+    "3ca3-102-189-207-6.ngrok-free.app", # Ngrok URL for testing backend
 ]
 
-FRONTEND_URL = "https://d487-102-189-207-6.ngrok-free.app"  # Updated to ngrok URL
+# FRONTEND_URL = "https://d487-102-189-207-6.ngrok-free.app"  # Updated to ngrok URL
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1), 

@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions,generics
 from django.shortcuts import get_object_or_404
-from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category, Payment,Share
+from .models import Project, ProjectImage, Tag, Donation, Comment, Report, Rating, Category, Payment,Share, ProjectSupportingDocument
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
@@ -14,7 +14,7 @@ from django.core.mail import send_mail
 from django.db.models import Count
 from .serializers import (
     ProjectSerializer, TagSerializer, DonationSerializer,
-    CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer,ShareSerializer
+    CommentSerializer, ReportSerializer, RatingSerializer, CategorySerializer,ShareSerializer, ProjectSupportingDocumentSerializer
 )
 
 
